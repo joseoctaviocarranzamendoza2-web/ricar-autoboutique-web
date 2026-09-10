@@ -92,6 +92,8 @@ public class ConfigSecurity {
                     .requestMatchers(HttpMethod.DELETE, "/api/productos/**", "/api/servicios/**", "/api/categorias/**").hasAuthority("administrador")
                     // Lectura de clientes para los paneles de administración y gerencia
                     .requestMatchers(HttpMethod.GET, "/api/usuarios/**").hasAnyAuthority("administrador", "gerente")
+                    // El cliente puede actualizar su propio perfil; el controlador valida el ID propietario
+                    .requestMatchers(HttpMethod.PUT, "/api/usuarios/**").hasAnyAuthority("administrador", "cliente")
                     // Gestión de clientes: solo administrador
                     .requestMatchers("/api/usuarios/**").hasAuthority("administrador")
                     // Citas, compras y comentarios: cualquier usuario autenticado (la propia clase valida el rol puntual)

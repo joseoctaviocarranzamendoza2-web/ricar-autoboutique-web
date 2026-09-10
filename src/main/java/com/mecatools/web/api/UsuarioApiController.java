@@ -1,9 +1,11 @@
 package com.mecatools.web.api;
 
 import com.mecatools.web.models.Usuario;
+import com.mecatools.web.security.UsuarioDetails;
 import com.mecatools.web.services.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -56,7 +58,12 @@ public class UsuarioApiController {
 
     // Método para editar el perfil de un cliente existente. Valida los datos recibidos y devuelve una respuesta HTTP con el estado OK y el cliente editado, o un estado Not Found si no se encuentra el cliente.
     @PutMapping("/{id}")
-    public ResponseEntity<?> editarPerfil(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> editarPerfil(@PathVariable Long id, @RequestBody Map<String, String> body, Authentication auth) {
+        UsuarioDetails usuarioAutenticado = (UsuarioDetails) auth.getPrincipal();
+        boolean esAdministrador = auth.getAuthorities().stream().anyMatch(a -> "administrador".equals(a.getAuthority()));
+        if (!esAdministrador && !id.equals(usuarioAutenticado.getUsuario().getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "No puedes editar otro usuario"));
+        }
         try {
             return ResponseEntity.ok(usuarioService.editarPerfil(id, body));
         } catch (NoSuchElementException e) {

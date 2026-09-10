@@ -1,6 +1,7 @@
 package com.mecatools.web.api;
 
 import com.mecatools.web.models.Usuario;
+import com.mecatools.web.security.UsuarioDetails;
 import com.mecatools.web.services.UsuarioService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,7 +10,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
+import org.springframework.security.core.Authentication;
 import java.util.List;
+import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -22,6 +25,9 @@ class UsuarioApiControllerTest {
 
     @Mock
     private BindingResult bindingResult;
+
+    @Mock
+    private Authentication authentication;
 
     @InjectMocks
     private UsuarioApiController controller;
@@ -63,6 +69,30 @@ class UsuarioApiControllerTest {
         when(usuarioService.registrar(usuario)).thenThrow(new IllegalStateException("Email ya registrado"));
         // Act + Assert.
         assertEquals(HttpStatus.CONFLICT, controller.registro(usuario, bindingResult).getStatusCode());
+    }
+
+    @Test
+    void debePermitirAlClienteEditarSuPropioPerfil() {
+        Usuario usuario = new Usuario();
+        usuario.setId(1L);
+        UsuarioDetails details = new UsuarioDetails(usuario);
+        when(authentication.getPrincipal()).thenReturn(details);
+        when(usuarioService.editarPerfil(1L, Map.of("ciudad", "Lima"))).thenReturn(usuario);
+
+        var response = controller.editarPerfil(1L, Map.of("ciudad", "Lima"), authentication);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    void debeImpedirAlClienteEditarOtroPerfil() {
+        Usuario usuario = new Usuario();
+        usuario.setId(1L);
+        when(authentication.getPrincipal()).thenReturn(new UsuarioDetails(usuario));
+
+        var response = controller.editarPerfil(2L, Map.of("ciudad", "Lima"), authentication);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 
 }

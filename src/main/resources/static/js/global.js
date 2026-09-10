@@ -159,6 +159,63 @@ function abrirModal(id) {
     instancia.show();
 }
 
+let urlAnteriorAlLogin = null;
+let urlAnteriorAlRegistro = null;
+
+function obtenerUrlBaseLogin() {
+    const url = new URL(window.location.href);
+    const ruta = url.pathname.replace(/\/$/, '');
+    if (ruta.endsWith('/login')) {
+        url.pathname = ruta.slice(0, -'/login'.length) || '/inicio';
+    } else if (ruta === '') {
+        url.pathname = '/inicio';
+    }
+    return `${url.pathname}${url.search}${url.hash}`;
+}
+
+function actualizarUrlLogin() {
+    if (!urlAnteriorAlLogin) urlAnteriorAlLogin = obtenerUrlBaseLogin();
+    if (window.location.pathname.endsWith('/login')) return;
+    const urlLogin = new URL(urlAnteriorAlLogin, window.location.origin);
+    urlLogin.pathname = `${urlLogin.pathname.replace(/\/$/, '')}/login`;
+    urlLogin.search = '';
+    urlLogin.hash = '';
+    window.history.pushState({ ...window.history.state, modalLogin: true }, '', urlLogin.pathname);
+}
+
+function restaurarUrlAnteriorAlLogin() {
+    if (!urlAnteriorAlLogin) return;
+    window.history.replaceState(window.history.state, '', urlAnteriorAlLogin);
+    urlAnteriorAlLogin = null;
+}
+
+function obtenerUrlBaseRegistro() {
+    const url = new URL(window.location.href);
+    const ruta = url.pathname.replace(/\/$/, '');
+    if (ruta.endsWith('/registro')) {
+        url.pathname = ruta.slice(0, -'/registro'.length) || '/inicio';
+    } else if (ruta === '') {
+        url.pathname = '/inicio';
+    }
+    return `${url.pathname}${url.search}${url.hash}`;
+}
+
+function actualizarUrlRegistro() {
+    if (!urlAnteriorAlRegistro) urlAnteriorAlRegistro = obtenerUrlBaseRegistro();
+    if (window.location.pathname.endsWith('/registro')) return;
+    const urlRegistro = new URL(urlAnteriorAlRegistro, window.location.origin);
+    urlRegistro.pathname = `${urlRegistro.pathname.replace(/\/$/, '')}/registro`;
+    urlRegistro.search = '';
+    urlRegistro.hash = '';
+    window.history.pushState({ ...window.history.state, modalRegistro: true }, '', urlRegistro.pathname);
+}
+
+function restaurarUrlAnteriorAlRegistro() {
+    if (!urlAnteriorAlRegistro) return;
+    window.history.replaceState(window.history.state, '', urlAnteriorAlRegistro);
+    urlAnteriorAlRegistro = null;
+}
+
 // Limpia fondos (backdrops) sobrantes de modales para evitar problemas de scroll/overlay
 function limpiarBackdropsSobrantes() {
     const modalesAbiertos = document.querySelectorAll('.modal.show');
@@ -287,6 +344,30 @@ async function confirmarEmpresarial() {
 document.addEventListener('DOMContentLoaded', () => {
     actualizarNavbar();
     document.addEventListener('hidden.bs.modal', limpiarBackdropsSobrantes);
+    const modalLogin = document.getElementById('modalLogin');
+    const modalRegister = document.getElementById('modalRegister');
+    if (window.location.pathname.endsWith('/login')) {
+        urlAnteriorAlLogin = obtenerUrlBaseLogin();
+        abrirModal('modalLogin');
+    }
+    if (window.location.pathname.endsWith('/registro')) {
+        urlAnteriorAlRegistro = obtenerUrlBaseRegistro();
+        abrirModal('modalRegister');
+    }
+    modalLogin?.addEventListener('show.bs.modal', actualizarUrlLogin);
+    modalLogin?.addEventListener('hidden.bs.modal', restaurarUrlAnteriorAlLogin);
+    modalRegister?.addEventListener('show.bs.modal', actualizarUrlRegistro);
+    modalRegister?.addEventListener('hidden.bs.modal', restaurarUrlAnteriorAlRegistro);
+    window.addEventListener('popstate', () => {
+        if (!window.location.pathname.endsWith('/login') && modalLogin?.classList.contains('show')) {
+            urlAnteriorAlLogin = null;
+            bootstrap.Modal.getInstance(modalLogin)?.hide();
+        }
+        if (!window.location.pathname.endsWith('/registro') && modalRegister?.classList.contains('show')) {
+            urlAnteriorAlRegistro = null;
+            bootstrap.Modal.getInstance(modalRegister)?.hide();
+        }
+    });
     const btnAgendar = document.getElementById('btn-agendar-hero');
     if (btnAgendar) {
         btnAgendar.removeAttribute('data-bs-toggle');

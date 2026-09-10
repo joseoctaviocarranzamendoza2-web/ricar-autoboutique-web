@@ -1,0 +1,861 @@
+/* Variables globales: Paleta y dimensiones usadas por el layout del panel administrador */
+:root {
+    --color-azul-oscuro: #0a3d6b;
+    --color-azul-principal: #0d6efd;
+    --color-azul-claro: #e8f1ff;
+    --color-celeste: #56aee8;
+    --color-blanco: #ffffff;
+    --color-gris-claro: #f4f6f9;
+    --color-gris-texto: #4a5568;
+    --color-oscuro: #1a2332;
+    --ancho-sidebar: 260px;
+    --ancho-sidebar-colapsado: 72px;
+    --alto-barra-superior: 60px;
+}
+
+/* Reset box-sizing: Asegura cálculo consistente de padding/border */
+* {
+    box-sizing: border-box;
+}
+
+/* Reset de márgenes globales para evitar saltos entre navegadores */
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+/* Cuerpo principal: Define fuente, fondo neutro y color por defecto */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--color-gris-claro);
+    color: var(--color-oscuro);
+}
+
+/* Sidebar lateral fijo: Contenedor de navegación, ancho variable (colapsable) */
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--ancho-sidebar);
+    height: 100vh;
+    background: var(--color-azul-oscuro);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.28s ease;
+    z-index: 1040;
+    overflow: hidden;
+}
+
+/* Estado colapsado del sidebar: Reduce ancho y oculta textos */
+#sidebar.collapsed {
+    width: var(--ancho-sidebar-colapsado);
+}
+
+/* Cabecera del sidebar: Logo + nombre de marca, separador inferior */
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    min-height: var(--alto-barra-superior);
+    white-space: nowrap;
+}
+
+/* Icono de marca: Cuadrado con color de acento, usado cuando el sidebar está colapsado */
+.brand-icon {
+    width: 38px;
+    height: 38px;
+    background: var(--color-celeste);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-blanco);
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+/* Textos de marca: Nombre y subtítulo, se ocultan al colapsar el sidebar */
+.brand-texts {
+    transition: opacity 0.2s;
+}
+
+/* Nombre de la marca: Título compacto mostrado junto al icono en el sidebar */
+.brand-texts .brand-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-blanco);
+    line-height: 1;
+    display: block;
+    margin: 0;
+}
+
+/* Subtítulo de marca: Texto pequeño secundario (tag) bajo el nombre */
+.brand-texts .brand-sac {
+    font-size: 0.6rem;
+    color: var(--color-celeste);
+    font-weight: 600;
+    letter-spacing: 1px;
+    display: block;
+    margin: 0;
+}
+
+/* Ajuste al colapsar: Oculta textos de marca para ahorrar espacio */
+#sidebar.collapsed .brand-texts {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Área de navegación: Lista vertical con scroll personalizado */
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 8px;
+}
+
+/* Estilos del scrollbar del sidebar para apariencia más ligera */
+.sidebar-nav::-webkit-scrollbar {
+    width: 4px;
+}
+
+/* Pulgar del scrollbar: Color tenue y borde redondeado para una apariencia discreta */
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+}
+
+/* Etiqueta de sección en el sidebar: Pequeño texto uppercase para separar grupos */
+.nav-section-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.35);
+    padding: 14px 12px 4px;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+    margin: 0;
+}
+
+/* Oculta labels de sección cuando el sidebar está colapsado */
+#sidebar.collapsed .nav-section-label {
+    opacity: 0;
+}
+
+/* Enlace de navegación: Fila clicable con icono, texto y hover */
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.72);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.18s;
+    white-space: nowrap;
+    position: relative;
+}
+
+/* Icono dentro del link: Tamaño fijo y alineación centrada */
+.sidebar-link i {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    width: 22px;
+    text-align: center;
+}
+
+/* Hover de link: Resalta fondo y color para affordance */
+.sidebar-link:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Estado activo del link: Fondo y color de marca para indicar la página actual */
+.sidebar-link.active {
+    color: #fff;
+    background: rgba(86, 174, 232, 0.22);
+}
+
+/* Indicador visual activo: Barra lateral coloreada junto al link activo */
+.sidebar-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    background: var(--color-celeste);
+    border-radius: 0 3px 3px 0;
+}
+
+/* Texto del link: Se oculta cuando el sidebar está colapsado para mantener solo iconos */
+.sidebar-link .link-text {
+    transition: opacity 0.2s;
+}
+
+/* Comportamiento cuando el sidebar se colapsa: Esconder texto y ajustar overflow */
+#sidebar.collapsed .sidebar-link .link-text {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+}
+
+/* Badge en link: Contador o etiqueta pequeña alineada a la derecha */
+.sidebar-badge {
+    margin-left: auto;
+    background: var(--color-celeste);
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 50px;
+    transition: opacity 0.2s;
+}
+
+/* Ocultar badges al colapsar para evitar layout roto */
+#sidebar.collapsed .sidebar-badge {
+    opacity: 0;
+}
+
+/* Pie del sidebar: Acciones secundarias o créditos con separación superior */
+.sidebar-footer {
+    padding: 12px 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Barra superior: Contiene breadcrumb, acciones y avatar; se desplaza según el sidebar */
+#topbar {
+    position: fixed;
+    top: 0;
+    left: var(--ancho-sidebar);
+    right: 0;
+    height: var(--alto-barra-superior);
+    background: var(--color-blanco);
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 12px;
+    z-index: 1030;
+    transition: left 0.28s ease;
+}
+
+/* Estado topbar cuando el sidebar está colapsado: Ajusta desplazamiento izquierdo */
+#topbar.collapsed {
+    left: var(--ancho-sidebar-colapsado);
+}
+
+/* Botón para colapsar/expandir sidebar: Ícono sin fondo para compactar UI */
+.btn-toggle-sidebar {
+    background: none;
+    border: none;
+    color: var(--color-gris-texto);
+    font-size: 1.3rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+/* Hover del toggle: Fondo tenue para indicar interactividad */
+.btn-toggle-sidebar:hover {
+    background: var(--color-gris-claro);
+    color: var(--color-azul-oscuro);
+}
+
+/* Breadcrumb en topbar: Ruta corta para orientación del usuario */
+.topbar-breadcrumb {
+    font-size: 0.78rem;
+    color: var(--color-gris-texto);
+}
+
+/* Contenedores de acciones a la derecha en topbar: Notificaciones, avatar, etc. */
+.topbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Botones icono en topbar: Burbuja cuadrada para acciones rápidas */
+.topbar-icon-btn {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--color-gris-claro);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: var(--color-gris-texto);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+/* Hover de icon buttons: Cambio de color para indicar foco */
+.topbar-icon-btn:hover {
+    background: var(--color-azul-claro);
+    color: var(--color-azul-principal);
+}
+
+/* Punto de notificación: Pequeño indicador rojo para alertas */
+.topbar-notif-dot {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-blanco);
+}
+
+/* Avatar admin: Avatar cuadrado con iniciales, estilo clickable */
+.admin-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    background: var(--color-azul-oscuro);
+    color: var(--color-blanco);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* Contenedor principal: Margen izquierdo según el sidebar y padding interior */
+#mainContent {
+    margin-left: var(--ancho-sidebar);
+    margin-top: var(--alto-barra-superior);
+    padding: 24px;
+    transition: margin-left 0.28s ease;
+    min-height: calc(100vh - var(--alto-barra-superior));
+}
+
+/* Ajuste del main al colapsar sidebar: Reduce margen izquierdo */
+#mainContent.collapsed {
+    margin-left: var(--ancho-sidebar-colapsado);
+}
+
+/* Secciones del dashboard: Por defecto ocultas, activas mediante clase */
+.admin-section {
+    display: none;
+}
+
+/* Muestra la sección activa del dashboard */
+.admin-section.active {
+    display: block;
+}
+
+/* Pequeño tag de sección usado en cabeceras (color de acento, rounded) */
+.section-tag {
+    background: var(--color-azul-claro);
+    color: var(--color-azul-principal);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.3em 0.9em;
+    border-radius: 50px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* Tarjeta KPI: Bloque informativo con icono y valor; eleva en hover */
+.kpi-card {
+    background: var(--color-blanco);
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: box-shadow 0.2s;
+}
+
+/* Hover KPI: Sombra sutil para enfatizar interactividad */
+.kpi-card:hover {
+    box-shadow: 0 6px 20px rgba(13, 110, 253, 0.08);
+}
+
+/* Contenedor de icono KPI: Background por variante y tamaño fijo */
+.kpi-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+/* Variante azul del icono KPI: Fondo suave y color principal */
+.kpi-icon.blue {
+    background: var(--color-azul-claro);
+    color: var(--color-azul-principal);
+}
+
+/* Variante verde del icono KPI: Fondo y color para estados positivos */
+.kpi-icon.green {
+    background: #ecfdf5;
+    color: #10b981;
+}
+
+/* Variante naranja del icono KPI: Color para alertas o atención */
+.kpi-icon.orange {
+    background: #fff7ed;
+    color: #f59e0b;
+}
+
+/* Variante roja del icono KPI: Error/urgente */
+.kpi-icon.red {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+/* Variante cyan del icono KPI: Color de acento secundario */
+.kpi-icon.cyan {
+    background: #eff9ff;
+    color: var(--color-celeste);
+}
+
+/* Valor KPI: Número grande y pesado para destacar métricas */
+.kpi-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--color-oscuro);
+    line-height: 1;
+}
+
+/* Label del KPI: Texto pequeño explicativo debajo del valor */
+.kpi-label {
+    font-size: 0.78rem;
+    color: var(--color-gris-texto);
+    margin-top: 3px;
+}
+
+/* Tarjeta genérica de admin: Contenedor blanco con borde y radius */
+.admin-card {
+    background: var(--color-blanco);
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+/* Grid de categorías: Cada card es columna flexible para listas */
+#gridCategorias .category-card {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Descripción de categoría: Ocupa espacio flexible dentro de la card */
+#gridCategorias .category-description {
+    flex: 1;
+}
+
+/* Acciones de card: Se colocan al final para mantener layout consistente */
+#gridCategorias .card-actions {
+    margin-top: auto;
+}
+
+/* Cuerpo de la admin-card: Padding interior estándar */
+.admin-card-body {
+    padding: 20px;
+}
+
+/* Header de card: Título y acciones, con separación inferior */
+.admin-card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Título de la card: Peso y tamaño moderado */
+.admin-card-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--color-oscuro);
+    margin: 0;
+}
+
+/* Tablas de administración: Tamaño y estilos base para celdas */
+.admin-table {
+    font-size: 0.855rem;
+}
+
+/* Cabeceras de tabla: Fondo neutro y texto uppercase */
+.admin-table th {
+    background: var(--color-gris-claro);
+    color: var(--color-gris-texto);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border: none;
+    padding: 10px 14px;
+}
+
+/* Celdas de tabla: Padding y alineación vertical */
+.admin-table td {
+    padding: 12px 14px;
+    vertical-align: middle;
+    border-color: #f1f5f9;
+}
+
+/* Hover en filas: Resalta fila para facilitar lectura */
+.admin-table tbody tr:hover {
+    background: var(--color-gris-claro);
+}
+
+/* Badges de estado: Chips compactos para mostrar estado de recursos */
+.status-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 50px;
+    display: inline-block;
+}
+
+/* Estado pendiente: Fondo amarillo claro para indicar pendiente */
+.status-pending {
+    background: #fff7ed;
+    color: #f59e0b;
+}
+
+/* Estado confirmado: Fondo verde claro para indicar éxito */
+.status-confirmed {
+    background: #ecfdf5;
+    color: #10b981;
+}
+
+/* Estado completado: Fondo azul claro para indicar finalizado */
+.status-completed {
+    background: var(--color-azul-claro);
+    color: var(--color-azul-principal);
+}
+
+/* Estado cancelado: Fondo rojo muy pálido para indicar anulación */
+.status-cancelled {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+/* Estado activo: Verde para recursos activos */
+.status-active {
+    background: #ecfdf5;
+    color: #10b981;
+}
+
+/* Estado inactivo: Gris claro para recursos deshabilitados */
+.status-inactive {
+    background: #f1f5f9;
+    color: var(--color-gris-texto);
+}
+
+/* Card de producto en admin: Estilo similar a admin-card con interacción */
+.product-admin-card {
+    background: var(--color-blanco);
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: all 0.22s;
+}
+
+/* Hover product card: Borde principal y sombra para enfatizar */
+.product-admin-card:hover {
+    border-color: var(--color-azul-principal);
+    box-shadow: 0 8px 24px rgba(13, 110, 253, 0.1);
+    transform: translateY(-3px);
+}
+
+/* Caja de imagen del producto: Fondo de acento y altura fija */
+.product-img-box {
+    background: var(--color-azul-claro);
+    height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+/* Icono grandes en product box: Uso decorativo con opacidad */
+.product-icon {
+    font-size: 2.8rem;
+    color: var(--color-celeste);
+    opacity: 0.75;
+}
+
+/* Badge nuevo en producto: Posición absoluta para superponerse a la imagen */
+.badge-new {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 0.65rem;
+}
+
+/* Cuerpo del producto: Padding y layout column para información */
+.product-admin-body {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Categoría del producto: Etiqueta pequeña en mayúsculas */
+.product-category {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-celeste);
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+
+/* Nombre del producto: Control de altura mínima para cards uniformes */
+.product-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-oscuro);
+    line-height: 1.25;
+    margin-bottom: 4px;
+    min-height: 3.2rem;
+}
+
+/* Precio: Resaltado con color de marca y peso */
+.product-price {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--color-azul-principal);
+}
+
+/* Stock: Texto pequeño para indicar disponibilidad */
+.product-stock {
+    font-size: 0.7rem;
+    color: var(--color-gris-texto);
+    margin-top: 4px;
+}
+
+/* Acciones del producto: Botones compactos al final de la card */
+.product-admin-actions {
+    padding: 10px 12px;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    gap: 6px;
+    margin-top: auto;
+}
+
+/* Card de servicio en admin: Diseño similar a product-admin-card */
+.service-admin-card {
+    background: var(--color-blanco);
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 18px;
+    transition: all 0.22s;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Grid de servicios: Asegura que cada card ocupe altura mínima */
+#gridServicios .service-admin-card {
+    min-height: 100%;
+}
+
+/* Acciones en cards de servicio: Alineadas al fondo */
+#gridServicios .card-actions {
+    margin-top: auto;
+}
+
+/* Hover servicio: Cambia borde y sombra para feedback visual */
+.service-admin-card:hover {
+    border-color: var(--color-azul-principal);
+    box-shadow: 0 6px 20px rgba(13, 110, 253, 0.08);
+}
+
+/* Icono del servicio: Caja cuadrada con color de acento */
+.service-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--color-azul-claro);
+    color: var(--color-azul-principal);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+/* Botones genéricos: Tamaño, padding y estilo base para acciones */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 10px 16px;
+    font-size: 14px;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    height: 38px;
+}
+
+/* Hover genérico de botones: Elimina subrayado y mantiene apariencia */
+.btn:hover {
+    text-decoration: none;
+}
+
+/* Botón primario: Fondo y borde con color principal */
+.btn-primary {
+    background-color: var(--color-azul-principal);
+    border-color: var(--color-azul-principal);
+    color: var(--color-blanco);
+}
+
+/* Hover del primario: Variante más oscura para efecto activo */
+.btn-primary:hover {
+    background-color: #0052a3;
+    border-color: #0052a3;
+    color: var(--color-blanco);
+}
+
+/* Botón outline primario: Versión outline del primario para acciones secundarias */
+.btn-outline-primary {
+    color: var(--color-azul-principal);
+    border-color: var(--color-azul-principal);
+    background-color: transparent;
+}
+
+/* Hover outline primario: Rellena con color y cambia texto a blanco */
+.btn-outline-primary:hover {
+    background-color: var(--color-azul-principal);
+    color: var(--color-blanco);
+}
+
+/* Botón outline de peligro: Usado para acciones destructivas */
+.btn-outline-danger {
+    color: #ef4444;
+    border-color: #ef4444;
+    background-color: transparent;
+}
+
+/* Hover peligro: Rellena con rojo para enfatizar peligro */
+.btn-outline-danger:hover {
+    background-color: #ef4444;
+    color: var(--color-blanco);
+}
+
+/* Botón outline secundario: Estilo neutro para acciones menos importantes */
+.btn-outline-secondary {
+    color: var(--color-gris-texto);
+    border-color: var(--color-gris-texto);
+    background-color: transparent;
+}
+
+/* Hover secundario: Relleno gris para indicar selección */
+.btn-outline-secondary:hover {
+    background-color: var(--color-gris-texto);
+    color: var(--color-blanco);
+}
+
+/* Variantes de tamaño de botón: 'xs' para acciones compactas */
+.btn-xs {
+    padding: 5px 10px;
+    font-size: 12px;
+    height: auto;
+}
+
+/* Uso de 'sm' para botones ligeramente compactos */
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+/* Controles de formulario: Inputs y selects con borde suave y padding */
+.form-control, .form-select {
+    border-color: #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+    transition: all 0.2s;
+    height: 38px;
+}
+
+/* Focus en formularios: Resalta borde y añade halo suave */
+.form-control:focus, .form-select:focus {
+    border-color: var(--color-azul-principal);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+/* Overlay del sidebar en móviles: Fondo semitransparente para foco modal */
+#sidebarOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1035;
+}
+
+/* Textarea específico: Altura mínima y padding para formularios largos */
+textarea.form-control {
+    border-color: #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+    transition: all 0.2s;
+    min-height: 114px;
+    height: 114px;
+}
+
+/* Responsive < 991px: Comportamiento del sidebar en móviles (off-canvas) */
+@media (max-width: 991px) {
+    #sidebar {
+        width: 0;
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    #sidebar.mobile-open {
+        width: var(--ancho-sidebar);
+        transform: translateX(0);
+    }
+    #sidebar.mobile-open .brand-texts {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+    #sidebar.mobile-open .sidebar-link .link-text {
+        opacity: 1 !important;
+        width: auto !important;
+        overflow: visible !important;
+    }
+    #sidebar.mobile-open .sidebar-badge {
+        opacity: 1 !important;
+    }
+    #topbar {
+        left: 0 !important;
+    }
+    #mainContent {
+        margin-left: 0 !important;
+    }
+    #sidebarOverlay.show {
+        display: block;
+    }
+}
+
+/* Responsive < 768px: Ajustes de padding para mainContent en pantallas pequeñas */
+@media (max-width: 768px) {
+    #mainContent {
+        padding: 20px;
+    }
+}

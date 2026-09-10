@@ -1,0 +1,494 @@
+/* Variables locales - Fondo suave */
+:root {
+    --color-fondo-suave: #f0f4f8;
+}
+
+/* Badge compacto reutilizable */
+.etiqueta-seccion {
+    display: inline-block;
+    background-color: rgba(86, 174, 232, 0.12);
+    color: var(--azul-medio);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 0.35em 1em;
+    border-radius: 50px;
+    border: 1px solid rgba(86, 174, 232, 0.3);
+}
+
+/* Título grande y responsive */
+.titulo-seccion {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+    color: var(--oscuro);
+}
+
+/* Texto secundario centrado */
+.subtitulo-seccion {
+    color: #6c7d8e;
+    font-size: 0.95rem;
+    max-width: 520px;
+    margin: 0 auto;
+}
+
+/* Contenedor hero interior (cover y padding) */
+.hero-interior {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    padding: 5rem 0 4rem;
+}
+
+/* Imagen de fondo específica para nosotros */
+.hero-nosotros {
+    background-image: url('https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1600&q=80');
+}
+
+/* Máscara oscura sobre el hero */
+.hero-interior-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(4, 32, 58, 0.82);
+}
+
+/* Contenido por encima de la máscara */
+.hero-interior-contenido {
+    position: relative;
+    z-index: 1;
+}
+
+/* Separación inferior para breadcrumb */
+.breadcrumb-hero {
+    margin-bottom: 1rem;
+}
+
+/* Color y transición para enlaces en hero */
+.breadcrumb-hero .breadcrumb-item a {
+    color: rgba(255, 255, 255, 0.65);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+}
+
+/* Resalta enlace con color de marca */
+.breadcrumb-hero .breadcrumb-item a:hover {
+    color: var(--celeste);
+}
+
+/* Estilo del ítem activo */
+.breadcrumb-hero .breadcrumb-item.active {
+    color: var(--celeste);
+    font-size: 0.85rem;
+}
+
+/* Color tenue entre items */
+.breadcrumb-hero .breadcrumb-item+.breadcrumb-item::before {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Título hero grande y legible */
+.hero-interior-titulo {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 0.75rem;
+    line-height: 1.15;
+}
+
+/* Subtítulo hero con opacidad */
+.hero-interior-sub {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 1rem;
+    max-width: 550px;
+}
+
+/* Tarjeta KPI con borde superior de marca */
+.nos-kpi {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-top: 3px solid var(--celeste);
+    border-radius: 14px;
+    padding: 1.2rem 1rem;
+    text-align: center;
+}
+
+/* Número KPI grande y destacado */
+.nos-kpi-num {
+    display: block;
+    font-size: 1.9rem;
+    font-weight: 900;
+    color: var(--azul-medio);
+    line-height: 1;
+}
+
+/* Etiqueta pequeña para KPI */
+.nos-kpi-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #6c7d8e;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+/* Contenedor de imagen con radio y overflow */
+.nos-img-wrap {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+/* Imagen principal con object-fit */
+.nos-img-principal {
+    width: 100%;
+    height: 380px;
+    object-fit: cover;
+    border-radius: 18px;
+    display: block;
+}
+
+/* Etiqueta sobre la imagen (cápsula) */
+.nos-img-badge {
+    position: absolute;
+    bottom: 18px;
+    left: 18px;
+    background: #fff;
+    border-radius: 50px;
+    padding: 8px 16px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--oscuro);
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* Tarjeta misión/visión con transición */
+.card-mv {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 2rem 1.75rem;
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+}
+
+/* Elevación suave al pasar cursor */
+.card-mv:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 32px rgba(21, 101, 192, 0.1);
+    border-color: var(--celeste);
+}
+
+/* Caja para icono dentro de la tarjeta */
+.card-mv-icono {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    margin-bottom: 1.2rem;
+}
+
+/* Variante visual para misión */
+.mv-mision {
+    background: rgba(86, 174, 232, 0.12);
+    color: var(--celeste);
+}
+
+/* Variante visual para visión */
+.mv-vision {
+    background: rgba(21, 101, 192, 0.1);
+    color: var(--azul-medio);
+}
+
+/* Variante visual para valores */
+.mv-valores {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+/* Título dentro de tarjeta MV */
+.card-mv h5 {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--oscuro);
+    margin-bottom: 0.75rem;
+}
+
+/* Texto descriptivo dentro de tarjeta MV */
+.card-mv p {
+    font-size: 0.88rem;
+    color: #6c7d8e;
+    line-height: 1.75;
+    margin: 0;
+}
+
+/* Lista vertical sin bullets */
+.card-mv-lista {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+/* Elemento de lista con icono */
+.card-mv-lista li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 0.84rem;
+    color: #4a5568;
+    line-height: 1.5;
+}
+
+/* Icono verde para items */
+.card-mv-lista li i {
+    color: #10b981;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+/* Columna central con línea vertical */
+.timeline {
+    position: relative;
+    max-width: 700px;
+    margin: 0 auto;
+    padding-left: 2.5rem;
+}
+
+/* Línea vertical degradada */
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 14px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--celeste), var(--azul-medio));
+    border-radius: 2px;
+}
+
+/* Contenedor de cada evento */
+.timeline-item {
+    position: relative;
+    margin-bottom: 2.2rem;
+}
+
+/* Elimina margen inferior en el último elemento */
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+/* Punto circular alineado a la línea */
+.timeline-dot {
+    position: absolute;
+    left: -2.1rem;
+    top: 4px;
+    width: 16px;
+    height: 16px;
+    background: var(--celeste);
+    border: 3px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(86, 174, 232, 0.25);
+}
+
+/* Tarjeta del evento con borde izquierdo */
+.timeline-content {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-left: 3px solid var(--celeste);
+    border-radius: 0 12px 12px 0;
+    padding: 1rem 1.4rem;
+    transition: box-shadow 0.2s;
+}
+
+/* Tarjeta del evento con borde izquierdo */
+.timeline-content {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-left: 3px solid var(--celeste);
+    border-radius: 0 12px 12px 0;
+    padding: 1rem 1.4rem;
+    transition: box-shadow 0.2s;
+}
+
+/* Tarjeta del evento con sombra al pasar cursor */
+.timeline-content:hover {
+    box-shadow: 0 6px 20px rgba(21, 101, 192, 0.09);
+}
+
+/* Burbuja de año con color de marca */
+.timeline-year {
+    display: inline-block;
+    background: var(--azul-medio);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 50px;
+    margin-bottom: 6px;
+}
+
+/* Título del evento */
+.timeline-content h6 {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--oscuro);
+    margin-bottom: 4px;
+}
+
+/* Descripción del evento */
+.timeline-content p {
+    font-size: 0.84rem;
+    color: #6c7d8e;
+    margin: 0;
+    line-height: 1.65;
+}
+
+/* Tarjeta de creador con overflow oculto */
+.card-creador {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+}
+
+/* Tarjeta de creador con escala y sombra al hover */
+.card-creador:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 36px rgba(21, 101, 192, 0.13);
+    border-color: var(--celeste);
+}
+
+/* Contenedor de imagen fija de creador */
+.card-creador-img {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+/* Imagen con transición para zoom */
+.card-creador-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s;
+}
+
+/* Tarjeta de creador con zoom al hover */
+.card-creador:hover .card-creador-img img {
+    transform: scale(1.07);
+}
+
+/* Overlay oscuro dentro de la tarjeta */
+.card-creador-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 61, 107, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+/* Overlay oscuro dentro de la tarjeta */
+.card-creador:hover .card-creador-overlay {
+    opacity: 1;
+}
+
+/* Filas de iconos sociales */
+.creador-redes {
+    display: flex;
+    gap: 10px;
+}
+
+/* Botón circular para red social */
+.creador-red {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1.5px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.2s;
+}
+
+/* Escala y color marca en hover */
+.creador-red:hover {
+    background: var(--celeste);
+    border-color: var(--celeste);
+    color: #fff;
+    transform: scale(1.1);
+}
+
+/* Cuerpo de la tarjeta con padding */
+.card-creador-body {
+    padding: 1.2rem 1.3rem 1.4rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Nombre del creador (peso y tamaño) */
+.creador-nombre {
+    font-size: 0.97rem;
+    font-weight: 800;
+    color: var(--oscuro);
+    margin-bottom: 3px;
+}
+
+/* Etiqueta del rol con background tenue */
+.creador-rol {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--azul-medio);
+    background: rgba(21, 101, 192, 0.08);
+    padding: 2px 10px;
+    border-radius: 50px;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Párrafo flexible que resume la bio/experiencia, color neutro y margen para separación */
+.creador-desc {
+    font-size: 0.82rem;
+    color: #6c7d8e;
+    line-height: 1.65;
+    flex-grow: 1;
+    margin-bottom: 0.85rem;
+}
+
+/* Chips con skills/categorías, envueltas con flex-wrap para varias entradas */
+.creador-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: auto;
+}
+
+/* Cápsula pequeña (fondo suave, borde y padding reducido) para mostrar una etiqueta */
+.creador-tags span {
+    font-size: 0.68rem;
+    font-weight: 700;
+    background: var(--color-fondo-suave);
+    color: #4a5568;
+    border: 1px solid #e2e8f0;
+    padding: 2px 9px;
+    border-radius: 50px;
+}

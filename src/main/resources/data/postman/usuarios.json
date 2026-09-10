@@ -1,0 +1,47 @@
+[
+  {
+    "nombres": "Carlos",
+    "apellidos": "Ríos Mendoza",
+    "email": "carlos.rios@gmail.com",
+    "password": "Carlos123",
+    "telefono": "987654321",
+    "ciudad": "Trujillo",
+    "rol": "usuario"
+  },
+  {
+    "nombres": "María",
+    "apellidos": "Torres Vega",
+    "email": "maria.torres@gmail.com",
+    "password": "Maria1234",
+    "telefono": "945678901",
+    "ciudad": "Trujillo",
+    "rol": "usuario"
+  },
+  {
+    "nombres": "Jorge",
+    "apellidos": "Huanca Silva",
+    "email": "jorge.huanca@gmail.com",
+    "password": "Jorge1234",
+    "telefono": "912345678",
+    "ciudad": "Trujillo",
+    "rol": "usuario"
+  },
+  {
+    "nombres": "Jose Admin",
+    "apellidos": "Carranza Mendoza",
+    "email": "admin@gmail.com",
+    "password": "Admin1234",
+    "telefono": "999111222",
+    "ciudad": "Trujillo",
+    "rol": "administrador"
+  },
+  {
+    "nombres": "Jose Gerente",
+    "apellidos": "Carranza Mendoza",
+    "email": "gerente@gmail.com",
+    "password": "Gerente123",
+    "telefono": "998877665",
+    "ciudad": "Trujillo",
+    "rol": "gerente"
+  }
+]

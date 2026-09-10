@@ -1,0 +1,431 @@
+<!-- Página 'inicio' pública: Página principal con llamadas a /productos y /servicios; usa Bootstrap 5 y Bootstrap Icons; fragmento navbar reutilizable -->
+<!DOCTYPE html>
+<!-- Thymeleaf requiere el namespace xmlns:th para habilitar directivas th:href, th:src y th:text en todo el documento -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RICAR AUTOBOUTIQUE S.A.C.</title>
+    <!-- Bootstrap 5.3.3 CDN: Sistema de grilla, utilidades y componentes visuales para el sitio público -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons 1.11.3 CDN: Colección de iconos SVG usada en el sitio público -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- global.css: Estilos compartidos entre todas las páginas públicas; incluye variables de color y utilidades -->
+    <link th:href="@{/css/global.css}" rel="stylesheet">
+    <!-- inicio.css: Estilos específicos de la página inicio (hero, carrusel, badges) -->
+    <link th:href="@{/css/navbar/inicio.css}" rel="stylesheet">
+    <!-- Favicon del sitio -->
+    <link rel="icon" th:href="@{/img/icon.png}" type="image/png">
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- Navbar fragment incluido vía Thymeleaf: Mantiene navegación consistente y centraliza el markup del header -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <!-- Carrusel principal: Rotador de imágenes con llamado a la acción y mensajes de marca en la página de inicio -->
+    <div id="carrusel-principal">
+        <div class="carrusel-fondos">
+            <div class="fondo-slide activo" style="background-image: url('https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm7yuLs98Zz_xqmmhOKd_8A1aMAPRae35gKXGePEy8NrKzOG659P6rgTTjBHezIWMCn24v-VnKmBL3787TyO2trF1I0saoTQMPTeDPddvTRJtqCygjN6nAQwoQou5WLNhzyEjHCdA=s680-w680-h510-rw');"></div>
+            <div class="fondo-slide" style="background-image: url('https://raw.githubusercontent.com/DAlvarezF7/multimedia/644601117d61742ce9b2e9972122b23cad182430/Ricarr4.webp');"></div>
+            <div class="fondo-slide" style="background-image: url('https://raw.githubusercontent.com/DAlvarezF7/multimedia/644601117d61742ce9b2e9972122b23cad182430/Ricarr2.webp');"></div>
+            <div class="fondo-slide" style="background-image: url('https://raw.githubusercontent.com/DAlvarezF7/multimedia/644601117d61742ce9b2e9972122b23cad182430/Ricarr6.webp');"></div>
+        </div>
+        <div class="carrusel-overlay"></div>
+        <div class="carrusel-contenido">
+            <div class="container">
+                <!-- Fila de Bootstrap que organiza el contenido del hero en columnas responsivas y lo centra o separa según el tamaño de pantalla -->
+                <div class="row align-items-center justify-content-center justify-content-lg-between g-4">
+                    <div class="col-12 col-lg-6 text-center text-lg-start">
+                        <span class="badge-slide">
+                            <i class="bi bi-patch-check-fill"></i> Taller certificado en Trujillo
+                        </span>
+                        <h1 class="titulo-slide mt-2">
+                            Todo lo que tu <span class="texto-celeste">vehículo</span> necesita
+                            en un solo lugar con <span class="texto-celeste">atención profesional</span>
+                        </h1>
+                        <p class="subtitulo-slide mt-3 mb-4">
+                            Brindamos servicio mecánico profesional junto a una ferretería especializada.<br>
+                            Atendemos autos, motos y camionetas con calidad y rapidez, todo en un solo lugar.
+                        </p>
+                        <!-- CTA hero: Dirección rápida a agendar cita o ir al catálogo de productos -->
+                        <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-3">
+                            <button class="btn btn-light fw-bold px-4 text-primary" id="btn-agendar-hero" onclick="manejarBtnAgendar()">
+                                <i class="bi bi-calendar-check me-2"></i>Agendar Cita
+                            </button>
+                            <a th:href="@{/productos}" class="btn btn-outline-light fw-bold px-4">
+                                <i class="bi bi-grid me-2"></i>Ver Productos
+                            </a>
+                        </div>
+                        <!-- Indicadores de métricas rápidas en la hero: Clientes, años de experiencia y productos -->
+                        <div class="row mt-4 g-3">
+                            <div class="col-4 text-center">
+                                <span class="stat-num">+10 000</span><span class="stat-label d-block">Clientes</span>
+                            </div>
+                            <div class="col-4 text-center">
+                                <span class="stat-num">+23</span><span class="stat-label d-block">Años de exp.</span>
+                            </div>
+                            <div class="col-4 text-center">
+                                <span class="stat-num">+300</span><span class="stat-label d-block">Productos</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Columna de Bootstrap que muestra la imagen solo en pantallas grandes y la centra horizontalmente -->
+                    <div class="col-lg-6 d-none d-lg-flex justify-content-center">
+                        <div class="img-carrusel-box">
+                            <img src="https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnKNKsKp37CZfwm4UUPHQae9xH0FWrzbOzjm_xonxd8od57dAWF0vjrHW7DLLZ9B_L592eV1_jpKIgbPRWkbE72q_mbWfMB_R45xlMbPhLykUC62y_ruOK4J8JXyLaR_JGxG2c=s680-w680-h510-rw" alt="Taller mecánico RICAR AUTOBOUTIQUE" class="img-carrusel">
+                            <div class="badge-flotante badge-top">
+                                <i class="bi bi-shield-check text-primary me-1"></i><span>Garantía incluida</span>
+                            </div>
+                            <div class="badge-flotante badge-bottom">
+                                <i class="bi bi-clock text-primary me-1"></i><span>Atención rápida</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Contenedor de indicadores del carrusel: Permite navegar entre los slides y mostrar cuál está activo -->
+        <div class="carrusel-indicadores">
+            <button class="indicador activo" aria-label="Slide 1"></button>
+            <button class="indicador" aria-label="Slide 2"></button>
+            <button class="indicador" aria-label="Slide 3"></button>
+            <button class="indicador" aria-label="Slide 4"></button>
+        </div>
+    </div>
+    <!-- Banner de beneficios compartidos de RICAR AUTOBOUTIQUE -->
+    <section class="info-banner py-3">
+        <div class="container">
+            <div class="row g-3 text-center">
+                <div class="col-6 col-md-3">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-truck text-primary fs-5"></i><span class="small fw-semibold">Envío a Trujillo</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-headset text-primary fs-5"></i><span class="small fw-semibold">Soporte 24/7</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-patch-check text-primary fs-5"></i><span class="small fw-semibold">Garantía 1 año</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-credit-card text-primary fs-5"></i><span class="small fw-semibold">Pago seguro</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Main: Secciones de servicios y productos; el contenido principal debe cargarse sin recargas completas cuando sea posible -->
+    <main class="flex-grow-1">
+        <section class="seccion-servicios py-5 bg-white">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <span class="etiqueta-seccion">¿Qué ofrecemos?</span>
+                    <h2 class="titulo-seccion mt-2">Nuestros <span class="texto-celeste">Servicios</span></h2>
+                    <p class="subtitulo-seccion">Soluciones completas para el mantenimiento y reparación de tu vehículo</p>
+                </div>
+                <!-- Sección de servicios destacados: Descripción rápida de ofertas para guiar al usuario hacia servicios clave -->
+                <div class="row g-4">
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="card-servicio h-100">
+                            <div class="card-servicio-icono"><i class="bi bi-droplet-fill"></i></div>
+                            <h5>Cambio de Aceite</h5>
+                            <p>Aceites sintéticos, semisintéticos y minerales para todo tipo de motor. Rápido y con garantía.</p>
+                            <a th:href="@{/servicios}" class="btn-link-servicio">Ver más <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="card-servicio h-100">
+                            <div class="card-servicio-icono"><i class="bi bi-battery-charging"></i></div>
+                            <h5>Sistema Eléctrico</h5>
+                            <p>Diagnóstico y reparación del sistema eléctrico, batería, alternador y luces del vehículo.</p>
+                            <a th:href="@{/servicios}" class="btn-link-servicio">Ver más <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="card-servicio h-100">
+                            <div class="card-servicio-icono"><i class="bi bi-gear-fill"></i></div>
+                            <h5>Mantenimiento General</h5>
+                            <p>Revisión completa de frenos, suspensión, filtros y correas. Tu auto en perfectas condiciones.</p>
+                            <a th:href="@{/servicios}" class="btn-link-servicio">Ver más <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="card-servicio h-100">
+                            <div class="card-servicio-icono"><i class="bi bi-speedometer2"></i></div>
+                            <h5>Diagnóstico Computarizado</h5>
+                            <p>Escáner OBD para detectar fallas en el sistema electrónico con equipos de última generación.</p>
+                            <a th:href="@{/servicios}" class="btn-link-servicio">Ver más <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="card-servicio h-100">
+                            <div class="card-servicio-icono"><i class="bi bi-arrows-angle-expand"></i></div>
+                            <h5>Alineación y Balanceo</h5>
+                            <p>Mayor estabilidad, seguridad y ahorro de combustible. Servicio preciso con tecnología digital.</p>
+                            <a th:href="@{/servicios}" class="btn-link-servicio">Ver más <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-4">
+                        <div
+                            class="card-servicio card-servicio-cta h-100 d-flex flex-column align-items-center justify-content-center text-center">
+                            <i class="bi bi-calendar-check-fill fs-1 mb-3" style="color: var(--celeste);"></i>
+                            <h5 class="text-white">¿Necesitas otro servicio?</h5>
+                            <p style="color: rgba(255,255,255,0.75);">Contáctanos y encontraremos la mejor solución para tu vehículo.</p>
+                            <a th:href="@{/contacto}" class="btn btn-light fw-bold px-4 mt-2" style="color: var(--azul-oscuro);"><i class="bi bi-whatsapp me-2 text-success"></i>Contáctanos</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Sección de productos destacados en página de inicio: Muestra ejemplos rápidos del catálogo online -->
+        <section class="seccion-productos py-5" style="background-color: var(--color-fondo-suave);">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <span class="etiqueta-seccion">Ferretería especializada</span>
+                    <h2 class="titulo-seccion mt-2">Productos <span class="texto-celeste">Destacados</span></h2>
+                    <p class="subtitulo-seccion">Repuestos, herramientas y lubricantes de las mejores marcas</p>
+                </div>
+                <!-- Productos destacados: Muestra ejemplos del catálogo para motivar al usuario a visitar la sección completa de productos -->
+                <div class="row g-4">
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="card-producto h-100">
+                            <div class="card-producto-img">
+                                <i class="bi bi-droplet-half"></i><span class="badge-producto">Popular</span>
+                            </div>
+                            <div class="card-producto-body">
+                                <span class="card-producto-cat">Aceites</span><h6>Aceite Motor 5W-30</h6>
+                                <div class="d-flex align-items-center justify-content-between mt-2">
+                                    <span class="card-producto-precio">S/ 28.00</span><a th:href="@{/productos}" class="btn btn-sm btn-outline-primary">Ver</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="card-producto h-100">
+                            <div class="card-producto-img">
+                                <i class="bi bi-wrench-adjustable"></i><span class="badge-producto badge-nuevo">Nuevo</span>
+                            </div>
+                            <div class="card-producto-body">
+                                <span class="card-producto-cat">Herramientas</span>
+                                <h6>Juego de Llaves 12 pzas</h6>
+                                <div class="d-flex align-items-center justify-content-between mt-2">
+                                    <span class="card-producto-precio">S/ 85.00</span><a th:href="@{/productos}" class="btn btn-sm btn-outline-primary">Ver</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="card-producto h-100">
+                            <div class="card-producto-img"><i class="bi bi-disc"></i></div>
+                            <div class="card-producto-body">
+                                <span class="card-producto-cat">Repuestos</span>
+                                <h6>Pastillas de Freno</h6>
+                                <div class="d-flex align-items-center justify-content-between mt-2">
+                                    <span class="card-producto-precio">S/ 65.00</span><a th:href="@{/productos}" class="btn btn-sm btn-outline-primary">Ver</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="card-producto h-100">
+                            <div class="card-producto-img"><i class="bi bi-nut"></i></div>
+                            <div class="card-producto-body">
+                                <span class="card-producto-cat">Pernos</span>
+                                <h6>Set Pernos M8 x50</h6>
+                                <div class="d-flex align-items-center justify-content-between mt-2">
+                                    <span class="card-producto-precio">S/ 18.50</span><a th:href="@{/productos}" class="btn btn-sm btn-outline-primary">Ver</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-5">
+                    <a th:href="@{/productos}" class="btn btn-primary px-5 py-2 fw-semibold"><i class="bi bi-grid me-2"></i>Ver todos los productos</a>
+                </div>
+            </div>
+        </section>
+        <!-- Sección de diferenciadores de RICAR AUTOBOUTIQUE -->
+        <section class="seccion-porque py-5 bg-white">
+            <div class="container">
+                <div class="row align-items-center g-5">
+                    <div class="col-lg-5">
+                        <span class="etiqueta-seccion">Nuestra diferencia</span>
+                        <h2 class="titulo-seccion mt-2">POR QUÉ ELEGIR <span class="texto-celeste">RICAR AUTOBOUTIQUE?</span>
+                        </h2>
+                        <p class="text-muted mt-3" style="line-height:1.8;">
+                            Somos un taller certificado con más de 23 años de experiencia en Trujillo.
+                            Desde nuestros inicios, nos hemos dedicado a brindar soluciones para vehículos a través de la comercialización de repuestos, autopartes, accesorios y equipamiento automotriz.
+                            Nuestra propuesta integra productos y soluciones orientadas a mejorar la seguridad, comodidad, tecnología y estilo de los vehículos.
+                        </p>
+                        <a th:href="@{/nosotros}" class="btn btn-primary mt-3 px-4 fw-semibold"><i class="bi bi-people me-2"></i>Conoce nuestro equipo</a>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <div class="card-porque">
+                                    <div class="card-porque-num">01</div>
+                                    <h6>Personal Capacitado</h6>
+                                    <p>Contamos con personal capacitado para brindar atención técnica y profesional en soluciones automotrices.</p>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="card-porque">
+                                    <div class="card-porque-num">02</div>
+                                    <h6>Equipamiento Especializado</h6>
+                                    <p>Disponemos de maquinaria y herramientas para realizar trabajos de equipamiento y servicios automotrices.</p>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="card-porque">
+                                    <div class="card-porque-num">03</div>
+                                    <h6>Asesoría Personalizada</h6>
+                                    <p>Te orientamos para elegir los productos y servicios más adecuados para tu vehículo y tus necesidades.</p>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="card-porque">
+                                    <div class="card-porque-num">04</div>
+                                    <h6>Soluciones para tu Vehículo</h6>
+                                    <p>Encuentra autopartes, accesorios, equipamiento, car audio, iluminación y soluciones de personalización automotriz.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Sección de testimonios: Muestra opiniones reales de clientes y refuerza la confianza en la marca -->
+        <section class="seccion-testimonios py-5" style="background-color: var(--color-fondo-suave);">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <span class="etiqueta-seccion">Lo que dicen nuestros clientes</span>
+                    <h2 class="titulo-seccion mt-2">Testimonios <span class="texto-celeste">reales</span></h2>
+                </div>
+                <div class="row g-4" id="gridTestimonios">
+                    <div class="col-md-4">
+                        <div class="card-testimonio h-100">
+                            <div class="estrellas mb-3">
+                                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                            </div>
+                            <p>"Excelente atención. Llevé mi Corolla para cambio de aceite y me revisaron los frenos sin costo adicional. Muy profesionales."</p>
+                            <div class="testimonio-autor">
+                                <div class="testimonio-avatar">CR</div>
+                                <div>
+                                    <strong>Carlos Ríos</strong>
+                                    <span class="d-block text-muted" style="font-size:.78rem;">Toyota Corolla 2019</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card-testimonio h-100">
+                            <div class="estrellas mb-3">
+                                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                            </div>
+                            <p>"Muy buen servicio, me diagnosticaron un problema eléctrico que en otro taller no encontraron. Rápido y con garantía."</p>
+                            <div class="testimonio-autor">
+                                <div class="testimonio-avatar">MT</div>
+                                <div>
+                                    <strong>María Torres</strong>
+                                    <span class="d-block text-muted" style="font-size:.78rem;">Hyundai Tucson 2021</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card-testimonio h-100">
+                            <div class="estrellas mb-3">
+                                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-half"></i>
+                            </div>
+                            <p>"Compré herramientas y repuestos aquí. Tienen todo a buen precio y el personal sabe mucho de lo que vende. Recomendado."</p>
+                            <div class="testimonio-autor">
+                                <div class="testimonio-avatar">JH</div>
+                                <div>
+                                    <strong>Jorge Huanca</strong>
+                                    <span class="d-block text-muted" style="font-size:.78rem;">Nissan Sentra 2020</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-5">
+                    <button class="btn btn-primary px-5 py-2 fw-semibold" id="btnAbrirComentario">
+                        <i class="bi bi-chat-left-text me-2"></i>Dejar mi comentario
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+    <!-- Modal de Bootstrap que abre un formulario emergente para que el usuario envíe un comentario o reseña sobre el servicio -->
+    <div class="modal fade" id="modalComentario" tabindex="-1" aria-labelledby="tituloModalComentario" aria-hidden="true">
+        <!-- Contenedor del modal centrado verticalmente con estilo de Bootstrap para mejorar la experiencia visual -->
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <!-- Encabezado del modal con título centrado y botón de cierre posicionado en la esquina -->
+                <div class="modal-header justify-content-center position-relative">
+                    <h5 class="modal-title" id="tituloModalComentario"><i class="bi bi-chat-left-text me-2"></i>Dejar mi comentario</h5>
+                    <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <!-- Cuerpo del modal donde se recopilan los datos del comentario -->
+                <div class="modal-body">
+                    <!-- Campo de calificación: Usa un conjunto de iconos clicables para simular estrellas y permitir seleccionar una valoración -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Calificación <span class="text-danger">*</span></label>
+                        <div id="starsInput" class="d-flex gap-2 fs-4" style="cursor:pointer;">
+                            <i class="bi bi-star star-sel" data-val="1"></i>
+                            <i class="bi bi-star star-sel" data-val="2"></i>
+                            <i class="bi bi-star star-sel" data-val="3"></i>
+                            <i class="bi bi-star star-sel" data-val="4"></i>
+                            <i class="bi bi-star star-sel" data-val="5"></i>
+                        </div>
+                        <!-- Mensaje de error oculto que aparece si el usuario no selecciona una calificación -->
+                        <div id="starError" class="text-danger small mt-1 d-none">Selecciona una calificación.</div>
+                    </div>
+                    <!-- Campo de vehículo: Valida que el usuario ingrese un texto obligatorio con límite máximo de caracteres de 60 -->
+                    <div class="mb-3">
+                        <label class="form-label" for="comVehiculo">Vehículo <span class="text-danger">*</span></label>
+                        <input type="text" id="comVehiculo" class="form-control" placeholder="Ej: Toyota Corolla 2020" maxlength="60">
+                        <div class="invalid-feedback">Ingresa tu vehículo (máx. 60 caracteres).</div>
+                    </div>
+                    <!-- Campo de comentario: Permite escribir la opinión del usuario y muestra validación de longitud que debe tener entre 20 y 300 caracteres -->
+                    <div class="mb-3">
+                        <label class="form-label" for="comTexto">Comentario <span class="text-danger">*</span></label>
+                        <textarea id="comTexto" class="form-control" rows="4" placeholder="Cuéntanos tu experiencia con RICAR AUTOBOUTIQUE..." maxlength="300"></textarea>
+                        <div class="d-flex justify-content-between mt-1">
+                            <div class="invalid-feedback d-block" id="comTextoError" style="visibility:hidden;">
+                                El comentario debe tener entre 20 y 300 caracteres.
+                            </div>
+                            <small class="text-muted ms-auto" id="comContador">0 / 300</small>
+                        </div>
+                    </div>
+                    <!-- Botón principal para enviar el comentario, usando Bootstrap para mostrarlo como acción primaria y ocupar todo el ancho -->
+                    <div class="d-grid">
+                        <button class="btn btn-primary py-2 fw-semibold" id="btnEnviarComentario"><i class="bi bi-send me-2"></i>Publicar comentario</button>
+                    </div>
+                    <!-- Botón secundario opcional para eliminar un comentario existente, oculto por defecto y mostrado solo cuando aplica -->
+                    <div class="d-grid mt-2">
+                        <button class="btn btn-outline-danger py-2 fw-semibold d-none" id="btnEliminarComentario"><i class="bi bi-trash me-2"></i>Eliminar comentario</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer fragment insertado para incluir el pie de página compartido con enlaces y datos de contacto -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <!-- Bootstrap 5.3.3 JS Bundle CDN: Habilita modales, dropdowns y tooltips usados en la navegación pública -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- global.js: Scripts compartidos de interacción general, validación de formularios y comportamientos de navbar -->
+    <script th:src="@{/js/global.js}"></script>
+    <!-- inicio.js: Lógica de comportamiento específica de la página de inicio -->
+    <script th:src="@{/js/navbar/inicio.js}"></script>
+</body>
+</html>

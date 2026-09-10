@@ -1,0 +1,255 @@
+<!-- Página 'productos' pública: Catálogo de repuestos y herramientas; usa Bootstrap 5 y fragmento navbar -->
+<!DOCTYPE html>
+<!-- Thymeleaf requiere el namespace xmlns:th para habilitar directivas th:href, th:src y th:text en todo el documento -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RICAR AUTOBOUTIQUE S.A.C.</title>
+    <!-- Bootstrap 5.3.3 CDN: Sistema de grilla y utilidades para el catálogo público -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons 1.11.3 CDN: Iconos usados en tarjetas de producto y botones -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- global.css: Estilos compartidos entre páginas públicas -->
+    <link th:href="@{/css/global.css}" rel="stylesheet">
+    <!-- productos.css: Estilos específicos del catálogo (filtros, grid, cards) -->
+    <link th:href="@{/css/navbar/productos.css}" rel="stylesheet">
+    <!-- Favicon del sitio -->
+    <link rel="icon" th:href="@{/img/icon.png}" type="image/png">
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- Navbar fragment incluido vía Thymeleaf: Navegación principal del sitio público -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <!-- Carrusel hero: Imágenes y CTA para impulsar navegación al catálogo y agendar citas -->
+    <div id="carrusel-principal">
+        <div class="carrusel-fondos">
+            <div class="fondo-slide activo" style="background-image: url('https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm7yuLs98Zz_xqmmhOKd_8A1aMAPRae35gKXGePEy8NrKzOG659P6rgTTjBHezIWMCn24v-VnKmBL3787TyO2trF1I0saoTQMPTeDPddvTRJtqCygjN6nAQwoQou5WLNhzyEjHCdA=s680-w680-h510-rw');"></div>
+            <div class="fondo-slide" style="background-image: url('https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkZQfxfNjUWBkaKIIqGSTkvLev9Ieyh5E-W0iiN5LIDVaKk1VF8mOSFgjP8uTaPbh6yJlrr8K8OjvHF2Y2jaE-KO_AXsa0i6TM53IWTBEZGIeWTk2mqmzGlYyH7jqBJJsIpttPRLA=s680-w680-h510-rw');"></div>
+            <div class="fondo-slide" style="background-image: url('https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnKNKsKp37CZfwm4UUPHQae9xH0FWrzbOzjm_xonxd8od57dAWF0vjrHW7DLLZ9B_L592eV1_jpKIgbPRWkbE72q_mbWfMB_R45xlMbPhLykUC62y_ruOK4J8JXyLaR_JGxG2c=s680-w680-h510-rw');"></div>
+            <div class="fondo-slide" style="background-image: url('https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm43VWuuhdynMjyBmue1Ex9Zk9X8WTws8bPdfx8bGaZEBJkbbZTTI_jWYfPyy2L2G6JzN-5PxllcfTScqNOOkqMtMSP9IwAW2xOnMYwRxZmhw0Jrorg86PfYyQ4HoIZMydNAnCUqA=s680-w680-h510-rw');"></div>
+        </div>
+        <div class="carrusel-overlay"></div>
+        <div class="carrusel-contenido">
+            <div class="container">
+                <!-- Fila de Bootstrap que organiza el contenido del hero en columnas responsivas y lo centra o separa según el tamaño de pantalla -->
+                <div class="row align-items-center justify-content-center justify-content-lg-between g-4">
+                    <div class="col-12 col-lg-6 text-center text-lg-start">
+                        <span class="badge-slide"><i class="bi bi-patch-check-fill"></i> Taller certificado en Trujillo</span>
+                        <h1 class="titulo-slide mt-2">Encuentra <span class="texto-celeste">repuestos y herramientas</span> de calidad para tu <span class="texto-celeste">vehículo</span></h1>
+                        <p class="subtitulo-slide mt-3 mb-4">Explora nuestra variedad de repuestos y herramientas diseñadas para ofrecer <br> calidad y confianza.</p>
+                        <!-- CTA hero: Acciones principales para agendar una cita o saltar al catálogo de productos -->
+                        <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-3">
+                            <button class="btn btn-light fw-bold px-4 text-primary" id="btn-agendar-hero" onclick="manejarBtnAgendar()"><i class="bi bi-calendar-check me-2"></i>Agendar Cita</button>
+                            <a href="#productoss" class="btn btn-outline-light fw-bold px-4"><i class="bi bi-grid me-2"></i>Ver Productos</a>
+                        </div>
+                        <!-- Estadísticas de confianza: Métricas rápidas que refuerzan experiencia y catálogo -->
+                        <div class="row mt-4 g-3">
+                            <div class="col-4 text-center">
+                                <span class="stat-num">+10 000</span><span class="stat-label d-block">Clientes</span>
+                            </div>
+                            <div class="col-4 text-center">
+                                <span class="stat-num">+23</span><span class="stat-label d-block">Años de exp.</span>
+                            </div>
+                            <div class="col-4 text-center">
+                                <span class="stat-num">+300</span><span class="stat-label d-block">Productos</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Columna lateral del hero: Se oculta en pantallas pequeñas y se muestra a partir de lg para destacar la imagen del catálogo en desktop -->
+                    <div class="col-lg-6 d-none d-lg-flex justify-content-center">
+                        <div class="img-carrusel-box">
+                            <img src="https://actionautoparts.com/wp-content/uploads/2022/09/Auto-Parts-Diamond-Shape-Orange-Borders-1.png" alt="Productos de RICAR AUTOBOUTIQUE" class="img-carrusel">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Indicadores del carrusel: Permiten al usuario cambiar manualmente entre las imágenes hero -->
+        <div class="carrusel-indicadores">
+            <button class="indicador activo" aria-label="Slide 1"></button>
+            <button class="indicador" aria-label="Slide 2"></button>
+            <button class="indicador" aria-label="Slide 3"></button>
+            <button class="indicador" aria-label="Slide 4"></button>
+        </div>
+    </div>
+    <!-- Info banner: Iconos de servicio (envío, soporte, garantía, pago) reutilizables -->
+    <section class="info-banner py-3">
+        <div class="container">
+            <div class="row g-3 text-center">
+                <div class="col-6 col-md-3">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-truck text-primary fs-5"></i><span class="small fw-semibold">Envío a Trujillo</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-headset text-primary fs-5"></i><span class="small fw-semibold">Soporte 24/7</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-patch-check text-primary fs-5"></i><span class="small fw-semibold">Garantía 1 año</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-credit-card text-primary fs-5"></i><span class="small fw-semibold">Pago seguro</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Main: Filtros de búsqueda, grid de productos y modal de detalle; controlar accesos y filtros via JS -->
+    <main class="flex-grow-1">
+        <section class="py-5" style="background-color: var(--color-fondo-suave);">
+            <div class="container">
+                <!-- Contenedor principal de filtros: Búsqueda, categorías y ordenamiento del catálogo de productos -->
+                <div class="productos-filtros mb-4">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-12 col-md-4">
+                            <!-- Búsqueda de productos: input directo para filtrar resultados en tiempo real sin recargar la página -->
+                            <div class="input-busqueda">
+                                <i class="bi bi-search"></i><input type="text" id="inputBusqueda" placeholder="Buscar producto..." oninput="filtrarProductos()">
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-8">
+                            <!-- Contenedor de categorías dinámicas: Rellenado desde productos.js con chips de filtro de categoría -->
+                            <div class="filtros-cats d-flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-3">
+                        <small class="text-muted" id="contadorProductos">Mostrando <strong>0</strong> productos</small>
+                        <select class="form-select form-select-sm w-auto" id="selectOrden" onchange="filtrarProductos()">
+                            <option value="default">Ordenar por defecto</option>
+                            <option value="precio-asc">Precio: menor a mayor</option>
+                            <option value="precio-desc">Precio: mayor a menor</option>
+                            <option value="nombre">Nombre A–Z</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Grid dinámico de productos: Se rellena desde productos.js con tarjetas de producto según el filtro activo -->
+                <div id="gridProductos" class="row g-4">
+                    <!-- Las tarjetas de producto se renderizan aquí mediante JavaScript cuando llega la información del catálogo -->
+                    <div class="col-12 text-center py-5 text-muted">
+                        <div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem;"></div>
+                        <p class="fw-semibold">Cargando productos...</p>
+                    </div>
+                </div>
+                <!-- Mensaje de no resultados: Se muestra cuando el filtrado no encuentra productos compatibles -->
+                <div id="sinResultados" class="text-center py-5 d-none">
+                    <i class="bi bi-search display-4 text-muted mb-3 d-block"></i>
+                    <h5 class="text-muted">No se encontraron productos</h5>
+                    <p class="text-muted small">Intenta con otro término o categoría.</p>
+                    <button class="btn btn-outline-primary mt-2" onclick="resetFiltros()"><i class="bi bi-arrow-counterclockwise me-1"></i>Ver todos los productos</button>
+                </div>
+            </div>
+        </section>
+    </main>
+    <!-- Modal de detalle del producto: Muestra información completa, stock y acciones para agregar al carrito -->
+    <div class="modal fade" id="modalProductoDetalle" tabindex="-1" aria-labelledby="tituloModalDetalle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0" style="border-radius:18px; overflow:hidden;">
+                <div class="modal-header justify-content-between" style="background:var(--azul-oscuro); border-bottom: 3px solid var(--celeste); padding: 1rem 1.5rem;">
+                    <h5 class="modal-title text-white fw-bold d-flex align-items-center gap-2" id="tituloModalDetalle">
+                        <i class="bi bi-box-seam"></i>
+                        <span id="detNombre">Producto</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="row g-0">
+                        <div class="col-md-5">
+                            <div class="det-img-wrap">
+                                <img id="detImg" src="" alt="Producto" class="det-img">
+                                <span id="detCatBadge" class="det-cat-badge"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-7 p-4 d-flex flex-column">
+                            <span id="detCat" class="prod-cat mb-1"></span>
+                            <h4 id="detNombreGrande" class="fw-800 mb-2" style="font-weight:800; color:var(--oscuro);">
+                            </h4>
+                            <!-- Precio y disponibilidad: Datos completos del producto que se muestran en el modal de detalle -->
+                            <div class="det-precio-box mb-3">
+                                <span id="detPrecio" class="det-precio"></span>
+                                <span class="det-stock" id="detStock"><i class="bi bi-check-circle-fill text-success me-1"></i>En stock</span>
+                            </div>
+                            <p id="detDesc" class="text-muted" style="font-size:0.9rem; line-height:1.75;"></p>
+                            <hr>
+                            <!-- Controles de cantidad y acción: El usuario ajusta la cantidad y puede agregar el producto al carrito o abrir WhatsApp -->
+                            <div class="det-acciones mt-auto">
+                                <div class="det-cantidad mb-3">
+                                    <label class="form-label small fw-semibold" style="color:var(--azul-oscuro);">Cantidad</label>
+                                    <div class="input-cantidad">
+                                        <button type="button" onclick="cambiarCant(-1)"><i class="bi bi-dash"></i></button>
+                                        <span id="cantValor">1</span>
+                                        <button type="button" onclick="cambiarCant(1)"><i class="bi bi-plus"></i></button>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button class="btn btn-det-comprar flex-grow-1" onclick="agregarAlCarrito()" type="button">
+                                        <i class="bi bi-cart-plus me-2"></i>Agregar al carrito
+                                    </button>
+                                    <a id="detWhatsapp" href="#" target="_blank" class="btn btn-det-whatsapp">
+                                        <i class="bi bi-whatsapp"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal del carrito de compras: Lista los productos seleccionados y calcula el total antes de confirmar compra -->
+    <div class="modal fade" id="modalCarrito" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header" style="background:var(--azul-oscuro);">
+                    <h5 class="modal-title text-white fw-bold"><i class="bi bi-cart3 me-2"></i>Mi Carrito</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <!-- Lista de productos agregados al carrito: Se llena desde productos.js y permite eliminar o ajustar cantidades -->
+                    <div class="table-responsive">
+                        <table class="table mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Precio</th>
+                                    <th>Cantidad</th>
+                                    <th>Subtotal</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-carrito"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between align-items-center">
+                    <div>
+                        <div id="alertaCompra" class="alert d-none py-2 mb-0"></div>
+                        <strong>Total: <span id="carrito-total">S/ 0.00</span></strong>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Seguir comprando</button>
+                        <button type="button" class="btn btn-primary fw-semibold" id="btnConfirmarCompra" onclick="confirmarCompra()"><i class="bi bi-check-circle me-2"></i>Confirmar Compra</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Botón flotante del carrito: Acceso rápido al carrito desde cualquier punto de la página pública -->
+    <button onclick="abrirCarrito()" id="btn-carrito" class="btn btn-primary fw-semibold" style="position:fixed;bottom:2rem;right:2rem;z-index:999;border-radius:50px; box-shadow:0 4px 16px rgba(0,0,0,.2);">
+        <i class="bi bi-cart3 me-1"></i>Carrito
+        <span id="carrito-badge" class="badge bg-danger ms-1"></span>
+    </button>
+    <!-- Footer fragment insertado para incluir el pie de página compartido con enlaces y datos de contacto -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <!-- Bootstrap 5.3.3 JS Bundle CDN: Habilita modales, dropdowns y tooltips usados en la navegación pública -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- global.js: Scripts compartidos de interacción general, validación de formularios y comportamientos de navbar -->
+    <script th:src="@{/js/global.js}"></script>
+    <!-- productos.js: Lógica de comportamiento específica de la página de productos -->
+    <script th:src="@{/js/navbar/productos.js}"></script>
+</body>
+</html>

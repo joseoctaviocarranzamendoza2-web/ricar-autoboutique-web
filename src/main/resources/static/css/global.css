@@ -1,0 +1,758 @@
+/* Variables CSS - Colores reutilizables */
+:root {
+    --azul-oscuro: #0a3d6b;
+    --azul-medio: #1565c0;
+    --celeste: #56aee8;
+    --blanco: #ffffff;
+    --oscuro: #1a2332;
+}
+
+/* Desplazamiento suave */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Tipografía base para toda la app */
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Personaliza la scrollbar en navegadores WebKit */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+/* Fondo del rail de la scrollbar */
+::-webkit-scrollbar-track {
+    background: var(--azul-oscuro);
+}
+
+/* Elemento arrastrable de la scrollbar (color y radio) */
+::-webkit-scrollbar-thumb {
+    background: var(--celeste);
+    border-radius: 10px;
+}
+
+/* Color al pasar el cursor */
+::-webkit-scrollbar-thumb:hover {
+    background: var(--azul-medio);
+}
+
+/* Fondo, padding y transiciones del navbar */
+#navbar-principal {
+    background-color: var(--azul-oscuro);
+    padding: 0.55rem 0;
+    transition: background-color .3s, box-shadow .3s;
+}
+
+/* Fondo translúcido y sombra cuando se hace scroll */
+#navbar-principal.navbar-scrolled {
+    background-color: rgba(10, 61, 107, 0.97);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, .25);
+}
+
+/* Recuadro del icono de marca (tamaño y centrado) */
+.marca-icono {
+    width: 38px;
+    height: 38px;
+    background-color: var(--celeste);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--blanco);
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+/* Texto principal de la marca (tamaño y peso) */
+.marca-nombre {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--blanco);
+    line-height: 1.1;
+}
+
+/* Etiqueta secundaria (block, tamaño pequeño, tracking, uppercase) */
+.marca-sac {
+    display: block;
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: var(--celeste);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+/* Color, tamaño, padding y transición para enlaces del navbar */
+#navbar-principal .nav-link {
+    color: rgba(255, 255, 255, .78) !important;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.4rem 0.75rem !important;
+    border-radius: 6px;
+    transition: color .2s, background-color .2s;
+}
+
+/* Texto blanco y fondo semitransparente */
+#navbar-principal .nav-link:hover, #navbar-principal .nav-link.active {
+    color: var(--blanco) !important;
+    background-color: rgba(255, 255, 255, .1);
+}
+
+/* Fondo blanco y texto oscuro */
+#navbar-principal .btn-navbar-registrarse {
+    background-color: var(--blanco);
+    color: var(--oscuro);
+    border: 1px solid var(--blanco);
+    transition: background-color .2s, color .2s, border-color .2s;
+}
+
+/* Pasa a color de marca */
+#navbar-principal .btn-navbar-registrarse:hover {
+    background-color: var(--celeste);
+    color: var(--blanco);
+    border-color: var(--celeste);
+}
+
+/* Transparente con borde blanco */
+#navbar-principal .btn-navbar-login {
+    background-color: transparent;
+    color: var(--blanco);
+    border: 1px solid var(--blanco);
+    transition: background-color .2s, color .2s, border-color .2s;
+}
+
+/* Fondo celeste y texto blanco */
+#navbar-principal .btn-navbar-login:hover {
+    background-color: var(--celeste);
+    color: var(--blanco);
+    border-color: var(--celeste);
+}
+
+/* Fondo celeste, texto blanco */
+#navbar-principal .btn-navbar-panel {
+    background-color: var(--celeste);
+    color: var(--blanco);
+    border: 1px solid var(--celeste);
+    transition: background-color .2s, color .2s, border-color .2s;
+}
+
+/* Fondo blanco, texto azul */
+#navbar-principal .btn-navbar-panel:hover {
+    background-color: var(--blanco);
+    color: var(--azul-oscuro);
+    border-color: var(--blanco);
+}
+
+/* Fondo rojo claro y texto blanco */
+#navbar-principal .btn-navbar-cerrar {
+    background-color: #ff6b6b;
+    color: var(--blanco);
+    transition: background-color .2s, color .2s;
+}
+
+/* Fondo blanco y texto azul */
+#navbar-principal .btn-navbar-cerrar:hover {
+    background-color: var(--blanco);
+    color: var(--azul-oscuro);
+    border-color: var(--blanco);
+}
+
+/* Fondo semitransparente y borde ligero */
+#navbar-principal .btn-navbar-regresar {
+    background-color: rgba(255, 255, 255, .15);
+    color: var(--blanco);
+    border: 1px solid rgba(255, 255, 255, .3);
+    transition: background-color .2s, color .2s, border-color .2s;
+}
+
+/* Fondo celeste y texto blanco */
+#navbar-principal .btn-navbar-regresar:hover {
+    background-color: var(--celeste);
+    color: var(--blanco);
+    border-color: var(--celeste);
+}
+
+/* Estilo del menú colapsado (#menuNav) y centrado de enlaces */
+@media (max-width: 1199px) {
+    #menuNav {
+        background-color: var(--azul-oscuro);
+        padding: 1rem;
+        border-radius: 0 0 10px 10px;
+        border-top: 1px solid rgba(255, 255, 255, .08);
+    }
+    #menuNav .navbar-nav .nav-link {
+        text-align: center;
+        justify-content: center;
+    }
+}
+
+/* Ocupa altura viewport menos navbar y fondo degradado */
+#carrusel-principal {
+    position: relative;
+    height: calc(100vh - 58px);
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul-medio) 100%);
+}
+
+/* Contenedor absoluto para fondos de slides (z-index base) */
+.carrusel-fondos {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+/* Cada fondo de slide - Cover centrado y transición de opacidad */
+.fondo-slide {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+}
+
+/* Visible mediante opacidad */
+.fondo-slide.activo {
+    opacity: 1;
+}
+
+/* Overlay oscuro sobre fondos para mejorar contraste del contenido */
+.carrusel-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(4, 32, 58, 0.877);
+    z-index: 1;
+}
+
+/* Contenedor del contenido del carrusel (centrado y sobre overlay) */
+.carrusel-contenido {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+/* Fondo claro de marca y borde sutil */
+.badge-slide {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(86, 174, 232, .18);
+    color: #a8d8f5;
+    border: 1px solid rgba(86, 174, 232, .35);
+    font-size: .78rem;
+    font-weight: 500;
+    padding: .4em 1.1em;
+    border-radius: 50px;
+    margin-bottom: 1rem;
+}
+
+/* Tipografía responsiva y peso extra */
+.titulo-slide {
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 800;
+    color: var(--blanco);
+    line-height: 1.2;
+}
+
+/* Texto con color de marca */
+.texto-celeste {
+    color: var(--celeste);
+}
+
+/* Tono blanco semi-transparente y lectura cómoda */
+.subtitulo-slide {
+    color: rgba(255, 255, 255, .75);
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+/* Grande y color de marca */
+.stat-num {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--celeste);
+    line-height: 1;
+}
+
+/* Texto pequeño y contraste medio */
+.stat-label {
+    font-size: .75rem;
+    color: rgba(255, 255, 255, .55);
+    margin-top: 4px;
+}
+
+/* Contenedor relativo para imagen del carrusel (limita ancho) */
+.img-carrusel-box {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+}
+
+/* Cover, tamaño fijo y bordes redondeados */
+.img-carrusel {
+    width: 100%;
+    height: 380px;
+    object-fit: cover;
+    border-radius: 16px;
+    opacity: .92;
+}
+
+/* Badge absoluto flotante sobre tarjetas (fondo blanco, sombra) */
+.badge-flotante {
+    position: absolute;
+    background: var(--blanco);
+    border-radius: 50px;
+    padding: 8px 16px;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--oscuro);
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .15);
+}
+
+/* Esquina superior (offset negativo) */
+.badge-top {
+    top: -15px;
+    right: -15px;
+}
+
+/* Esquina inferior (offset negativo) */
+.badge-bottom {
+    bottom: -15px;
+    left: -15px;
+}
+
+/* Contenedor de indicadores del carrusel (centrado abajo) */
+.carrusel-indicadores {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    display: flex;
+    gap: 8px;
+}
+
+/* Punto indicador del carrusel (estado inactivo) */
+.indicador {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .4);
+    cursor: pointer;
+    border: none;
+    padding: 0;
+    transition: all .3s;
+}
+
+/* Color de marca y barra expandida */
+.indicador.activo {
+    background: var(--celeste);
+    width: 28px;
+    border-radius: 5px;
+}
+
+/* Ajusta alturas y padding del carrusel en pantallas pequeñas */
+@media (max-width: 991px) {
+    #carrusel-principal {
+        height: calc(100vh - 58px);
+        min-height: 0;
+    }
+    .carrusel-contenido {
+        padding: 2rem 0;
+        align-items: center;
+    }
+}
+
+/* Reduce tamaños tipográficos del hero */
+@media (max-width: 575px) {
+    .titulo-slide {
+        font-size: 1.4rem;
+    }
+    .subtitulo-slide {
+        font-size: .85rem;
+    }
+    .stat-num {
+        font-size: 1.4rem;
+    }
+}
+
+/* Fondo blanco y banda superior de marca */
+.info-banner {
+    background: var(--blanco);
+    border-top: 3px solid var(--celeste);
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Sección CTA encima del footer (fondo y bordes de marca) */
+.footer-cta {
+    background-color: var(--azul-medio);
+    border-top: 3px solid var(--celeste);
+    border-bottom: 1px solid rgba(86, 174, 232, 0.15);
+    padding: 1.4rem 0;
+}
+
+/* Color blanco y peso destacado */
+.footer-cta-titulo {
+    color: var(--blanco);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+/* Tono blanco semi-transparente */
+.footer-cta-sub {
+    color: rgba(255, 255, 255, 0.70);
+    font-size: 0.85rem;
+}
+
+/* Botón CTA blanco que en hover pasa a color de marca */
+.btn-celeste-outline {
+    border: 1.5px solid var(--blanco);
+    color: var(--oscuro);
+    background: var(--blanco);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.45rem 1.1rem;
+    border-radius: 8px;
+    transition: background .2s, color .2s, border-color .2s;
+    white-space: nowrap;
+}
+
+/* Cambia a fondo celeste, texto blanco y borde del mismo color */
+.btn-celeste-outline:hover {
+    background: var(--celeste);
+    color: var(--blanco);
+    border-color: var(--celeste);
+}
+
+/* CTA ocupa ancho completo en mobile y centra botones */
+@media (max-width: 991px) {
+    .footer-cta .row {
+        text-align: center;
+    }
+    .footer-cta .btn-celeste-outline {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Fondo oscuro y padding vertical */
+.footer-body {
+    background-color: var(--azul-oscuro);
+    padding: 3rem 0 2rem;
+}
+
+/* Texto secundario con menor contraste */
+.footer-desc {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.85rem;
+    line-height: 1.7;
+}
+
+/* Caja cuadrada centrada con borde sutil */
+.footer-social {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid rgba(86, 174, 232, 0.3);
+    color: rgba(255, 255, 255, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: background .2s, color .2s, border-color .2s;
+}
+
+/* Icono pasa a color de marca y fondo blanco */
+.footer-social:hover {
+    background: var(--celeste);
+    color: var(--blanco);
+    border-color: var(--celeste);
+}
+
+/* Título de columna en footer (uppercase y linea inferior) */
+.footer-titulo-col {
+    color: var(--celeste);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(86, 174, 232, 0.2);
+}
+
+/* Lista de enlaces en footer (columna con gap) */
+.footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Color secundario y pequeño gap con icono */
+.footer-links a {
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color .2s, gap .2s;
+}
+
+/* Icono pequeño a la izquierda del enlace (color marca) */
+.footer-links a i {
+    font-size: 0.65rem;
+    color: var(--celeste);
+}
+
+/* Texto a blanco y gap aumenta levemente */
+.footer-links a:hover {
+    color: var(--blanco);
+    gap: 10px;
+}
+
+/* Lista de contacto (column, gap entre items) */
+.footer-contacto {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* Icono + texto, alineado al inicio */
+.footer-contacto li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Caja para iconos de contacto (fondo tenue y centrado) */
+.footer-contacto-icono {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    background: rgba(86, 174, 232, 0.12);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--celeste);
+    font-size: 0.8rem;
+}
+
+/* Color secundario y transición */
+.footer-contacto a {
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    transition: color .2s;
+}
+
+/* Hover de enlaces de contacto: color marca */
+.footer-contacto a:hover {
+    color: var(--celeste);
+}
+
+/* Fondo muy oscuro y borde superior */
+.footer-bottom {
+    background-color: #061e36 !important;
+    border-top: 1px solid rgba(86, 174, 232, 0.15) !important;
+    padding: 0.9rem 0;
+}
+
+/* Tipografía y color reducido para textos legales */
+.footer-bottom p, .footer-bottom span {
+    margin: 0;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.45) !important;
+}
+
+/* Énfasis en texto dentro del footer-bottom */
+.footer-bottom strong {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: 600;
+}
+
+/* Enlaces pequeños en footer-bottom */
+.footer-bottom a {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.45) !important;
+    text-decoration: none;
+    transition: color .2s;
+}
+
+/* Convierte el enlace al color de marca */
+.footer-bottom a:hover {
+    color: var(--celeste) !important;
+}
+
+/* Blur y color oscuro para enfocar modal */
+.modal-backdrop {
+    backdrop-filter: blur(4px);
+    background-color: rgba(10, 30, 54, 0.7) !important;
+}
+
+/* Esquinas redondeadas y sombra pronunciada */
+.modal-content {
+    border: none;
+    border-radius: 16px !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+/* Fondo oscuro, padding y borde inferior de marca */
+.modal-header {
+    background-color: var(--azul-oscuro);
+    padding: 1.2rem 1.5rem !important;
+    border-bottom: 3px solid var(--celeste) !important;
+}
+
+/* Color blanco y alineación con icono */
+.modal-title {
+    color: var(--blanco) !important;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Barra decorativa antes del título (marca) */
+.modal-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 20px;
+    background-color: var(--celeste);
+    border-radius: 4px;
+}
+
+/* Invertido y con transición */
+.modal-header .btn-close {
+    filter: invert(1);
+    opacity: 0.7;
+    transition: opacity .2s, transform .2s;
+}
+
+/* Aumenta opacidad y rota el icono */
+.modal-header .btn-close:hover {
+    opacity: 1;
+    transform: rotate(90deg);
+}
+
+/* Padding y fondo claro para contener formularios */
+.modal-body {
+    padding: 1.5rem !important;
+    background-color: #f8fafd;
+}
+
+/* Uppercase y color oscuro */
+.modal-body .form-label {
+    color: var(--azul-oscuro);
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Borde suave, padding y fondo blanco */
+.modal-body .form-control {
+    border: 1.5px solid #dce6f0;
+    border-radius: 8px;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.9rem;
+    color: var(--oscuro);
+    background-color: var(--blanco);
+    transition: border-color .2s, box-shadow .2s;
+}
+
+/* Resalta borde y añade sombra de enfoque */
+.modal-body .form-control:focus {
+    border-color: var(--celeste);
+    box-shadow: 0 0 0 3px rgba(86, 174, 232, 0.15);
+    outline: none;
+}
+
+/* Color gris y tamaño ligero */
+.modal-body .form-control::placeholder {
+    color: #aab8c8;
+    font-size: 0.85rem;
+}
+
+/* Color de marca y bordes suavizados */
+.modal-body .btn-primary {
+    background-color: var(--azul-medio);
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: background-color .2s, transform .2s;
+}
+
+/* Cambia a celeste y levanta ligeramente */
+.modal-body .btn-primary:hover {
+    background-color: var(--celeste);
+    transform: translateY(-1px);
+}
+
+/* Color ligero para diferenciar secciones */
+.modal-body hr {
+    border-color: #dce6f0;
+    opacity: 1;
+}
+
+/* Texto muted dentro del modal con color personalizado */
+.modal-body .text-muted {
+    color: #7a8fa6 !important;
+}
+
+/* Color marca y peso seminegrita */
+.modal-body a {
+    color: var(--azul-medio);
+    font-weight: 600;
+}
+
+/* Color secundario */
+.modal-body a:hover {
+    color: var(--celeste);
+}
+
+/* Color de marca */
+.modal-body .form-check-input:checked {
+    background-color: var(--celeste);
+    border-color: var(--celeste);
+}
+
+/* Tono gris oscuro */
+.modal-body .form-check-label {
+    color: #5a6e82;
+    font-size: 0.85rem;
+}
+
+/* Feedback de validación oculto por defecto */
+.modal-body .invalid-feedback {
+    font-size: 0.78rem;
+    display: none;
+}
+
+/* Muestra feedback si es inválido */
+.modal-body .form-control.is-invalid~.invalid-feedback, .modal-body .form-check-input.is-invalid~.invalid-feedback {
+    display: block;
+}
+
+/* Label pasa a color de error si inválido */
+.modal-body .form-check-input.is-invalid~.form-check-label {
+    color: #dc3545;
+}

@@ -1,0 +1,561 @@
+<!-- Página 'servicios' pública: Listado y detalle de servicios ofrecidos; usa Bootstrap 5 y fragmento navbar -->
+<!DOCTYPE html>
+<!-- Thymeleaf requiere el namespace xmlns:th para habilitar directivas th:href, th:src y th:text en todo el documento -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RICAR AUTOBOUTIQUE S.A.C.</title>
+    <!-- Bootstrap 5.3.3 CDN: Sistema de grilla y utilidades para la página de servicios -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons 1.11.3 CDN: Iconos usados en cards, badges y botones -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- global.css: Estilos compartidos entre páginas públicas -->
+    <link th:href="@{/css/global.css}" rel="stylesheet">
+    <!-- servicios.css: Estilos específicos del listado y grid de servicios -->
+    <link th:href="@{/css/navbar/servicios.css}" rel="stylesheet">
+    <!-- Favicon del sitio -->
+    <link rel="icon" th:href="@{/img/icon.png}" type="image/png">
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <!-- Carrusel principal: Muestra imágenes destacadas del servicio y refuerza el llamado a agendar cita -->
+    <div id="carrusel-principal">
+        <div class="carrusel-fondos">
+            <div class="fondo-slide activo" style="background-image: url('https://raw.githubusercontent.com/DAlvarezF7/multimedia/644601117d61742ce9b2e9972122b23cad182430/Ricarr4.webp');"></div>
+            <div class="fondo-slide" style="background-image: url('https://raw.githubusercontent.com/DAlvarezF7/multimedia/644601117d61742ce9b2e9972122b23cad182430/Ricarr2.webp');"></div>
+        </div>
+        <div class="carrusel-overlay"></div>
+        <div class="carrusel-contenido">
+            <div class="container">
+                <div class="row align-items-center justify-content-center justify-content-lg-between g-4">
+                    <div class="col-12 col-lg-6 text-center text-lg-start">
+                        <span class="badge-slide"><i class="bi bi-patch-check-fill"></i> Taller certificado en Trujillo</span>
+                        <h1 class="titulo-slide mt-2">
+                            <span class="texto-celeste">Servicio</span> mecánico profesional para tu
+                            <span class="texto-celeste">vehículo</span>
+                        </h1>
+                        <p class="subtitulo-slide mt-3 mb-4">
+                            Realizamos mantenimiento, diagnóstico y reparación con técnicos especializados.<br>
+                            Atendemos autos, motos y camionetas con herramientas modernas y garantía de calidad.
+                        </p>
+                        <!-- CTA hero de servicios: Dirige al usuario a agendar una cita o ver el catálogo completo -->
+                        <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-3">
+                            <button class="btn btn-light fw-bold px-4 text-primary btn-agendar-serv" data-servicio="Cita general"><i class="bi bi-calendar-check me-2"></i>Agendar Cita</button>
+                            <a href="#catalogo-servicios" class="btn btn-outline-light fw-bold px-4"><i class="bi bi-grid me-2"></i>Ver Servicios</a>
+                        </div>
+                        <!-- Métricas de confianza del hero: Refuerzan credibilidad antes de presentar el catálogo -->
+                        <div class="row mt-4 g-3">
+                            <div class="col-4 text-center">
+                                <span class="stat-num">+10 000</span><span class="stat-label d-block">Clientes</span>
+                            </div>
+                            <div class="col-4 text-center">
+                                <span class="stat-num">+23</span><span class="stat-label d-block">Años de exp.</span>
+                            </div>
+                            <div class="col-4 text-center">
+                                <span class="stat-num">+300</span><span class="stat-label d-block">Productos</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Imagen de soporte en hero: Fortalece la propuesta visual del servicio profesional ofrecido -->
+                    <div class="col-lg-6 d-none d-lg-flex justify-content-center">
+                        <div class="img-carrusel-box">
+                            <img src="https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm43VWuuhdynMjyBmue1Ex9Zk9X8WTws8bPdfx8bGaZEBJkbbZTTI_jWYfPyy2L2G6JzN-5PxllcfTScqNOOkqMtMSP9IwAW2xOnMYwRxZmhw0Jrorg86PfYyQ4HoIZMydNAnCUqA=s680-w680-h510-rw" alt="Taller mecánico RICAR AUTOBOUTIQUE" class="img-carrusel">
+                            <div class="badge-flotante badge-top">
+                                <i class="bi bi-shield-check text-primary me-1"></i><span>Garantía incluida</span>
+                            </div>
+                            <div class="badge-flotante badge-bottom">
+                                <i class="bi bi-clock text-primary me-1"></i><span>Atención rápida</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="carrusel-indicadores">
+            <button class="indicador activo" aria-label="Slide 1"></button>
+            <button class="indicador" aria-label="Slide 2"></button>
+            <button class="indicador" aria-label="Slide 3"></button>
+            <button class="indicador" aria-label="Slide 4"></button>
+        </div>
+    </div>
+    <!-- Banner de beneficios: Iconos rápidos que destacan características clave como envío, soporte y garantía -->
+    <section class="info-banner py-3">
+        <div class="container">
+            <div class="row g-3 text-center">
+                <div class="col-6 col-md-3">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-truck text-primary fs-5"></i><span class="small fw-semibold">Envío a Trujillo</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-headset text-primary fs-5"></i><span class="small fw-semibold">Soporte 24/7</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-patch-check text-primary fs-5"></i><span class="small fw-semibold">Garantía 1 año</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-credit-card text-primary fs-5"></i><span class="small fw-semibold">Pago seguro</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Contenido principal: Textos de confianza, catálogo de servicios y paso a paso del proceso de trabajo -->
+    <main class="flex-grow-1">
+        <section class="py-5 bg-white">
+            <div class="container">
+                <div class="row align-items-center g-5">
+                    <div class="col-lg-6">
+                        <span class="etiqueta-seccion">¿Por qué elegirnos?</span>
+                        <h2 class="titulo-seccion mt-2">Servicio profesional con <span class="texto-celeste">garantía real</span></h2>
+                        <p class="text-muted mt-3" style="line-height:1.85;">En RICAR AUTOBOUTIQUE contamos con técnicos
+                            certificados y equipos de diagnóstico de última generación. Cada servicio incluye revisión
+                            previa sin costo, cotización transparente y garantía escrita. Atendemos autos, motos y
+                            camionetas.</p>
+                        <!-- Métricas de confianza: Datos numéricos que complementan el mensaje de servicio profesional y garantía real -->
+                        <div class="row g-3 mt-2">
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <i class="bi bi-patch-check-fill text-primary"></i><span>Garantía hasta 1 año</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <i class="bi bi-clock-fill text-primary"></i><span>Entrega puntual</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <i class="bi bi-person-check-fill text-primary"></i><span>Técnicos certificados</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mini-stat">
+                                    <i class="bi bi-cash-coin text-primary"></i><span>Cotización gratuita</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="mini-kpi-card">
+                                    <span class="mini-kpi-num">+20 000</span><span class="mini-kpi-label">Vehículos atendidos</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mini-kpi-card">
+                                    <span class="mini-kpi-num">+23</span><span class="mini-kpi-label">Años de experiencia</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mini-kpi-card">
+                                    <span class="mini-kpi-num">12</span><span class="mini-kpi-label">Tipos de servicio</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mini-kpi-card">
+                                    <span class="mini-kpi-num">98%</span><span class="mini-kpi-label">Clientes satisfechos</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section id="catalogo-servicios" class="py-5" style="background-color: var(--color-fondo-suave);">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <span class="etiqueta-seccion">Catálogo completo</span>
+                    <h2 class="titulo-seccion mt-2">Todos nuestros <span class="texto-celeste">servicios</span></h2>
+                    <p class="subtitulo-seccion">Selecciona el servicio que necesitas y agenda tu cita hoy</p>
+                </div>
+                <!-- Catálogo de servicios dinámico: Servicios renderizados por servicios.js con cards interactivas -->
+                <div class="row g-4" id="grid-servicios-catalogo">
+                    <div class="col-12 text-center py-5 text-muted">
+                        <div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem;"></div>
+                        <p class="fw-semibold">Cargando servicios...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="py-5 bg-white">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <span class="etiqueta-seccion">Fácil y rápido</span>
+                    <h2 class="titulo-seccion mt-2">¿Cómo funciona <span class="texto-celeste">el proceso?</span></h2>
+                </div>
+                <!-- Proceso paso a paso: Explica al usuario cómo funciona el servicio desde agendar hasta entrega con garantía -->
+                <div class="row g-4 justify-content-center">
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card-paso text-center h-100">
+                            <div class="paso-num">01</div>
+                            <div class="paso-icono"><i class="bi bi-calendar-check"></i></div>
+                            <h6>Agenda tu cita</h6>
+                            <p>Regístrate y elige el servicio, fecha y hora que prefieras desde nuestra plataforma.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card-paso text-center h-100">
+                            <div class="paso-num">02</div>
+                            <div class="paso-icono"><i class="bi bi-car-front"></i></div>
+                            <h6>Lleva tu vehículo</h6>
+                            <p>Preséntate en nuestro taller en Av. Húsares de Junín 336, Urb. La Merced, en el horario reservado.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card-paso text-center h-100">
+                            <div class="paso-num">03</div>
+                            <div class="paso-icono"><i class="bi bi-tools"></i></div>
+                            <h6>Revisión y servicio</h6>
+                            <p>Nuestros técnicos certificados realizan el servicio con equipos de última generación.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card-paso text-center h-100">
+                            <div class="paso-num">04</div>
+                            <div class="paso-icono"><i class="bi bi-patch-check-fill"></i></div>
+                            <h6>Entrega con garantía</h6>
+                            <p>Retira tu vehículo con informe técnico detallado y garantía escrita del trabajo realizado.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <!-- Modal de servicio personalizado: Formulario para solicitar una cotización o diagnóstico especial fuera del catálogo estándar -->
+    <div class="modal fade" id="modalServicioPersonalizado" tabindex="-1" aria-labelledby="tituloModalPersonalizado" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content modal-custom-serv">
+                <div class="modal-header modal-custom-header justify-content-center position-relative">
+                    <div class="modal-custom-icon">
+                        <i class="bi bi-sliders"></i>
+                    </div>
+                    <div class="text-center">
+                        <h5 class="modal-title mb-1" id="tituloModalPersonalizado">Solicitud de Servicio Personalizado</h5>
+                        <p class="modal-custom-sub mb-0">Cuéntanos qué necesita tu vehículo y te contactamos en menos de 24 h</p>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="modal-pasos mb-4">
+                        <div class="modal-paso activo"><div class="modal-paso-num">1</div><span>Datos del vehículo</span></div>
+                        <div class="modal-paso-linea"></div>
+                        <div class="modal-paso"><div class="modal-paso-num">2</div><span>Problema y detalles</span></div>
+                        <div class="modal-paso-linea"></div>
+                        <div class="modal-paso"><div class="modal-paso-num">3</div><span>Contacto</span></div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="modal-bloque-titulo">
+                                <i class="bi bi-car-front-fill"></i> Datos del vehículo
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label modal-label">Marca <span class="text-danger">*</span></label>
+                            <select class="form-select" id="pMarca">
+                                <option value="">Seleccionar...</option>
+                                <option>Toyota</option>
+                                <option>Hyundai</option>
+                                <option>Nissan</option>
+                                <option>Honda</option>
+                                <option>Kia</option>
+                                <option>Chevrolet</option>
+                                <option>Ford</option>
+                                <option>Suzuki</option>
+                                <option>Mitsubishi</option>
+                                <option>Otra</option>
+                            </select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label modal-label">Modelo <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="pModelo" placeholder="Ej: Corolla, Sentra...">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label modal-label">Año <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="pAnio" placeholder="Ej: 2019" min="1990" max="2026">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label modal-label">Tipo de vehículo</label>
+                            <select class="form-select" id="pTipoVehiculo">
+                                <option value="">Seleccionar...</option>
+                                <option>Auto / Sedan</option>
+                                <option>Camioneta / SUV</option>
+                                <option>Pick-up</option>
+                                <option>Moto</option>
+                                <option>Minivan</option>
+                                <option>Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label modal-label">Kilometraje aproximado</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="pKm" placeholder="Ej: 85000" min="0"><span class="input-group-text">km</span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <hr class="modal-separador">
+                        </div>
+                        <div class="col-12">
+                            <div class="modal-bloque-titulo">
+                                <i class="bi bi-exclamation-triangle-fill"></i> Descripción del problema
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label modal-label">Área o sistema afectado <span class="text-danger">*</span></label>
+                            <div class="row g-2" id="checkAreas">
+                                <div class="col-6 col-sm-4">
+                                    <div class="check-area">
+                                        <input type="checkbox" class="check-area-input" id="aMotor">
+                                        <label class="check-area-label" for="aMotor"><i class="bi bi-gear-fill"></i> Motor</label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-sm-4">
+                                    <div class="check-area">
+                                        <input type="checkbox" class="check-area-input" id="aElectrico">
+                                        <label class="check-area-label" for="aElectrico"><i class="bi bi-battery-charging"></i> Sistema eléctrico</label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-sm-4">
+                                    <div class="check-area">
+                                        <input type="checkbox" class="check-area-input" id="aFrenosS">
+                                        <label class="check-area-label" for="aFrenosS"><i class="bi bi-shield-check"></i> Frenos / Suspensión</label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-sm-4">
+                                    <div class="check-area">
+                                        <input type="checkbox" class="check-area-input" id="aRefrig">
+                                        <label class="check-area-label" for="aRefrig"><i class="bi bi-thermometer-half"></i> Refrigeración</label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-sm-4">
+                                    <div class="check-area">
+                                        <input type="checkbox" class="check-area-input" id="aTransmision">
+                                        <label class="check-area-label" for="aTransmision"><i class="bi bi-arrow-repeat"></i> Transmisión</label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-sm-4">
+                                    <div class="check-area">
+                                        <input type="checkbox" class="check-area-input" id="aOtro">
+                                        <label class="check-area-label" for="aOtro"><i class="bi bi-three-dots"></i> Otro</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label modal-label">Describe el problema con detalle <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="pDescripcion" rows="4" placeholder="Ej: El motor hace un ruido extraño al acelerar..."></textarea>
+                            <div class="invalid-feedback"></div>
+                            <div class="form-text text-end" id="contadorDesc">0 / 500 caracteres</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label modal-label">¿Cuándo ocurre el problema?</label>
+                            <select class="form-select" id="pCuando">
+                                <option value="">Seleccionar...</option>
+                                <option>Al encender el vehículo</option>
+                                <option>Al acelerar</option>
+                                <option>Al frenar</option>
+                                <option>En marcha constante</option>
+                                <option>Solo en frío</option>
+                                <option>Siempre</option>
+                                <option>Intermitente</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label modal-label">Urgencia</label>
+                            <div class="d-flex gap-2 flex-wrap pt-1">
+                                <input type="radio" class="btn-check" name="urgencia" id="uBaja" value="baja" checked>
+                                <label class="btn btn-sm btn-outline-success" for="uBaja">Puede esperar</label>
+                                <input type="radio" class="btn-check" name="urgencia" id="uMedia" value="media">
+                                <label class="btn btn-sm btn-outline-warning" for="uMedia">Esta semana</label>
+                                <input type="radio" class="btn-check" name="urgencia" id="uAlta" value="alta">
+                                <label class="btn btn-sm btn-outline-danger" for="uAlta">Urgente</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <hr class="modal-separador">
+                        </div>
+                        <div class="col-12">
+                            <div class="modal-bloque-titulo">
+                                <i class="bi bi-person-lines-fill"></i> Datos de contacto
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label modal-label">Nombre completo <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="pNombre" placeholder="Tu nombre y apellido">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label modal-label">Teléfono / WhatsApp <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="pTelefono" placeholder="987 654 321" maxlength="9">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label modal-label">Correo electrónico</label>
+                            <input type="email" class="form-control" id="pEmail" placeholder="tu@gmail.com">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label modal-label">¿Cómo prefieres que te contactemos?</label>
+                            <select class="form-select" id="pContactoPref">
+                                <option value="whatsapp">WhatsApp</option>
+                                <option value="llamada">Llamada telefónica</option>
+                                <option value="email">Correo electrónico</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <div id="alertaServPersonalizado" class="alert alert-success d-none py-2 text-center">
+                                <i class="bi bi-check-circle-fill me-2"></i>¡Solicitud enviada! Te contactaremos en menos de 24 horas.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer modal-custom-footer border-0 justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancelar</button>
+                    <button type="button" class="btn btn-custom-enviar px-5" id="btnEnviarPersonalizado"><i class="bi bi-send-fill me-2"></i>Enviar solicitud</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="modalCita" tabindex="-1" aria-labelledby="tituloModalCita" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header justify-content-center position-relative" style="background: linear-gradient(135deg, var(--azul-oscuro, #0d1b2a), var(--celeste, #0d6efd)); color: #fff;">
+                    <div class="text-center">
+                        <div class="mb-2" style="font-size:2rem;">
+                            <i class="bi bi-calendar-check-fill"></i>
+                        </div>
+                        <h5 class="modal-title mb-1" id="tituloModalCita">Agendar Cita</h5>
+                        <p class="mb-0" style="font-size:.85rem; opacity:.85;">Servicio seleccionado: <strong id="citaNombreServicio">—</strong></p>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3 top-0 mt-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="d-flex align-items-center gap-2 mb-1" style="color:var(--celeste,#0d6efd);font-weight:600;font-size:.9rem;">
+                                <i class="bi bi-person-fill"></i> Datos personales
+                            </div>
+                            <hr class="mt-1 mb-3">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="citaNombre">Nombre completo <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="citaNombre" placeholder="Tu nombre y apellido" maxlength="80" autocomplete="name">
+                            <div class="invalid-feedback">Ingresa tu nombre completo.</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="citaTelefono">Teléfono / WhatsApp <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone-fill"></i></span>
+                                <input type="tel" class="form-control" id="citaTelefono" placeholder="987 654 321" maxlength="9" autocomplete="tel">
+                            </div>
+                            <div class="invalid-feedback" id="citaTelefonoError">
+                                El teléfono debe empezar con 9 y tener 9 dígitos.
+                            </div>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <div class="d-flex align-items-center gap-2 mb-1" style="color:var(--celeste,#0d6efd);font-weight:600;font-size:.9rem;">
+                                <i class="bi bi-calendar2-week-fill"></i> Fecha y hora
+                            </div>
+                            <hr class="mt-1 mb-3">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="citaFecha">Fecha preferida <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="citaFecha">
+                            <div class="invalid-feedback">Selecciona una fecha válida (desde mañana).</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="citaHora">Hora preferida <span class="text-danger">*</span></label>
+                            <select class="form-select" id="citaHora">
+                                <option value="">Seleccionar horario...</option>
+                                <option>08:00 – 09:00</option>
+                                <option>09:00 – 10:00</option>
+                                <option>10:00 – 11:00</option>
+                                <option>11:00 – 12:00</option>
+                                <option>14:00 – 15:00</option>
+                                <option>15:00 – 16:00</option>
+                                <option>16:00 – 17:00</option>
+                                <option>17:00 – 18:00</option>
+                            </select>
+                            <div class="invalid-feedback">Selecciona un horario.</div>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <div class="d-flex align-items-center gap-2 mb-1" style="color:var(--celeste,#0d6efd);font-weight:600;font-size:.9rem;">
+                                <i class="bi bi-car-front-fill"></i> Datos del vehículo
+                            </div>
+                            <hr class="mt-1 mb-3">
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label" for="citaMarca">Marca <span class="text-danger">*</span></label>
+                            <select class="form-select" id="citaMarca">
+                                <option value="">Seleccionar...</option>
+                                <option>Toyota</option>
+                                <option>Hyundai</option>
+                                <option>Nissan</option>
+                                <option>Honda</option>
+                                <option>Kia</option>
+                                <option>Chevrolet</option>
+                                <option>Ford</option>
+                                <option>Suzuki</option>
+                                <option>Mitsubishi</option>
+                                <option>Otra</option>
+                            </select>
+                            <div class="invalid-feedback">Selecciona la marca.</div>
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label" for="citaModelo">Modelo <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="citaModelo" placeholder="Ej: Corolla, Sentra..." maxlength="40">
+                            <div class="invalid-feedback">Ingresa el modelo.</div>
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label" for="citaAnio">Año <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="citaAnio" placeholder="Ej: 2019" min="1990" max="2026">
+                            <div class="invalid-feedback">Ingresa el año (1990–2026).</div>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <div class="d-flex align-items-center gap-2 mb-1" style="color:var(--celeste,#0d6efd);font-weight:600;font-size:.9rem;">
+                                <i class="bi bi-chat-left-text-fill"></i> Descripción del problema
+                            </div>
+                            <hr class="mt-1 mb-3">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="citaDescripcion">¿Algo adicional que debamos saber?<span class="text-muted">(opcional)</span></label>
+                            <textarea class="form-control" id="citaDescripcion" rows="3" placeholder="Ej: El motor hace un ruido al arrancar..." maxlength="400"></textarea>
+                            <div class="d-flex justify-content-end mt-1">
+                                <small class="text-muted" id="citaDescContador">0 / 400</small>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div id="citaExito" class="alert alert-success d-none py-3 text-center">
+                                <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                                <strong>¡Cita agendada!</strong><br>
+                                <span id="citaExitoMsg"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-between px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancelar</button>
+                    <button type="button" class="btn btn-primary px-5 fw-semibold" id="btnConfirmarCita"><i class="bi bi-calendar-check me-2"></i>Confirmar cita</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer fragment insertado para incluir el pie de página compartido con enlaces y datos de contacto -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <!-- Bootstrap 5.3.3 JS Bundle CDN: Habilita modales, dropdowns y tooltips usados en la navegación pública -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- global.js: Scripts compartidos de interacción general, validación de formularios y comportamientos de navbar -->
+    <script th:src="@{/js/global.js}"></script>
+    <!-- servicios.js: Lógica de comportamiento específica de la página de servicios -->
+    <script th:src="@{/js/navbar/servicios.js}"></script>
+</body>
+</html>

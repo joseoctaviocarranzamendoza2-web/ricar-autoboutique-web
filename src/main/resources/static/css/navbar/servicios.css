@@ -1,0 +1,682 @@
+/* Variables locales - Fondo suave */
+:root {
+    --color-fondo-suave: #f0f4f8;
+}
+
+/* Badge compacto para indicar categoría o subtítulo, fondo ligero y borde */
+.etiqueta-seccion {
+    display: inline-block;
+    background-color: rgba(86, 174, 232, 0.12);
+    color: var(--azul-medio);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 0.35em 1em;
+    border-radius: 50px;
+    border: 1px solid rgba(86, 174, 232, 0.3);
+}
+
+/* Título de sección: Encabezado prominente y responsivo, usado en hero y bloques principales */
+.titulo-seccion {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+    color: var(--oscuro);
+}
+
+/* Texto secundario centrado */
+.subtitulo-seccion {
+    color: #6c7d8e;
+    font-size: 0.95rem;
+    max-width: 520px;
+    margin: 0 auto;
+}
+
+/* Hero con imagen y padding vertical */
+.hero-interior {
+    position: relative;
+    background-image: url('https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=1600&q=80');
+    background-size: cover;
+    background-position: center;
+    padding: 5rem 0 4rem;
+}
+
+/* Máscara para mejorar contraste */
+.hero-interior-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(4, 32, 58, 0.82);
+}
+
+/* Contenido encima de la máscara */
+.hero-interior-contenido {
+    position: relative;
+    z-index: 1;
+}
+
+/* Separación inferior para breadcrumb */
+.breadcrumb-hero {
+    margin-bottom: 1rem;
+}
+
+/* Color y transición para enlaces en hero */
+.breadcrumb-hero .breadcrumb-item a {
+    color: rgba(255, 255, 255, 0.65);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+}
+
+/* Resalta enlace con color de marca */
+.breadcrumb-hero .breadcrumb-item a:hover {
+    color: var(--celeste);
+}
+
+/* Estilo del ítem activo */
+.breadcrumb-hero .breadcrumb-item.active {
+    color: var(--celeste);
+    font-size: 0.85rem;
+}
+
+/* Color tenue entre items */
+.breadcrumb-hero .breadcrumb-item+.breadcrumb-item::before {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Título hero grande y legible */
+.hero-interior-titulo {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 0.75rem;
+    line-height: 1.15;
+}
+
+/* Subtítulo hero con opacidad */
+.hero-interior-sub {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 1rem;
+    max-width: 550px;
+}
+
+/* Pequeño bloque estadístico con icono */
+.mini-stat {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--oscuro);
+}
+
+/* Icono dentro del mini stat */
+.mini-stat i {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+/* Tarjeta KPI compacta */
+.mini-kpi-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-top: 3px solid var(--celeste);
+    border-radius: 14px;
+    padding: 1.4rem 1rem;
+    text-align: center;
+}
+
+/* Número KPI grande */
+.mini-kpi-num {
+    display: block;
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--azul-medio);
+    line-height: 1;
+}
+
+/* Etiqueta pequeña para KPI */
+.mini-kpi-label {
+    display: block;
+    font-size: 0.78rem;
+    color: #6c7d8e;
+    margin-top: 6px;
+    font-weight: 500;
+}
+
+/* Tarjeta de servicio genérica */
+.card-serv {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+}
+
+/* Elevación pronunciada en hover */
+.card-serv:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 36px rgba(21, 101, 192, 0.12);
+    border-color: var(--celeste);
+}
+
+/* Cabecera con degradado y padding */
+.card-serv-header {
+    background: linear-gradient(135deg, var(--azul-oscuro) 0%, #1a5276 100%);
+    padding: 1.4rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Contenedor icono con fondo sutil */
+.card-serv-icono {
+    width: 52px;
+    height: 52px;
+    background: rgba(86, 174, 232, 0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--celeste);
+}
+
+/* Etiqueta precio con fondo tenue */
+.card-serv-precio {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--celeste);
+    background: rgba(86, 174, 232, 0.15);
+    border: 1px solid rgba(86, 174, 232, 0.35);
+    padding: 0.3em 0.9em;
+    border-radius: 50px;
+}
+
+/* Cuerpo principal con padding */
+.card-serv-body {
+    padding: 1.4rem 1.5rem;
+    flex-grow: 1;
+}
+
+/* Título del servicio */
+.card-serv-body h5 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--oscuro);
+    margin-bottom: 0.6rem;
+}
+
+/* Descripción del servicio */
+.card-serv-body p {
+    font-size: 0.85rem;
+    color: #6c7d8e;
+    line-height: 1.7;
+    margin-bottom: 1rem;
+}
+
+/* Lista de features sin bullets */
+.card-serv-lista {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+/* Elemento de lista con icono verde */
+.card-serv-lista li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: #4a5568;
+}
+
+/* Icono de la lista */
+.card-serv-lista li i {
+    color: #10b981;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* Pie con separación y fondo sutil */
+.card-serv-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fafbfc;
+}
+
+/* Etiqueta de duración con estilo discreto */
+.badge-duracion {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6c7d8e;
+    background: #f0f4f8;
+    border: 1px solid #e2e8f0;
+    padding: 0.3em 0.8em;
+    border-radius: 50px;
+}
+
+/* Botón de acción para servicio */
+.btn-serv {
+    background-color: var(--azul-medio);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.4rem 1rem;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+/* Color de hover y micro-movimiento */
+.btn-serv:hover {
+    background-color: var(--celeste);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+/* Variante destacada con borde punteado */
+.card-serv-custom {
+    border: 2px dashed var(--celeste);
+    background: #fff;
+}
+
+/* Cambia a borde sólido y sombra */
+.card-serv-custom:hover {
+    border-color: var(--azul-medio);
+    border-style: solid;
+    box-shadow: 0 14px 36px rgba(21, 101, 192, 0.15);
+    transform: translateY(-6px);
+}
+
+/* Header centrado con degradado */
+.card-serv-custom-header {
+    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--celeste) 100%);
+    padding: 2rem 1.5rem 1.6rem;
+    text-align: center;
+    position: relative;
+}
+
+/* Badge superior en header personalizado */
+.custom-badge-top {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 0.3em 0.9em;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    margin-bottom: 1rem;
+}
+
+/* Icono grande circular para header */
+.card-serv-icono-custom {
+    width: 64px;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: #fff;
+    margin: 0 auto;
+}
+
+/* Título del header personalizado */
+.card-serv-custom-header h5 {
+    font-weight: 800;
+    font-size: 1.05rem;
+}
+
+/* Utilidad para texto blanco con opacidad */
+.text-white-75 {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+/* Cuerpo del custom con padding */
+.card-serv-custom-body {
+    padding: 1.4rem 1.5rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* CTA grande con degradado */
+.btn-custom-serv {
+    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul-medio) 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 0.7rem 1rem;
+    transition: opacity 0.2s, transform 0.2s;
+    margin-top: auto;
+}
+
+/* Reduce opacidad y mueve ligeramente */
+.btn-custom-serv:hover {
+    opacity: 0.9;
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+/* Tarjeta de paso con transición */
+.card-paso {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    transition: box-shadow 0.25s, border-color 0.25s;
+}
+
+/* Sombra y borde al pasar cursor */
+.card-paso:hover {
+    box-shadow: 0 8px 28px rgba(21, 101, 192, 0.1);
+    border-color: var(--celeste);
+}
+
+/* Número grande visual de paso */
+.paso-num {
+    font-size: 3rem;
+    font-weight: 900;
+    color: rgba(86, 174, 232, 0.18);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+/* Icono del paso centrado */
+.paso-icono {
+    width: 52px;
+    height: 52px;
+    background: rgba(86, 174, 232, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: var(--azul-medio);
+    margin: 0 auto 1rem;
+}
+
+/* Título del paso */
+.card-paso h6 {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--oscuro);
+    margin-bottom: 0.5rem;
+}
+
+/* Descripción del paso */
+.card-paso p {
+    font-size: 0.84rem;
+    color: #6c7d8e;
+    line-height: 1.65;
+    margin: 0;
+}
+
+/* Modal con bordes redondeados */
+.modal-custom-serv {
+    border-radius: 18px !important;
+    overflow: hidden;
+    border: none;
+}
+
+/* Header del modal con degradado */
+.modal-custom-header {
+    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--celeste) 100%);
+    padding: 2rem 1.5rem 1.8rem !important;
+    border-bottom: none !important;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Icono circular dentro del header del modal */
+.modal-custom-icon {
+    width: 58px;
+    height: 58px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+/* Título principal del modal en blanco */
+.modal-custom-header .modal-title {
+    color: #fff !important;
+    font-size: 1.1rem;
+    font-weight: 800 !important;
+}
+
+/* Elimina pseudo del título en modal personalizado */
+.modal-custom-header .modal-title::before {
+    display: none !important;
+}
+
+/* Subtítulo del modal en blanco semitransparente */
+.modal-custom-sub {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.85rem;
+}
+
+/* Barra de pasos dentro del modal */
+.modal-pasos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    background: #f8fafd;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.9rem 1.5rem;
+}
+
+/* Item de paso con opacidad por defecto */
+.modal-paso {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    opacity: 0.45;
+    transition: opacity 0.2s;
+}
+
+/* Item de paso activo con opacidad plena */
+.modal-paso.activo {
+    opacity: 1;
+}
+
+/* Círculo numerado para cada paso */
+.modal-paso-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: #6c7d8e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+/* Cambia el color del círculo numerado */
+.modal-paso.activo .modal-paso-num {
+    background: var(--azul-medio);
+    color: #fff;
+}
+
+/* Label corto del paso */
+.modal-paso span {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #6c7d8e;
+    white-space: nowrap;
+}
+
+/* Color cuando está activo */
+.modal-paso.activo span {
+    color: var(--azul-medio);
+}
+
+/* Separador entre pasos */
+.modal-paso-linea {
+    flex: 1;
+    height: 2px;
+    background: #e2e8f0;
+    min-width: 30px;
+    margin: 0 6px;
+    margin-bottom: 14px;
+}
+
+/* Bloque de título dentro del modal */
+.modal-bloque-titulo {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--azul-oscuro);
+    background: var(--color-fondo-suave);
+    border-left: 3px solid var(--celeste);
+    border-radius: 0 8px 8px 0;
+    padding: 0.5rem 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Etiqueta para inputs dentro del modal */
+.modal-label {
+    color: var(--azul-oscuro) !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.4px !important;
+    margin-bottom: 0.3rem !important;
+}
+
+/* Separador visual en formularios */
+.modal-separador {
+    border-color: #e2e8f0;
+    opacity: 1;
+    margin: 0.25rem 0;
+}
+
+/* Contenedor relativo para checkbox custom */
+.check-area {
+    position: relative;
+}
+
+/* Input escondido para reemplazo visual */
+.check-area-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Label visual para el checkbox */
+.check-area-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    width: 100%;
+    padding: 0.55rem 0.85rem;
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 9px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #4a5568;
+    cursor: pointer;
+    transition: all 0.18s;
+    user-select: none;
+}
+
+/* Resalta el label al pasar cursor */
+.check-area-label:hover {
+    border-color: var(--celeste);
+    background: rgba(86, 174, 232, 0.05);
+    color: var(--azul-medio);
+}
+
+/* Estiliza label cuando input está seleccionado */
+.check-area-input:checked+.check-area-label {
+    border-color: var(--azul-medio);
+    background: rgba(21, 101, 192, 0.07);
+    color: var(--azul-medio);
+}
+
+/* Icono dentro del label */
+.check-area-label i {
+    font-size: 0.95rem;
+}
+
+/* Fondo y separación superior */
+.modal-custom-footer {
+    background: #f8fafd;
+    border-top: 1px solid #e2e8f0 !important;
+    padding: 1rem 1.5rem !important;
+}
+
+/* Botón enviar con degradado */
+.btn-custom-enviar {
+    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul-medio) 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 0.6rem 2rem;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+/* Ligera opacidad y movimiento */
+.btn-custom-enviar:hover {
+    opacity: 0.9;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+/* Estilo cuando el botón está deshabilitado */
+.btn-custom-enviar:disabled {
+    background: #10b981;
+    opacity: 1;
+}
+
+/* Responsive: Ajustes de la barra de pasos en móviles */
+@media (max-width: 575px) {
+    .modal-pasos {
+        padding: 0.7rem 0.75rem;
+        gap: 0;
+    }
+    .modal-paso span {
+        font-size: 0.62rem;
+    }
+    .modal-paso-linea {
+        min-width: 16px;
+    }
+}

@@ -1,0 +1,1135 @@
+/* Fondo de página cliente: Fondo neutro suave para secciones de perfil */
+body {
+    background-color: #f0f4f8;
+}
+
+/* Hero de perfil: Banda superior con degradado de marca y efectos decorativos */
+.perfil-hero {
+    position: relative;
+    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul-medio) 60%, var(--celeste) 100%);
+    overflow: hidden;
+}
+
+/* Decorativo: Formas radiales sobre el hero para profundidad visual */
+.perfil-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 20% 50%, rgba(86, 174, 232, .15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 255, 255, .05) 0%, transparent 40%);
+    pointer-events: none;
+}
+
+/* Overlay semitransparente sobre hero para mejorar contraste del texto */
+.perfil-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 30, 54, 0.25);
+}
+
+/* Wrapper del avatar: Mantiene posición relativa para badges */
+.perfil-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+/* Avatar circular del usuario: Borde y blur para efecto glass */
+.perfil-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .15);
+    border: 3px solid rgba(255, 255, 255, .35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 2.8rem;
+    backdrop-filter: blur(4px);
+}
+
+/* Pequeño badge sobre el avatar para estado o rol */
+.perfil-avatar-badge {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 26px;
+    height: 26px;
+    background: var(--celeste);
+    border-radius: 50%;
+    border: 2px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.75rem;
+}
+
+/* Nombre principal en hero: Tamaño responsive y sombra para legibilidad */
+.perfil-hero-nombre {
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, .2);
+}
+
+/* Tag ligero en hero: Cápsula semi-transparente para rol o estado */
+.perfil-hero-tag {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .25);
+    color: rgba(255, 255, 255, .9);
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: .3em .9em;
+    border-radius: 50px;
+    backdrop-filter: blur(4px);
+}
+
+/* Badge verde: Estado positivo o confirmado */
+.u-badge.verde {
+    background: #e8f5e9;
+    color: #1a6b3a;
+}
+
+/* Badge amarillo: Advertencia leve o en espera */
+.u-badge.amarillo {
+    background: #fff8e1;
+    color: #b45309;
+}
+
+/* Badge azul: Información general o estado neutral */
+.u-badge.azul {
+    background: rgba(86, 174, 232, .12);
+    color: var(--azul-medio);
+}
+
+/* Badge celeste: Acento secundario para estados de servicio */
+.u-badge.celeste {
+    background: rgba(86, 174, 232, .12);
+    color: #0369a1;
+}
+
+/* Badge gris: Estado desactivado o información secundaria */
+.u-badge.gris {
+    background: #f0f4f8;
+    color: #6b7f95;
+}
+
+/* Badge rojo: Error, cancelado o atención urgente */
+.u-badge.rojo {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+/* Tarjetas de cita: Interacción y estados visuales */
+.u-cita-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(10, 61, 107, .12);
+}
+
+/* Cita opaca: Estado deshabilitado o pendiente con menor énfasis visual */
+.u-cita-card.opaca {
+    opacity: 0.75;
+}
+
+/* Hover en cita opaca: Restablece opacidad completa al pasar el ratón */
+.u-cita-card.opaca:hover {
+    opacity: 1;
+}
+
+/* Franja azul: Citas generales o informativas */
+.u-cita-franja.azul {
+    background: var(--azul-medio);
+}
+
+/* Franja celeste: Variante de servicio con acento secundario */
+.u-cita-franja.celeste {
+    background: var(--celeste);
+}
+
+/* Franja amarilla: Servicio urgente o cambio de horario */
+.u-cita-franja.amarillo {
+    background: #f59e0b;
+}
+
+/* Franja verde: Cita confirmada o completada */
+.u-cita-franja.verde {
+    background: #28a745;
+}
+
+/* Franja gris: Estado neutral o cancelado */
+.u-cita-franja.gris {
+    background: #b0bec5;
+}
+
+/* Iconos de metadatos de cita: Ancho fijo para mantener alineación */
+.u-cita-meta li i {
+    width: 14px;
+    color: var(--celeste);
+    flex-shrink: 0;
+}
+
+/* Hover del botón de cita: Elevación suave */
+.btn-cita:hover {
+    transform: translateY(-1px);
+}
+
+/* Estilo primario: Acción principal */
+.btn-cita.primario {
+    background: var(--azul-medio);
+    color: #fff;
+}
+
+/* Hover primario: Feedback visual */
+.btn-cita.primario:hover {
+    background: var(--celeste);
+}
+
+/* Estilo secundario: Acciones alternativas */
+.btn-cita.secundario {
+    background: #f0f4f8;
+    color: var(--azul-oscuro);
+    border: 1px solid #dce6f0;
+}
+
+/* Hover secundario: Ligero fondo azulado */
+.btn-cita.secundario:hover {
+    background: #e2eaf3;
+}
+
+/* Estilo peligro: Acciones destructivas */
+.btn-cita.peligro {
+    background: transparent;
+    color: #dc3545;
+    border: 1px solid #dc3545;
+}
+
+/* Hover peligro: Botón sólido rojo */
+.btn-cita.peligro:hover {
+    background: #dc3545;
+    color: #fff;
+}
+
+/* Filtros: Estado activo con contraste de marca */
+.u-filtro:hover {
+    border-color: var(--celeste);
+    color: var(--azul-medio);
+}
+
+/* Filtro activo: Estilo seleccionado con fondo oscuro y texto blanco */
+.u-filtro.activo {
+    background: var(--azul-oscuro);
+    border-color: var(--azul-oscuro);
+    color: #fff;
+}
+
+/* Línea vertical del timeline: Guía visual para eventos */
+.u-timeline::before {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
+    background: #e2eaf3;
+    border-radius: 2px;
+}
+
+/* Último elemento del timeline: Elimina margen inferior */
+.u-tl-item.ultimo {
+    margin-bottom: 0;
+}
+
+/* Marcador circular del evento: Icono y color que identifican cada entrada */
+.u-tl-marker {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    color: #fff;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+}
+
+/* Variantes de color del marcador según tipo de evento del timeline */
+.u-tl-marker.azul {
+    background: linear-gradient(135deg, var(--azul-oscuro), var(--azul-medio));
+}
+
+/* Marcador verde: Evento completado o exitoso */
+.u-tl-marker.verde {
+    background: linear-gradient(135deg, #1a6b3a, #28a745);
+}
+
+/* Marcador celeste: Evento informativo o relacionado con servicio */
+.u-tl-marker.celeste {
+    background: linear-gradient(135deg, var(--azul-medio), var(--celeste));
+}
+
+/* Marcador amarillo: Evento urgente o de advertencia */
+.u-tl-marker.amarillo {
+    background: linear-gradient(135deg, #b45309, #f59e0b);
+}
+
+/* Marcador gris: Evento neutral o de estado inactivo */
+.u-tl-marker.gris {
+    background: linear-gradient(135deg, #6b7f95, #9aacbe);
+}
+
+/* Panel de contenido del evento: Fondo claro y borde suave para cada item */
+.u-tl-content {
+    flex: 1;
+    background: #f8fbff;
+    border: 1px solid #e2eef4;
+    border-radius: 12px;
+    padding: 0.9rem 1.1rem;
+    margin-top: 4px;
+}
+
+/* Título del evento en el contenido del timeline */
+.u-tl-content h6 {
+    font-size: 0.875rem;
+    color: var(--oscuro);
+}
+
+/* Etiqueta de fecha del evento: Pequeño badge para el timestamp */
+.u-tl-fecha {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #9aacbe;
+    background: #f0f4f8;
+    padding: 0.2em 0.6em;
+    border-radius: 50px;
+    margin-top: 4px;
+}
+
+/* Ajustes responsivos para pantallas pequeñas (modo móvil) */
+@media (max-width: 767px) {
+    .perfil-hero .container>div {
+        gap: 1.5rem;
+    }
+    .perfil-stat-num {
+        font-size: 1.2rem;
+    }
+    .perfil-avatar {
+        width: 72px;
+        height: 72px;
+        font-size: 2rem;
+    }
+    .u-card-header {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .u-search {
+        width: 160px;
+    }
+    .u-cita-body {
+        padding: 0.9rem 1rem;
+    }
+    .u-timeline::before {
+        left: 15px;
+    }
+    .u-tl-marker {
+        width: 32px;
+        height: 32px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Contenedor de estadísticas del hero: Organiza los datos en columna y centra el contenido */
+.perfil-stat-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Número de estadística principal en hero */
+.perfil-stat-num {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+}
+
+/* Etiqueta pequeña para las estadísticas (uppercase) */
+.perfil-stat-lbl {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, .65);
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Separador vertical en stats del hero */
+.perfil-stat-sep {
+    width: 1px;
+    height: 36px;
+    background: rgba(255, 255, 255, .2);
+    align-self: center;
+}
+
+/* Contenedor de pestañas de perfil: Fondo blanco y sombra sutil */
+.perfil-tabs-wrap {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(10, 61, 107, .06);
+    overflow-x: auto;
+    padding: 0.25rem;
+}
+
+/* Fila de pestañas: Gap pequeño y overflow horizontal */
+.perfil-tabs {
+    gap: 0.25rem;
+    flex-wrap: nowrap;
+    min-width: max-content;
+}
+
+/* Botón de pestaña: Estilo tipo chip, hover y estado activo */
+.perfil-tab-btn {
+    display: flex;
+    align-items: center;
+    padding: 0.6rem 1.25rem;
+    border: none;
+    background: transparent;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #7a8fa6;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .2s, color .2s;
+}
+
+/* Hover de pestaña: Fondo claro y color de texto para indicar foco */
+.perfil-tab-btn:hover {
+    background: #f0f4f8;
+    color: var(--azul-oscuro);
+}
+
+/* Pestaña activa: Fondo de marca y texto blanco para estado seleccionado */
+.perfil-tab-btn.active {
+    background: var(--azul-oscuro);
+    color: #fff;
+}
+
+/* Icono en pestaña activa: Cambia a color de acento para resaltarlo */
+.perfil-tab-btn.active i {
+    color: var(--celeste);
+}
+
+/* Tarjeta reutilizable 'u-card': Contenedor con shadow y radius para bloques */
+.u-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 16px rgba(10, 61, 107, .07);
+    overflow: hidden;
+}
+
+/* Header de la u-card: Título con separación y borde inferior de acento */
+.u-card-header {
+    display: flex;
+    align-items: center;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--azul-oscuro);
+    padding: 1rem 1.5rem;
+    border-bottom: 2px solid var(--celeste);
+    background: #fff;
+}
+
+/* Cuerpo de la card: Padding interior para contenido */
+.u-card-body {
+    padding: 1.5rem;
+}
+
+/* Etiqueta pequeña para inputs: Uppercase y color tenue */
+.u-label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #9aacbe;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.3rem;
+}
+
+/* Input estilizado para formularios de cliente: Padding y borde suave */
+.u-input {
+    width: 100%;
+    padding: 0.6rem 0.9rem;
+    border: 1.5px solid #dce6f0;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    color: var(--oscuro);
+    background: #fff;
+    transition: border-color .2s, box-shadow .2s;
+    outline: none;
+}
+
+/* Focus en inputs: Borde de acento y halo suave */
+.u-input:focus {
+    border-color: var(--celeste);
+    box-shadow: 0 0 0 3px rgba(86, 174, 232, .15);
+}
+
+/* Estado disabled de input: Fondo gris y texto desaturado */
+.u-input:disabled {
+    background: #f8fafd;
+    color: #6b7f95;
+    cursor: default;
+}
+
+/* Botón editar: Outline accent para acciones de edición */
+.btn-editar {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.9rem;
+    border: 1.5px solid var(--azul-medio);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--azul-medio);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s, color .2s;
+}
+
+/* Hover del botón editar: Cambia el fondo a marca y el texto a blanco */
+.btn-editar:hover {
+    background: var(--azul-medio);
+    color: #fff;
+}
+
+/* Botón guardar: CTA principal con fondo de marca */
+.btn-guardar {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1.2rem;
+    background: var(--azul-medio);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s, transform .15s;
+}
+
+/* Hover del botón guardar: Aclara el tono y eleva ligeramente el botón */
+.btn-guardar:hover {
+    background: var(--celeste);
+    transform: translateY(-1px);
+}
+
+/* Botón cancelar: Variante neutra con borde para acciones secundarias */
+.btn-cancelar {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1.2rem;
+    background: transparent;
+    color: #7a8fa6;
+    border: 1.5px solid #dce6f0;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
+}
+
+/* Hover del botón cancelar: Fondo neutro y borde más suave para indicar deshacer */
+.btn-cancelar:hover {
+    background: #f0f4f8;
+    border-color: #b0bec5;
+}
+
+/* Alerta de guardado: Mensaje breve con fondo verde para éxito */
+.alerta-guardado {
+    display: flex;
+    align-items: center;
+    background: #e8f5e9;
+    border: 1px solid #a5d6a7;
+    color: #1a6b3a;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+/* Tarjeta KPI reutilizable en la vista cliente */
+.u-kpi {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(10, 61, 107, .07);
+    padding: 1.1rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform .2s, box-shadow .2s;
+}
+
+/* Hover del KPI: Elevación ligera para llamar la atención */
+.u-kpi:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(10, 61, 107, .12);
+}
+
+/* Icono dentro del KPI: Caja colorida y redondeada */
+.u-kpi-icono {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    color: #fff;
+}
+
+/* Variante azul para icono KPI */
+.u-kpi-icono.azul {
+    background: linear-gradient(135deg, var(--azul-oscuro), var(--azul-medio));
+}
+
+/* Icono KPI verde: Estado positivo o métrica favorable */
+.u-kpi-icono.verde {
+    background: linear-gradient(135deg, #1a6b3a, #28a745);
+}
+
+/* Icono KPI celeste: Estado neutro o información de servicio */
+.u-kpi-icono.celeste {
+    background: linear-gradient(135deg, var(--azul-medio), var(--celeste));
+}
+
+/* Valor numérico dentro del KPI */
+.u-kpi-val {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: var(--oscuro);
+    line-height: 1;
+}
+
+/* Etiqueta pequeña explicativa del KPI */
+.u-kpi-lbl {
+    font-size: 0.73rem;
+    color: #9aacbe;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-top: 2px;
+}
+
+/* Botón de acceso: Botón grande full-width para items clicables */
+.btn-acceso {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0.65rem 0.9rem;
+    border: 1px solid #e8eef4;
+    border-radius: 10px;
+    background: #f8fbff;
+    color: var(--oscuro);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
+    text-align: left;
+}
+
+/* Hover del botón de acceso: Fondo azul pálido y borde de acento */
+.btn-acceso:hover {
+    background: #eef4fb;
+    border-color: var(--celeste);
+}
+
+/* Tablas en vistas de cliente: Ancho completo y colapso de bordes */
+.u-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+/* Cabeceras de tabla: Fondo claro y texto uppercase */
+.u-table thead th {
+    background: #f4f7fb;
+    color: var(--azul-oscuro);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.8rem 1.1rem;
+    border-bottom: 2px solid #e2eaf3;
+    white-space: nowrap;
+}
+
+/* Celdas de la tabla: Padding y borde inferior tenue */
+.u-table tbody td {
+    padding: 0.8rem 1.1rem;
+    border-bottom: 1px solid #f0f4f8;
+    color: var(--oscuro);
+    vertical-align: middle;
+}
+
+/* Elimina el borde inferior del último renglón de la tabla para un acabado más limpio */
+.u-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Resalta la fila de la tabla al pasar el cursor */
+.u-table tbody tr:hover td {
+    background: #f8fbff;
+}
+
+/* Contenedor del buscador: Posiciona icono sobre el input */
+.u-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* Icono dentro del buscador: Posicionado a la izquierda */
+.u-search-icon {
+    position: absolute;
+    left: 10px;
+    color: #9aacbe;
+    font-size: 0.8rem;
+    pointer-events: none;
+}
+
+/* Input de búsqueda: Padding extra para icono y fondo tenue */
+.u-search {
+    padding: 0.4rem 0.75rem 0.4rem 2rem;
+    border: 1.5px solid #dce6f0;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: var(--oscuro);
+    background: #f8fafd;
+    outline: none;
+    width: 220px;
+    transition: border-color .2s, box-shadow .2s;
+}
+
+/* Focus en búsqueda: Resalta borde y pone fondo blanco para contraste */
+.u-search:focus {
+    border-color: var(--celeste);
+    box-shadow: 0 0 0 3px rgba(86, 174, 232, .12);
+    background: #fff;
+}
+
+/* Botón ver: Pequeño botón cuadrado para acciones rápidas en tablas */
+.btn-ver {
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid #dce6f0;
+    border-radius: 8px;
+    background: #f8fafd;
+    color: var(--azul-medio);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background .2s, border-color .2s, color .2s;
+}
+
+/* Hover del botón ver: Usa el color de marca y texto blanco para mayor contraste */
+.btn-ver:hover {
+    background: var(--azul-medio);
+    border-color: var(--azul-medio);
+    color: #fff;
+}
+
+/* Badges reutilizables: Chips con variantes de color para estados */
+.u-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3em 0.8em;
+    border-radius: 50px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Badge verde: Estado positivo o confirmado */
+.u-badge.verde {
+    background: #e8f5e9;
+    color: #1a6b3a;
+}
+
+/* Badge amarillo: Advertencia leve o en espera */
+.u-badge.amarillo {
+    background: #fff8e1;
+    color: #b45309;
+}
+
+/* Badge azul: Información general o estado neutral */
+.u-badge.azul {
+    background: rgba(86, 174, 232, .12);
+    color: var(--azul-medio);
+}
+
+/* Badge celeste: Acento secundario para estados de servicio */
+.u-badge.celeste {
+    background: rgba(86, 174, 232, .12);
+    color: #0369a1;
+}
+
+/* Badge gris: Estado desactivado o información secundaria */
+.u-badge.gris {
+    background: #f0f4f8;
+    color: #6b7f95;
+}
+
+/* Badge rojo: Error, cancelado o atención urgente */
+.u-badge.rojo {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+/* Tarjeta para citas/turnos: Block con franja de color y shadow */
+.u-cita-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(10, 61, 107, .07);
+    display: flex;
+    overflow: hidden;
+    transition: transform .2s, box-shadow .2s;
+    height: 100%;
+}
+
+/* Hover de tarjeta de cita: Eleva la tarjeta y aplica sombra para enfatizar interacción */
+.u-cita-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(10, 61, 107, .12);
+}
+
+/* Tarjeta de cita opaca: Estado deshabilitado o pendiente con menor énfasis visual */
+.u-cita-card.opaca {
+    opacity: 0.75;
+}
+
+/* Hover en cita opaca: Vuelve a opacidad completa para indicar interactividad */
+.u-cita-card.opaca:hover {
+    opacity: 1;
+}
+
+/* Franja lateral en cita: Color como indicador de tipo/estado */
+.u-cita-franja {
+    width: 5px;
+    flex-shrink: 0;
+}
+
+/* Franja azul: Citas generales o de estado informativo */
+.u-cita-franja.azul {
+    background: var(--azul-medio);
+}
+
+/* Franja celeste: Variante de servicio con acento secundario */
+.u-cita-franja.celeste {
+    background: var(--celeste);
+}
+
+/* Franja amarilla: Servicio urgente o cambio de horario */
+.u-cita-franja.amarillo {
+    background: #f59e0b;
+}
+
+/* Franja verde: Cita confirmada o completada */
+.u-cita-franja.verde {
+    background: #28a745;
+}
+
+/* Franja gris: Estado neutral o cancelado */
+.u-cita-franja.gris {
+    background: #b0bec5;
+}
+
+/* Cuerpo de la cita: Padding y contenido principal */
+.u-cita-body {
+    padding: 1.1rem 1.25rem;
+    flex: 1;
+}
+
+/* Metadatos de la cita: Lista vertical con iconos y texto */
+.u-cita-meta {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+/* Fila de metadato: Icono pequeño y texto secundario */
+.u-cita-meta li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: #7a8fa6;
+}
+
+/* Icono de metadato: Ancho fijo para alinear consistentemente con el texto */
+.u-cita-meta li i {
+    width: 14px;
+    color: var(--celeste);
+    flex-shrink: 0;
+}
+
+/* Precio mostrado en la cita: Resaltado con color de marca */
+.u-cita-precio {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--azul-medio);
+}
+
+/* Botón para acciones sobre citas: Estilos compactos y variantes */
+.btn-cita {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.85rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background .2s, transform .15s;
+}
+
+/* Hover del botón de cita: Elevación suave al pasar el ratón */
+.btn-cita:hover {
+    transform: translateY(-1px);
+}
+
+/* Estilo primario de acción en citas */
+.btn-cita.primario {
+    background: var(--azul-medio);
+    color: #fff;
+}
+
+/* Hover primario: Deja el botón más claro para feedback */
+.btn-cita.primario:hover {
+    background: var(--celeste);
+}
+
+/* Estilo secundario de acción en citas */
+.btn-cita.secundario {
+    background: #f0f4f8;
+    color: var(--azul-oscuro);
+    border: 1px solid #dce6f0;
+}
+
+/* Hover secundario: Ligero fondo azulado */
+.btn-cita.secundario:hover {
+    background: #e2eaf3;
+}
+
+/* Estilo peligro para cancelaciones o eliminaciones */
+.btn-cita.peligro {
+    background: transparent;
+    color: #dc3545;
+    border: 1px solid #dc3545;
+}
+
+/* Hover peligro: Botón sólido rojo para llamar más la atención */
+.btn-cita.peligro:hover {
+    background: #dc3545;
+    color: #fff;
+}
+
+/* Filtro tipo chip: Usado para filtrar listas con estado activo */
+.u-filtro {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.9rem;
+    border-radius: 50px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid #dce6f0;
+    background: #fff;
+    color: #7a8fa6;
+    user-select: none;
+    transition: all .2s;
+}
+
+/* Hover del filtro: Color y borde de acento para feedback de interacción */
+.u-filtro:hover {
+    border-color: var(--celeste);
+    color: var(--azul-medio);
+}
+
+/* Filtro activo: Estado seleccionado con contraste de marca */
+.u-filtro.activo {
+    background: var(--azul-oscuro);
+    border-color: var(--azul-oscuro);
+    color: #fff;
+}
+
+/* Timeline: Lista vertical con línea de tiempo y markers */
+.u-timeline {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: relative;
+}
+
+/* Línea vertical del timeline: Guía visual para eventos */
+.u-timeline::before {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
+    background: #e2eaf3;
+    border-radius: 2px;
+}
+
+/* Item del timeline: Fila con marker y contenido */
+.u-tl-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.6rem;
+    position: relative;
+}
+
+/* Último elemento del timeline: Elimina el margen inferior extra en el evento final */
+.u-tl-item.ultimo {
+    margin-bottom: 0;
+}
+
+/* Marcador circular del evento: Icono y color que identifican cada entrada */
+.u-tl-marker {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    color: #fff;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+}
+
+/* Variantes de color del marcador según tipo de evento del timeline */
+.u-tl-marker.azul {
+    background: linear-gradient(135deg, var(--azul-oscuro), var(--azul-medio));
+}
+
+/* Marcador verde: Evento completado o exitoso */
+.u-tl-marker.verde {
+    background: linear-gradient(135deg, #1a6b3a, #28a745);
+}
+
+/* Marcador celeste: Evento informativo o relacionado con servicio */
+.u-tl-marker.celeste {
+    background: linear-gradient(135deg, var(--azul-medio), var(--celeste));
+}
+
+/* Marcador amarillo: Evento urgente o de advertencia */
+.u-tl-marker.amarillo {
+    background: linear-gradient(135deg, #b45309, #f59e0b);
+}
+
+/* Marcador gris: Evento neutral o de estado inactivo */
+.u-tl-marker.gris {
+    background: linear-gradient(135deg, #6b7f95, #9aacbe);
+}
+
+/* Panel de contenido del evento: Fondo claro y borde suave para cada item */
+.u-tl-content {
+    flex: 1;
+    background: #f8fbff;
+    border: 1px solid #e8eef4;
+    border-radius: 12px;
+    padding: 0.9rem 1.1rem;
+    margin-top: 4px;
+}
+
+/* Título del evento en el contenido del timeline */
+.u-tl-content h6 {
+    font-size: 0.875rem;
+    color: var(--oscuro);
+}
+
+/* Etiqueta de fecha del evento: Pequeño badge para el timestamp */
+.u-tl-fecha {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #9aacbe;
+    background: #f0f4f8;
+    padding: 0.2em 0.6em;
+    border-radius: 50px;
+    margin-top: 4px;
+}
+
+/* Responsive tablet: Ajustes para pantalla intermedia y mejoras de legibilidad */
+@media (max-width: 767px) {
+    .perfil-hero .container>div {
+        gap: 1.5rem;
+    }
+    .perfil-stat-num {
+        font-size: 1.2rem;
+    }
+    .perfil-avatar {
+        width: 72px;
+        height: 72px;
+        font-size: 2rem;
+    }
+    .u-card-header {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .u-search {
+        width: 130px;
+    }
+    .u-cita-body {
+        padding: 0.9rem 1rem;
+    }
+    .u-timeline::before {
+        left: 15px;
+    }
+    .u-tl-marker {
+        width: 32px;
+        height: 32px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Responsive móvil: Ajustes finales para pantallas muy pequeñas */
+@media (max-width: 575px) {
+    .perfil-stat-sep {
+        display: none;
+    }
+    .perfil-tabs {
+        gap: 0;
+    }
+    .perfil-tab-btn {
+        padding: 0.55rem 0.8rem;
+        font-size: 0.8rem;
+    }
+    .u-table {
+        font-size: 0.8rem;
+    }
+    .u-table thead th, .u-table tbody td {
+        padding: 0.6rem 0.75rem;
+    }
+    .u-search {
+        width: 130px;
+    }
+}

@@ -1,0 +1,134 @@
+[
+  {
+    "nombre": "Aceite Motor 5W-30 1L",
+    "precio": 28.00,
+    "stock": 50,
+    "descripcion": "Aceite de motor sintético de alto rendimiento. Compatible con motores de gasolina y diésel.",
+    "etiqueta": "Popular",
+    "imagen": "https://grupodavalos.vtexassets.com/arquivos/ids/233651-800-800?v=638549271498600000&width=800&height=800&aspect=true",
+    "categoria": {
+      "id": 2
+    }
+  },
+  {
+    "nombre": "Aceite Motor 10W-40 4L",
+    "precio": 95.00,
+    "stock": 30,
+    "descripcion": "Aceite semisintético multigrado para motores que trabajan en condiciones exigentes.",
+    "etiqueta": "",
+    "imagen": "/img/aceite_moto.png",
+    "categoria": {
+      "id": 2
+    }
+  },
+  {
+    "nombre": "Líquido de Frenos DOT4",
+    "precio": 22.00,
+    "stock": 40,
+    "descripcion": "Líquido de frenos de alta temperatura DOT4. Compatible con sistemas ABS.",
+    "etiqueta": "Oferta",
+    "imagen": "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=400&q=80",
+    "categoria": {
+      "id": 2
+    }
+  },
+  {
+    "nombre": "Refrigerante Anticongelante 1L",
+    "precio": 35.00,
+    "stock": 35,
+    "descripcion": "Refrigerante listo para usar. Protege el motor contra corrosión y sobrecalentamiento.",
+    "etiqueta": "",
+    "imagen": "https://dercocenter-api.s3.us-east-1.amazonaws.com/medias/dercocenter/migration/news/iStock-186617098.jpg",
+    "categoria": {
+      "id": 2
+    }
+  },
+  {
+    "nombre": "Juego Llaves Combinadas 12 pzas",
+    "precio": 85.00,
+    "stock": 24,
+    "descripcion": "Juego de 12 llaves combinadas en acero cromo-vanadio. Medidas de 8 a 19mm.",
+    "etiqueta": "Nuevo",
+    "imagen": "/img/juego_llaves2.png",
+    "categoria": {
+      "id": 1
+    }
+  },
+  {
+    "nombre": "Atornillador Electrico Profesional",
+    "precio": 32.00,
+    "stock": 18,
+    "descripcion": "Atornillador eléctrico con 2 baterías. Mango ergonómico antideslizante.",
+    "etiqueta": "",
+    "imagen": "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=400&q=80",
+    "categoria": {
+      "id": 1
+    }
+  },
+  {
+    "nombre": "Set Desarmadores 6 pzas",
+    "precio": 28.00,
+    "stock": 45,
+    "descripcion": "Juego de 6 desarmadores planos y de estrella en acero cromo-vanadio.",
+    "etiqueta": "",
+    "imagen": "https://dojiw2m9tvv09.cloudfront.net/53969/product/X_stmt60175-017064.png?265",
+    "categoria": {
+      "id": 1
+    }
+  },
+  {
+    "nombre": "Torquímetro Digital 1/2",
+    "precio": 145.00,
+    "stock": 12,
+    "descripcion": "Torquímetro digital de cuadro de 1/2 pulgada. Rango 20-200 Nm. Precisión ±3%.",
+    "etiqueta": "Popular",
+    "imagen": "https://www.demaquinasyherramientas.com/wp-content/uploads/2015/03/Torquimetro.jpg",
+    "categoria": {
+      "id": 1
+    }
+  },
+  {
+    "nombre": "Pastillas de Freno Cerámicas",
+    "precio": 65.00,
+    "stock": 15,
+    "descripcion": "Pastillas delanteras cerámicas. Compatibles con Toyota, Hyundai, Kia.",
+    "etiqueta": "Popular",
+    "imagen": "https://www.mitsubishi-motors.com.pe/blog/wp-content/uploads/2019/12/mitsubishi-todo-sobre-pastillas-de-freno.jpg",
+    "categoria": {
+      "id": 3
+    }
+  },
+  {
+    "nombre": "Bujías NGK Iridium x4",
+    "precio": 72.00,
+    "stock": 20,
+    "descripcion": "Set de 4 bujías NGK de iridio. Vida útil hasta 100,000 km.",
+    "etiqueta": "Nuevo",
+    "imagen": "https://www.densoautoparts.com/wp-content/uploads/2022/10/DENSO-Iridium-TT-spark-plug.png",
+    "categoria": {
+      "id": 3
+    }
+  },
+  {
+    "nombre": "Kit Correa de Distribución",
+    "precio": 110.00,
+    "stock": 10,
+    "descripcion": "Kit completo de distribución: correa, tensor y polea. Compatible con Toyota 1.5 y 1.8.",
+    "etiqueta": "",
+    "imagen": "https://www.mitsubishi-motors.com.pe/blog/wp-content/uploads/2021/04/cuando-debes-cambiar-correo-distribucion-auto.jpg",
+    "categoria": {
+      "id": 3
+    }
+  },
+  {
+    "nombre": "Amortiguadores Delanteros Par",
+    "precio": 180.00,
+    "stock": 8,
+    "descripcion": "Par de amortiguadores delanteros de gas. Compatibles con Hyundai Tucson, Kia Sportage.",
+    "etiqueta": "Oferta",
+    "imagen": "https://rtgrepuestos.com/wp-content/uploads/2024/08/20056021-1.jpg",
+    "categoria": {
+      "id": 3
+    }
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "nombre": "Herramientas",
+    "descripcion": "Herramientas manuales y eléctricas para mecánica automotriz"
+  },
+  {
+    "nombre": "Aceites",
+    "descripcion": "Lubricantes, aceites de motor y líquidos automotrices"
+  },
+  {
+    "nombre": "Repuestos",
+    "descripcion": "Repuestos y piezas originales para vehículos"
+  }
+]

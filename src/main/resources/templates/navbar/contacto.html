@@ -1,0 +1,293 @@
+<!-- Página 'contacto' pública: Información de contacto, canales y formulario; usa Bootstrap 5 y fragmento navbar -->
+<!DOCTYPE html>
+ <!-- Thymeleaf requiere el namespace xmlns:th para habilitar directivas th:href, th:src y th:text en todo el documento -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RICAR AUTOBOUTIQUE S.A.C.</title>
+    <!-- Bootstrap 5.3.3 CDN: Sistema de grilla y utilidades para el formulario y layout de contacto -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons 1.11.3 CDN: Iconos usados en tarjetas y botones de contacto -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- global.css: Estilos compartidos entre páginas públicas -->
+    <link th:href="@{/css/global.css}" rel="stylesheet">
+    <!-- contacto.css: Estilos específicos del formulario y secciones de canales -->
+    <link th:href="@{/css/navbar/contacto.css}" rel="stylesheet">
+    <!-- Favicon del sitio -->
+    <link rel="icon" th:href="@{/img/icon.png}" type="image/png">
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- Navbar fragment incluido vía Thymeleaf: Reutiliza el header y menú en todas las páginas públicas -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <!-- Carrusel hero: Imágenes de apoyo y CTA principal; controla botones y enlaces destacados -->
+    <div id="carrusel-principal">
+        <div class="carrusel-fondos">
+            <div class="fondo-slide activo" style="background-image: url('https://raw.githubusercontent.com/DAlvarezF7/multimedia/644601117d61742ce9b2e9972122b23cad182430/Ricarr2.webp');"></div>
+            <div class="fondo-slide" style="background-image: url('https://raw.githubusercontent.com/DAlvarezF7/multimedia/644601117d61742ce9b2e9972122b23cad182430/Ricarr3.webp');"></div>
+            <div class="fondo-slide" style="background-image: url('https://raw.githubusercontent.com/DAlvarezF7/multimedia/644601117d61742ce9b2e9972122b23cad182430/Ricarr4.webp');"></div>
+            <div class="fondo-slide" style="background-image: url('https://raw.githubusercontent.com/DAlvarezF7/multimedia/644601117d61742ce9b2e9972122b23cad182430/Ricarr6.webp');"></div>
+        </div>
+        <div class="carrusel-overlay"></div>
+        <div class="carrusel-contenido">
+            <div class="container">
+                <!-- Fila de Bootstrap que organiza el contenido del hero en columnas responsivas y lo centra o separa según el tamaño de pantalla -->
+                <div class="row align-items-center justify-content-center justify-content-lg-between g-4">
+                    <div class="col-12 col-lg-6 text-center text-lg-start">
+                        <span class="badge-slide">
+                            <i class="bi bi-patch-check-fill"></i> Taller certificado en Trujillo
+                        </span>
+                        <h1 class="titulo-slide mt-2">
+                            Ponte en <span class="texto-celeste">contacto</span> con nosotros para recibir <span class="texto-celeste">asesoría y atención especializada</span>
+                        </h1>
+                        <p class="subtitulo-slide mt-3 mb-4">Estamos listos para ayudarte.</p>
+                        <!-- CTA hero de contacto: Botones de acción rápida para agendar cita o ir al formulario de contacto -->
+                        <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-3">
+                            <button class="btn btn-light fw-bold px-4 text-primary" id="btn-agendar-hero" onclick="manejarBtnAgendar()">
+                                <i class="bi bi-calendar-check me-2"></i>Agendar Cita
+                            </button>
+                            <a href="#canales" class="btn btn-outline-light fw-bold px-4">
+                                <i class="bi bi-envelope me-2"></i>Contáctanos
+                            </a>
+                        </div>
+                        <div class="row mt-4 g-3">
+                            <div class="col-4 text-center">
+                                <span class="stat-num">+10 000</span>
+                                <span class="stat-label d-block">Clientes</span>
+                            </div>
+                            <div class="col-4 text-center">
+                                <span class="stat-num">+23</span>
+                                <span class="stat-label d-block">Años de exp.</span>
+                            </div>
+                            <div class="col-4 text-center">
+                                <span class="stat-num">+300</span>
+                                <span class="stat-label d-block">Productos</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Columna de Bootstrap que muestra la imagen solo en pantallas grandes y la centra horizontalmente -->
+                    <div class="col-lg-6 d-none d-lg-flex justify-content-center">
+                        <div class="img-carrusel-box">
+                            <img src="https://github.com/DAlvarezF7/multimedia/blob/main/ricarr7.webp?raw=true" alt="Contacto RICAR AUTOBOUTIQUE" class="img-carrusel">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Contenedor de indicadores del carrusel: Permite navegar entre los slides y mostrar cuál está activo -->
+        <div class="carrusel-indicadores">
+            <button class="indicador activo" aria-label="Slide 1"></button>
+            <button class="indicador" aria-label="Slide 2"></button>
+            <button class="indicador" aria-label="Slide 3"></button>
+            <button class="indicador" aria-label="Slide 4"></button>
+        </div>
+    </div>
+    <!-- Info banner: Iconos de servicio reutilizables (envío, soporte, garantía, pago) -->
+    <section class="info-banner py-3">
+        <div class="container">
+            <div class="row g-3 text-center">
+                <div class="col-6 col-md-3">
+                    <!-- Utilidad de Bootstrap que alinea icono y texto en una fila centrada con espacio entre ambos -->
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-truck text-primary fs-5"></i>
+                        <span class="small fw-semibold">Envío a Trujillo</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <!-- Utilidad de Bootstrap que alinea icono y texto en una fila centrada con espacio entre ambos -->
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-headset text-primary fs-5"></i>
+                        <span class="small fw-semibold">Soporte 24/7</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <!-- Utilidad de Bootstrap que alinea icono y texto en una fila centrada con espacio entre ambos -->
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-patch-check text-primary fs-5"></i>
+                        <span class="small fw-semibold">Garantía 1 año</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <!-- Utilidad de Bootstrap que alinea icono y texto en una fila centrada con espacio entre ambos -->
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-credit-card text-primary fs-5"></i>
+                        <span class="small fw-semibold">Pago seguro</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Main: Formulario de contacto y canales rápidos; el formulario debe validar en cliente y enviar via correo/endpoint según backend -->
+    <main class="flex-grow-1">
+        <section id="canales" class="py-4 bg-white border-bottom">
+            <div class="container">
+                <!-- Canales rápidos de contacto: Teléfono, WhatsApp, correo y horario para facilitar la comunicación inmediata -->
+                <div class="row g-3">
+                    <div class="col-sm-6 col-lg-3">
+                        <a href="https://www.facebook.com/gruporicar" target="_blank" rel="noopener noreferrer" class="canal-rapido">
+                            <div class="canal-icono" style="background:rgba(86,174,232,0.12); color:var(--celeste);">
+                                <i class="bi bi-facebook"></i>
+                            </div>
+                            <div>
+                                <span class="canal-label">Facebook</span>
+                                <span class="canal-valor">Grupo Ricar</span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <a href="https://wa.me/51949833092" target="_blank" class="canal-rapido">
+                            <div class="canal-icono" style="background:rgba(37,211,102,0.12); color:#25d366;">
+                                <i class="bi bi-whatsapp"></i>
+                            </div>
+                            <div>
+                                <span class="canal-label">WhatsApp</span>
+                                <span class="canal-valor">+51 949 833 092</span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <a href="mailto:publicidad.tru@ricar.pe" class="canal-rapido">
+                            <div class="canal-icono" style="background:rgba(21,101,192,0.1); color:var(--azul-medio);">
+                                <i class="bi bi-envelope-fill"></i>
+                            </div>
+                            <div>
+                                <span class="canal-label">Correo</span>
+                                <span class="canal-valor">publicidad.tru@ricar.pe</span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="canal-rapido" style="cursor:default;">
+                            <div class="canal-icono" style="background:rgba(239,68,68,0.1); color:#ef4444;">
+                                <i class="bi bi-clock-fill"></i>
+                            </div>
+                            <div>
+                                <span class="canal-label">Horario</span>
+                                <span class="canal-valor">Lun - Sáb: 8:30 a.m. - 6:00 p.m.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="py-5" style="background-color: var(--color-fondo-suave);">
+            <div class="container">
+                <!-- Bootstrap crea una grilla de filas y columnas con espacio vertical grande entre elementos y alinea los contenidos en la parte superior -->
+                <div class="row g-5 align-items-start">
+                    <div class="col-lg-5">
+                        <span class="etiqueta-seccion">Escríbenos</span>
+                        <h2 class="titulo-seccion mt-2 mb-1">
+                            Envíanos un <span class="texto-celeste">mensaje</span>
+                        </h2>
+                        <p class="text-muted small mb-4">Te responderemos en menos de 24 horas hábiles.</p>
+                        <!-- Contenedor del formulario de contacto: Recoge datos clave para solicitudes y mensajes de soporte -->
+                        <div class="formulario-contacto">
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <label class="form-label cont-label" for="cNombre">Nombre completo <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="cNombre" placeholder="Tu nombre">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label cont-label" for="cTelefono">Teléfono <span class="text-danger">*</span></label>
+                                    <input type="tel" class="form-control" id="cTelefono" placeholder="987 654 321" maxlength="9">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label cont-label" for="cEmail">Correo electrónico</label>
+                                    <input type="email" class="form-control" id="cEmail" placeholder="tu@gmail.com">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label cont-label" for="cAsunto">Asunto <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="cAsunto">
+                                        <option value="">Seleccionar motivo...</option>
+                                        <option>Consulta sobre servicios</option>
+                                        <option>Consulta sobre productos</option>
+                                        <option>Agendar una cita</option>
+                                        <option>Garantía o reclamo</option>
+                                        <option>Cotización personalizada</option>
+                                        <option>Otro</option>
+                                    </select>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label cont-label" for="cMensaje">Mensaje <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="cMensaje" rows="4" placeholder="Cuéntanos en qué podemos ayudarte..."></textarea>
+                                    <div class="invalid-feedback"></div>
+                                    <div class="form-text text-end" id="cContador">0 / 400 caracteres</div>
+                                </div>
+                                <div class="col-12">
+                                    <div id="alertaContacto" class="alert alert-success py-2 text-center d-none">
+                                        <i class="bi bi-check-circle-fill me-2"></i>¡Mensaje enviado! Te contactaremos pronto.
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <button class="btn btn-cont-enviar w-100" id="btnContacto">
+                                        <i class="bi bi-send-fill me-2"></i>Enviar mensaje
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <span class="etiqueta-seccion">Encuéntranos</span>
+                        <h2 class="titulo-seccion mt-2 mb-1">Nuestra <span class="texto-celeste">ubicación</span></h2>
+                        <p class="text-muted small mb-4">Visítanos en nuestro taller en Trujillo, La Libertad.</p>
+                        <!-- Mapa embebido: Ubicación del taller para que el usuario pueda ubicarnos rápidamente -->
+                        <div class="mapa-wrap mb-4">
+                            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3949.8328478076337!2d-79.03550912594459!3d-8.118495581243488!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91ad3d77a92d05b3%3A0x12f0c37a468a87f8!2sRicar%20Autoboutique!5e0!3m2!1ses!2spe!4v1788928321341!5m2!1ses!2spe" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Ubicación de Ricar Autoboutique en Trujillo">
+                            </iframe>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <div class="info-dir">
+                                    <div class="info-dir-icono"><i class="bi bi-geo-alt-fill"></i></div>
+                                    <div>
+                                        <span class="info-dir-label">Dirección</span>
+                                        <span class="info-dir-valor">Av. Húsares de Junín 336, Urb. La Merced</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="info-dir">
+                                    <div class="info-dir-icono"><i class="bi bi-clock-fill"></i></div>
+                                    <div>
+                                        <span class="info-dir-label">Horario de atención</span>
+                                        <span class="info-dir-valor">Lun - Sáb: 8:30 a.m. - 6:00 p.m.</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="info-dir">
+                                    <div class="info-dir-icono"><i class="bi bi-car-front-fill"></i></div>
+                                    <div>
+                                        <span class="info-dir-label">Estacionamiento</span>
+                                        <span class="info-dir-valor">Estacionamiento gratuito disponible</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="info-dir">
+                                    <div class="info-dir-icono"><i class="bi bi-bus-front-fill"></i></div>
+                                    <div>
+                                        <span class="info-dir-label">Cómo llegar</span>
+                                        <span class="info-dir-valor">Combis y taxis disponibles desde el centro</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <!-- Footer fragment insertado para incluir el pie de página compartido con enlaces y datos de contacto -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <!-- Bootstrap 5.3.3 JS Bundle CDN: Habilita modales, dropdowns y tooltips usados en la navegación pública -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- global.js: Scripts compartidos de interacción general, validación de formularios y comportamientos de navbar -->
+    <script th:src="@{/js/global.js}"></script>
+    <!-- contacto.js: Lógica de comportamiento específica de la página de contacto -->
+    <script th:src="@{/js/navbar/contacto.js}"></script>
+</body>
+</html>

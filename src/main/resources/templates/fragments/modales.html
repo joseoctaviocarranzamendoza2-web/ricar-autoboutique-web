@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<!-- Define el idioma español y habilita Thymeleaf para usar atributos como th:fragment y th:href -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!-- Fragmento de modales compartidos: Incluye login, registro y verificación empresarial en todas las páginas que aún no han sido autenticadas -->
+    <div th:fragment="modales">
+        <!-- Modal de Login: Formulario para inicar sesión como cliente, administrador o gerente -->
+        <div class="modal fade" id="modalLogin" tabindex="-1" aria-labelledby="tituloModalLogin" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <!-- Encabezado del modal de login: Muestra el título y el botón para cerrar -->
+                    <div class="modal-header justify-content-center position-relative">
+                        <h5 class="modal-title" id="tituloModalLogin"><i class="bi bi-person me-2"></i>Iniciar Sesión</h5>
+                        <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Formulario de inicio de sesión: Solicita correo para la autenticación de usuario -->
+                        <div class="mb-3">
+                            <label class="form-label" for="loginEmail">Correo electrónico</label>
+                            <input type="email" id="loginEmail" class="form-control" placeholder="tu@gmail.com" autocomplete="email">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <!-- Formulario de inicio de sesión: Solicita contraseña para la autenticación de usuario -->
+                        <div class="mb-3">
+                            <label class="form-label" for="loginPassword">Contraseña</label>
+                            <input type="password" id="loginPassword" class="form-control" placeholder="Tu contraseña" autocomplete="current-password">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <!-- Mensaje de error visible cuando las credenciales del login son incorrectas -->
+                        <div id="loginError" class="alert alert-danger text-center py-2 d-none">
+                            <i class="bi bi-exclamation-circle me-2"></i>Correo o contraseña incorrectos.
+                        </div>
+                        <!-- Mensaje de éxito visible cuando el inicio de sesión se completa correctamente -->
+                        <div id="loginExito" class="alert alert-success text-center py-2 d-none">
+                            <i class="bi bi-check-circle me-2"></i>¡Sesión iniciada correctamente!
+                        </div>
+                        <!-- Contenedor del botón principal para enviar las credenciales del formulario de login -->
+                        <div class="d-grid">
+                            <button class="btn btn-primary py-2 fw-semibold" id="btnLogin"><i class="bi bi-box-arrow-in-right me-2"></i>Ingresar</button>
+                        </div>
+                        <hr>
+                        <!-- Enlace a registro: Cambia al modal de registro cuando el usuario no tiene cuenta -->
+                        <p class="text-center small text-muted mb-0">¿No tienes cuenta?
+                            <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#modalRegister">Regístrate aquí</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal de registro: Formulario para crear cuentas de cliente, administrador o gerente -->
+        <div class="modal fade" id="modalRegister" tabindex="-1" aria-labelledby="tituloModalRegister" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <!-- Encabezado del modal de registro: Muestra el título y el botón para cerrar -->
+                    <div class="modal-header justify-content-center position-relative">
+                        <h5 class="modal-title" id="tituloModalRegister"><i class="bi bi-person-plus me-2"></i>Crear Cuenta</h5>
+                        <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Campos de datos para el registro de nuevo usuario -->
+                        <div class="row g-3">
+                            <!-- Campo de nombres con validación de longitud de 2 a 50 caracteres y formato básico -->
+                            <div class="col-sm-6">
+                                <label class="form-label" for="regNombres">Nombres</label>
+                                <input type="text" id="regNombres" class="form-control" placeholder="Tus nombres" maxlength="50" autocomplete="given-name">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <!-- Campo de apellidos con validación de longitud de 2 a 50 caracteres y formato básico -->
+                            <div class="col-sm-6">
+                                <label class="form-label" for="regApellidos">Apellidos</label>
+                                <input type="text" id="regApellidos" class="form-control" placeholder="Tus apellidos" maxlength="50" autocomplete="family-name">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <!-- Campo de correo con validación de tipo email -->
+                            <div class="col-sm-6">
+                                <label class="form-label" for="regEmail">Correo electrónico</label>
+                                <input type="email" id="regEmail" class="form-control" placeholder="tu@gmail.com" autocomplete="email">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <!-- Campo de teléfono con validación de longitud de 9 caracteres y formato numérico -->
+                            <div class="col-sm-6">
+                                <label class="form-label" for="regTel">Teléfono</label>
+                                <input type="tel" id="regTel" class="form-control" placeholder="987 654 321" maxlength="9" autocomplete="tel">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <!-- Campo de contraseña con validación de longitud mínima de 8 caracteres -->
+                            <div class="col-sm-6">
+                                <label class="form-label" for="regPassword">Contraseña</label>
+                                <input type="password" id="regPassword" class="form-control" placeholder="Mínimo 8 caracteres" maxlength="30" autocomplete="new-password">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <!-- Campo de confirmación de contraseña con validación de coincidencia -->
+                            <div class="col-sm-6">
+                                <label class="form-label" for="regConfirm">Confirmar contraseña</label>
+                                <input type="password" id="regConfirm" class="form-control"placeholder="Repite tu contraseña" maxlength="30" autocomplete="new-password">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <!-- Selector de tipo de Cuenta: Permite elegir el rol del usuario al registrarse -->
+                            <div class="col-12 d-flex justify-content-center">
+                                <div style="width: 260px;">
+                                    <label class="form-label text-center w-100" for="regRol">Tipo de cuenta</label>
+                                    <select id="regRol" class="form-select text-center">
+                                        <option value="cliente" selected>👤 Cliente</option>
+                                        <option value="administrador">🛡️ Administrador</option>
+                                        <option value="gerente">📊 Gerente</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-12 d-flex justify-content-center">
+                                <!-- Aceptación de términos: Obliga al usuario a confirmar políticas antes de registrar cuenta -->
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="aceptaTerminos">
+                                    <label class="form-check-label small" for="aceptaTerminos">Acepto los <a href="#">términos y condiciones</a></label>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            <!-- Botón principal para enviar el formulario de registro -->
+                            <div class="col-12">
+                                <div class="d-grid">
+                                    <button class="btn btn-primary py-2 fw-semibold" id="btnRegister"><i class="bi bi-person-check me-2"></i>Crear mi cuenta</button>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <!-- Mensaje de éxito mostrado cuando el registro se completa correctamente -->
+                                <div id="registerExito" class="alert alert-success text-center py-2 d-none">
+                                    <i class="bi bi-check-circle me-2"></i>¡Cuenta creada! Ya puedes iniciar sesión.
+                                </div>
+                                <!-- Mensaje de error mostrado cuando ocurre un problema durante el registro -->
+                                <div id="registerError" class="alert alert-danger text-center py-2 d-none">
+                                    <i class="bi bi-exclamation-circle me-2"></i>
+                                    <span id="registerErrorMsg">Error al registrarse.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <!-- Enlace de acceso directo al login si el usuario ya tiene cuenta -->
+                        <p class="text-center small text-muted mb-0">¿Ya tienes cuenta?
+                            <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#modalLogin">Inicia sesión aquí</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal de verificación empresarial: Protege el registro de administradores y gerentes con una clave especial -->
+        <div class="modal fade" id="modalEmpresarial" tabindex="-1" aria-labelledby="tituloModalEmpresarial" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <!-- Encabezado del modal de verificación empresarial: Muestra el título y el botón para cerrar -->
+                    <div class="modal-header justify-content-center position-relative">
+                        <h5 class="modal-title" id="tituloModalEmpresarial"><i class="bi bi-shield-lock me-2"></i>Verificación empresarial</h5>
+                        <button type="button" class="btn-close position-absolute end-0 me-3" id="btnCerrarEmpresarial"data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted small text-center mb-3">Ingresa la contraseña empresarial para registrarte como <strong id="rolEmpresarialTexto"></strong>.</p>
+                        <!-- Campo para ingresar la contraseña empresarial necesaria para completar la verificación -->
+                        <div class="mb-3 text-center">
+                            <label class="form-label fw-semibold" for="passEmpresarial">Contraseña empresarial</label>
+                            <input type="password" id="passEmpresarial" class="form-control text-center" placeholder="••••••••••">
+                            <div class="invalid-feedback text-center"></div>
+                        </div>
+                        <!-- Mensaje de error mostrado cuando la contraseña empresarial es incorrecta -->
+                        <div id="empresarialError" class="alert alert-danger text-center py-2 d-none">
+                            <i class="bi bi-x-circle me-2"></i>Contraseña incorrecta.
+                        </div>
+                        <!-- Botón para confirmar la verificación empresarial -->
+                        <div class="d-grid">
+                            <button class="btn btn-primary fw-semibold" id="btnConfirmarEmpresarial"><i class="bi bi-check-lg me-2"></i>Confirmar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

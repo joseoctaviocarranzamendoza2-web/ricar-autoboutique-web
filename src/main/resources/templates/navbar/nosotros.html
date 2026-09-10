@@ -1,0 +1,353 @@
+<!-- Página 'nosotros' pública: Historia, misión y equipo; usa Bootstrap 5 y fragmento navbar; estilos css -->
+<!DOCTYPE html>
+<!-- Thymeleaf requiere el namespace xmlns:th para habilitar directivas th:href, th:src y th:text en todo el documento -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RICAR AUTOBOUTIQUE S.A.C.</title>
+    <!-- Bootstrap 5.3.3 CDN: Sistema de grilla y utilidades para la página institucional -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons 1.11.3 CDN: Iconos SVG usados en tarjetas y secciones del equipo -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- global.css: Estilos compartidos entre páginas públicas -->
+    <link th:href="@{/css/global.css}" rel="stylesheet">
+    <!-- nosotros.css: Estilos específicos de la página 'nosotros' (misión, visión, equipo) -->
+    <link th:href="@{/css/navbar/nosotros.css}" rel="stylesheet">
+    <!-- Favicon del sitio -->
+    <link rel="icon" th:href="@{/img/icon.png}" type="image/png">
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- Navbar fragment incluido vía Thymeleaf para mantener consistencia del header en el sitio público -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <!-- Carrusel hero: Encabezado visual de la sección 'nosotros' con imágenes y CTA -->
+    <div id="carrusel-principal">
+        <div class="carrusel-fondos">
+            <div class="fondo-slide activo" style="background-image: url('https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkZQfxfNjUWBkaKIIqGSTkvLev9Ieyh5E-W0iiN5LIDVaKk1VF8mOSFgjP8uTaPbh6yJlrr8K8OjvHF2Y2jaE-KO_AXsa0i6TM53IWTBEZGIeWTk2mqmzGlYyH7jqBJJsIpttPRLA=s680-w680-h510-rw');"></div>
+            <div class="fondo-slide" style="background-image: url('https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnKNKsKp37CZfwm4UUPHQae9xH0FWrzbOzjm_xonxd8od57dAWF0vjrHW7DLLZ9B_L592eV1_jpKIgbPRWkbE72q_mbWfMB_R45xlMbPhLykUC62y_ruOK4J8JXyLaR_JGxG2c=s680-w680-h510-rw');"></div>
+            <div class="fondo-slide" style="background-image: url('https://lh3.googleusercontent.com/gps-cs-s/AHRPTWkXFZF2GyV3UY4BLcCDTYIYP282s5WMfK54QZmlA0OGJCPAczpFvtXnEMR8t7-tZa-Z_zT8V3xFbwWzGM1G2xEy_G9Lf8p0VXM5Y3VALso-O-688Fn_xZ7supPDxVmTVfm-BOoel4Il1w8=s680-w680-h510-rw');"></div>
+            <div class="fondo-slide" style="background-image: url('https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm7yuLs98Zz_xqmmhOKd_8A1aMAPRae35gKXGePEy8NrKzOG659P6rgTTjBHezIWMCn24v-VnKmBL3787TyO2trF1I0saoTQMPTeDPddvTRJtqCygjN6nAQwoQou5WLNhzyEjHCdA=s680-w680-h510-rw');"></div>
+        </div>
+        <div class="carrusel-overlay"></div>
+        <div class="carrusel-contenido">
+            <div class="container">
+                <!-- Fila de Bootstrap que organiza el contenido del hero en columnas responsivas y lo centra o separa según el tamaño de pantalla -->
+                <div class="row align-items-center justify-content-center justify-content-lg-between g-4">
+                    <div class="col-12 col-lg-6 text-center text-lg-start">
+                        <span class="badge-slide"><i class="bi bi-patch-check-fill"></i> Taller certificado en Trujillo</span>
+                        <h1 class="titulo-slide mt-2">Apasionados por la <span class="texto-celeste">mecánica</span> y el buen <span class="texto-celeste">servicio</span></h1>
+                        <p class="subtitulo-slide mt-3 mb-4">Descubre quiénes somos y por qué confiar en nosotros.</p>
+                        <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-3">
+                            <button class="btn btn-light fw-bold px-4 text-primary" id="btn-agendar-hero" onclick="manejarBtnAgendar()"><i class="bi bi-calendar-check me-2"></i>Agendar Cita</button>
+                            <a href="#trayectoria" class="btn btn-outline-light fw-bold px-4"><i class="bi bi-grid me-2"></i>Ver Trayectoria</a>
+                        </div>
+                        <div class="row mt-4 g-3">
+                            <div class="col-4 text-center">
+                                <span class="stat-num">+10 000</span><span class="stat-label d-block">Clientes</span>
+                            </div>
+                            <div class="col-4 text-center">
+                                <span class="stat-num">+23</span><span class="stat-label d-block">Años de exp.</span>
+                            </div>
+                            <div class="col-4 text-center">
+                                <span class="stat-num">+300</span><span class="stat-label d-block">Productos</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Columna lateral del hero: Se oculta en pantallas pequeñas y se muestra a partir de lg para conservar la imagen del equipo en desktop -->
+                    <div class="col-lg-6 d-none d-lg-flex justify-content-center">
+                        <div class="img-carrusel-box">
+                            <img src="https://lh3.googleusercontent.com/gps-cs-s/AHRPTWka3AI7L-ofaGnpExaxQAZSaZCKdm8-7ONTrKSlOu4j8t61KIzTa7Mu1um7nqvuGSyQXXiCzptspZl0t-Zt9SadJZnCjk4QYB0FwxGvGZb-S_cRXZ4UW34mDmm6I1v6zrf--vAIxw=s680-w680-h510-rw" alt="Equipo RICAR AUTOBOUTIQUE" class="img-carrusel">
+                            <div class="badge-flotante badge-top">
+                                <i class="bi bi-shield-check text-primary me-1"></i><span>Garantía incluida</span>
+                            </div>
+                            <div class="badge-flotante badge-bottom">
+                                <i class="bi bi-clock text-primary me-1"></i><span>Atención rápida</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Contenedor de indicadores del carrusel: Permite navegar entre los slides y mostrar cuál está activo -->
+        <div class="carrusel-indicadores">
+            <button class="indicador activo" aria-label="Slide 1"></button>
+            <button class="indicador" aria-label="Slide 2"></button>
+            <button class="indicador" aria-label="Slide 3"></button>
+            <button class="indicador" aria-label="Slide 4"></button>
+        </div>
+    </div>
+    <!-- Info banner: Resumen rápido de servicios (envío, soporte, garantía, pago seguro) -->
+    <section class="info-banner py-3">
+        <div class="container">
+            <div class="row g-3 text-center">
+                <div class="col-6 col-md-3">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-truck text-primary fs-5"></i><span class="small fw-semibold">Envío a Trujillo</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-headset text-primary fs-5"></i><span class="small fw-semibold">Soporte 24/7</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-patch-check text-primary fs-5"></i><span class="small fw-semibold">Garantía 1 año</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-credit-card text-primary fs-5"></i><span class="small fw-semibold">Pago seguro</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Main: Contenido institucional (quiénes somos, misión, visión) estructurado en secciones semánticas -->
+    <main class="flex-grow-1">
+        <!-- Sección de identidad corporativa: Historia, misión y valores para generar confianza en el visitante -->
+        <section class="py-5 bg-white">
+            <div class="container">
+                <div class="row align-items-center g-5">
+                    <div class="col-lg-6">
+                        <span class="etiqueta-seccion">Quiénes somos</span>
+                        <h2 class="titulo-seccion mt-2">Más de una década <span class="texto-celeste">de confianza</span></h2>
+                        <p class="text-muted mt-3" style="line-height:1.85;">
+                            Ricar Autoboutique S.A.C. es una empresa peruana del sector automotriz, especializada en la comercialización de autopartes, accesorios y soluciones de equipamiento para vehículos.
+                        </p>
+                        <p class="text-muted" style="line-height:1.85;">
+                            Cuenta con presencia en Trujillo, Chiclayo y Piura, ofreciendo productos y servicios orientados a la personalización, seguridad, confort y tecnología automotriz, con asesoría para encontrar la solución adecuada para cada vehículo.
+                        </p>
+                        <div class="row g-3 mt-2">
+                            <div class="col-6">
+                                <div class="nos-kpi"><span class="nos-kpi-num">23+</span><span class="nos-kpi-label">Años de experiencia</span></div>
+                            </div>
+                            <div class="col-6">
+                                <div class="nos-kpi"><span class="nos-kpi-num">10K+</span><span class="nos-kpi-label">Clientes atendidos</span></div>
+                            </div>
+                            <div class="col-6">
+                                <div class="nos-kpi"><span class="nos-kpi-num">300+</span><span class="nos-kpi-label">Productos disponibles</span></div>
+                            </div>
+                            <div class="col-6">
+                                <div class="nos-kpi"><span class="nos-kpi-num">3</span><span class="nos-kpi-label">Ciudades de atención</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Imagen institucional: Apoya visualmente la sección de historia y confianza corporativa -->
+                    <div class="col-lg-6">
+                        <div class="nos-img-wrap">
+                            <img src="https://github.com/DAlvarezF7/multimedia/blob/main/Ricarr1.webp?raw=true" alt="Taller RICAR AUTOBOUTIQUE" class="nos-img-principal">
+                            <div class="nos-img-badge">
+                                <i class="bi bi-patch-check-fill text-primary me-2"></i><span>Taller certificado en Trujillo</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="py-5" style="background-color: var(--color-fondo-suave);">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <span class="etiqueta-seccion">Nuestros pilares</span>
+                    <h2 class="titulo-seccion mt-2">Misión, Visión <span class="texto-celeste">y Valores</span></h2>
+                </div>
+                <!-- Tarjetas de misión, visión y valores de RICAR AUTOBOUTIQUE -->
+                <div class="row g-4">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card-mv h-100">
+                            <div class="card-mv-icono mv-mision"><i class="bi bi-bullseye"></i></div>
+                            <h5>Nuestra Misión</h5>
+                            <p>Brindar servicios mecánicos y productos automotrices de alta calidad en Trujillo,
+                                garantizando atención profesional, precios transparentes y soluciones completas que
+                                generen confianza y fidelidad en cada cliente que nos visita.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card-mv h-100">
+                            <div class="card-mv-icono mv-vision"><i class="bi bi-eye-fill"></i></div>
+                            <h5>Nuestra Visión</h5>
+                            <p>Convertirnos en el taller mecánico y ferretería automotriz de referencia en la región
+                                La Libertad para 2030, expandiendo nuestra red de servicios y consolidándonos como
+                                la primera opción del conductor trujillano.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-12 col-lg-4">
+                        <div class="card-mv h-100">
+                            <div class="card-mv-icono mv-valores"><i class="bi bi-heart-fill"></i></div>
+                            <h5>Nuestros Valores</h5>
+                            <ul class="card-mv-lista">
+                                <li><i class="bi bi-check2-circle"></i><span><strong>Honestidad</strong> - Cotizaciones claras sin cobros ocultos.</span></li>
+                                <li><i class="bi bi-check2-circle"></i><span><strong>Calidad</strong> - Solo usamos repuestos y productos certificados.</span></li>
+                                <li><i class="bi bi-check2-circle"></i><span><strong>Compromiso</strong> - Cumplimos plazos y garantías por escrito.</span></li>
+                                <li><i class="bi bi-check2-circle"></i><span><strong>Cercanía</strong> - Trato humano y personalizado en cada visita.</span></li>
+                                <li><i class="bi bi-check2-circle"></i><span><strong>Innovación</strong> - Equipos modernos y técnicos en constante capacitación.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section id="trayectoria" class="py-5 bg-white">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <span class="etiqueta-seccion">Nuestra historia</span>
+                    <h2 class="titulo-seccion mt-2">Cómo hemos <span class="texto-celeste">crecido</span></h2>
+                </div>
+                <!-- Timeline de trayectoria: Hitos clave que muestran el crecimiento histórico de la empresa -->
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-year">1988</span>
+                            <h6>Inicios de Ricar</h6>
+                            <p>Ricar inicia su trayectoria en el sector automotriz en Chiclayo, desarrollándose en el rubro de la autoboutique y la comercialización de productos para vehículos.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-year">2002</span>
+                            <h6>Inicio de actividades empresariales</h6>
+                            <p>Ricar Autoboutique S.A.C. registra el inicio de sus actividades empresariales el 31 de diciembre de 2002, consolidando formalmente sus operaciones en el sector automotriz.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-year">2003</span>
+                            <h6>Consolidación de Ricar Autoboutique S.A.C.</h6>
+                            <p>La empresa se inscribe como RICAR AUTOBOUTIQUE S.A.C. y desarrolla actividades relacionadas con la venta de partes, piezas y accesorios para vehículos automotores.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-year">2016</span>
+                            <h6>Modernización de sus operaciones</h6>
+                            <p>Ricar incorpora la emisión de comprobantes electrónicos, avanzando en la modernización de sus procesos administrativos y comerciales.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-year">2019</span>
+                            <h6>Expansión de soluciones automotrices</h6>
+                            <p>La empresa amplía su oferta de soluciones para vehículos, incluyendo accesorios, seguridad vehicular, audio, video, GPS, iluminación, sensores y servicios de instalación y mantenimiento.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-year">2026</span>
+                            <h6>Ricar en la actualidad</h6>
+                            <p>Ricar continúa desarrollando soluciones para el sector automotriz, con presencia en Trujillo, Chiclayo y Piura, ofreciendo productos, accesorios, equipamiento y servicios para vehículos.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="py-5" style="background-color: var(--color-fondo-suave);">
+            <div class="container">
+                <div class="text-center mb-5">
+                    <span class="etiqueta-seccion">Detrás del proyecto</span>
+                    <h2 class="titulo-seccion mt-2">Equipo <span class="texto-celeste">creador</span></h2>
+                    <p class="subtitulo-seccion">Los desarrolladores que hicieron posible esta plataforma web</p>
+                </div>
+                <!-- Equipo creador: Muestra a los desarrolladores responsables de esta plataforma web -->
+                <div class="row g-4 justify-content-center">
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card-creador h-100">
+                            <div class="card-creador-img">
+                                <img src="https://www.shutterstock.com/image-vector/people-icon-person-user-vector-260nw-1455016016.jpg" alt="Desarrollador 1">
+                                <div class="card-creador-overlay">
+                                    <div class="creador-redes">
+                                        <a href="#" class="creador-red"><i class="bi bi-linkedin"></i></a>
+                                        <a href="#" class="creador-red"><i class="bi bi-github"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-creador-body">
+                                <h6 class="creador-nombre">Ramirez Agreda André Valentino</h6>
+                                <span class="creador-rol">Frontend Developer</span>
+                                <p class="creador-desc">Diseño de interfaces, experiencia de usuario y maquetado responsive con Bootstrap 5.</p>
+                                <div class="creador-tags">
+                                    <span>HTML</span><span>CSS</span><span>Bootstrap</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card-creador h-100">
+                            <div class="card-creador-img">
+                                <img src="https://www.shutterstock.com/image-vector/people-icon-person-user-vector-260nw-1455016016.jpg" alt="Desarrollador 2">
+                                <div class="card-creador-overlay">
+                                    <div class="creador-redes">
+                                        <a href="#" class="creador-red"><i class="bi bi-linkedin"></i></a>
+                                        <a href="#" class="creador-red"><i class="bi bi-github"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-creador-body">
+                                <h6 class="creador-nombre">Anticona Castro Fabrizio Javier</h6>
+                                <span class="creador-rol">Backend Developer</span>
+                                <p class="creador-desc">Arquitectura del servidor, base de datos y lógica de negocio del sistema de citas.</p>
+                                <div class="creador-tags">
+                                    <span>Node.js</span><span>MySQL</span><span>REST API</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card-creador h-100">
+                            <div class="card-creador-img">
+                                <img src="https://www.shutterstock.com/image-vector/people-icon-person-user-vector-260nw-1455016016.jpg" alt="Desarrollador 3">
+                                <div class="card-creador-overlay">
+                                    <div class="creador-redes">
+                                        <a href="#" class="creador-red"><i class="bi bi-linkedin"></i></a>
+                                        <a href="#" class="creador-red"><i class="bi bi-github"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-creador-body">
+                                <h6 class="creador-nombre">Carranza Mendoza Jose Octavio</h6>
+                                <span class="creador-rol">Full Stack Developer</span>
+                                <p class="creador-desc">Integración de módulos, panel administrativo y sistema de autenticación por roles.</p>
+                                <div class="creador-tags">
+                                    <span>JavaScript</span><span>Java</span><span>SQL</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card-creador h-100">
+                            <div class="card-creador-img">
+                                <img src="https://www.shutterstock.com/image-vector/people-icon-person-user-vector-260nw-1455016016.jpg" alt="Desarrollador 4">
+                                <div class="card-creador-overlay">
+                                    <div class="creador-redes">
+                                        <a href="#" class="creador-red"><i class="bi bi-linkedin"></i></a>
+                                        <a href="#" class="creador-red"><i class="bi bi-github"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-creador-body">
+                                <h6 class="creador-nombre">Pereda Rosado Jack</h6>
+                                <span class="creador-rol">UI/UX Designer</span>
+                                <p class="creador-desc">Diseño visual, paleta de colores, prototipado y experiencia de usuario de la plataforma.</p>
+                                <div class="creador-tags">
+                                    <span>Figma</span><span>UX</span><span>Diseño</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <!-- Footer fragment insertado para incluir el pie de página compartido con enlaces y datos de contacto -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <!-- Bootstrap 5.3.3 JS Bundle CDN: Habilita modales, dropdowns y tooltips usados en la navegación pública -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- global.js: Scripts compartidos de interacción general, validación de formularios y comportamientos de navbar -->
+    <script th:src="@{/js/global.js}"></script>
+</body>
+</html>

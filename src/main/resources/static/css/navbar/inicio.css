@@ -1,0 +1,290 @@
+/* Variables locales - Fondo suave */
+:root {
+    --color-fondo-suave: #f0f4f8;
+}
+
+/* Pequeña etiqueta para indicar categoría, fondo semi-transparente y borde ligero */
+.etiqueta-seccion {
+    display: inline-block;
+    background-color: rgba(86, 174, 232, 0.12);
+    color: var(--azul-medio);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 0.35em 1em;
+    border-radius: 50px;
+    border: 1px solid rgba(86, 174, 232, 0.3);
+}
+
+/* Encabezado grande y responsive, usado en hero y secciones principales */
+.titulo-seccion {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+    color: var(--oscuro);
+}
+
+/* Texto descriptivo centrado */
+.subtitulo-seccion {
+    color: #6c7d8e;
+    font-size: 0.95rem;
+    max-width: 520px;
+    margin: 0 auto;
+}
+
+/* Contenedor de servicio (fondo, borde y padding) */
+.card-servicio {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+}
+
+/* Elevación y color de borde al hover */
+.card-servicio:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 32px rgba(21, 101, 192, 0.12);
+    border-color: var(--celeste);
+}
+
+/* Contenedor del icono (centrado, radio) */
+.card-servicio-icono {
+    width: 56px;
+    height: 56px;
+    background: rgba(86, 174, 232, 0.12);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--celeste);
+    margin-bottom: 1rem;
+}
+
+/* Título del servicio (peso y tamaño) */
+.card-servicio h5 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--oscuro);
+    margin-bottom: 0.5rem;
+}
+
+/* Texto descriptivo con altura de línea */
+.card-servicio p {
+    font-size: 0.87rem;
+    color: #6c7d8e;
+    line-height: 1.65;
+    flex-grow: 1;
+}
+
+/* Enlace CTA con gap animado */
+.btn-link-servicio {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.83rem;
+    font-weight: 700;
+    color: var(--azul-medio);
+    text-decoration: none;
+    margin-top: 0.75rem;
+    transition: gap 0.2s, color 0.2s;
+}
+
+/* Cambio de color y separación */
+.btn-link-servicio:hover {
+    color: var(--celeste);
+    gap: 10px;
+}
+
+/* Botón CTA con degradado de marca */
+.card-servicio-cta {
+    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul-medio) 100%);
+    border: none;
+    cursor: default;
+}
+
+/* Tarjeta de producto con overflow oculto */
+.card-producto {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform 0.22s, box-shadow 0.22s;
+}
+
+/* Leve elevación en hover */
+.card-producto:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(21, 101, 192, 0.1);
+}
+
+/* Zona visual del producto (alto y centrado) */
+.card-producto-img {
+    background: rgba(86, 174, 232, 0.08);
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    font-size: 2.8rem;
+    color: var(--celeste);
+}
+
+/* Etiqueta absoluta con estilo de cápsula */
+.badge-producto {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--celeste);
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 50px;
+}
+
+/* Variante de badge para nuevo */
+.badge-nuevo {
+    background: var(--azul-medio);
+}
+
+/* Padding interno de la tarjeta */
+.card-producto-body {
+    padding: 14px;
+}
+
+/* Categoría en mayúsculas y color marca */
+.card-producto-cat {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: var(--celeste);
+}
+
+/* Título producto (peso moderado) */
+.card-producto-body h6 {
+    font-size: 0.83rem;
+    font-weight: 700;
+    color: var(--oscuro);
+    margin: 4px 0 0;
+    line-height: 1.3;
+}
+
+/* Precio destacado con color */
+.card-producto-precio {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--azul-medio);
+}
+
+/* Contenedor informativo con padding */
+.card-porque {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.4rem;
+    height: 100%;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Resalta borde y sombra al pasar cursor */
+.card-porque:hover {
+    border-color: var(--celeste);
+    box-shadow: 0 6px 20px rgba(86, 174, 232, 0.12);
+}
+
+/* Número grande y tenue como fondo */
+.card-porque-num {
+    font-size: 2rem;
+    font-weight: 900;
+    color: rgba(86, 174, 232, 0.25);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+/* Subtítulo dentro del contenedor */
+.card-porque h6 {
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: var(--oscuro);
+    margin-bottom: 0.4rem;
+}
+
+/* Texto explicativo con interlineado */
+.card-porque p {
+    font-size: 0.83rem;
+    color: #6c7d8e;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Tarjeta de testimonio con padding */
+.card-testimonio {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.6rem;
+    transition: box-shadow 0.2s;
+}
+
+/* Tarjeta de testimonio con padding */
+.card-testimonio {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.6rem;
+    transition: box-shadow 0.2s;
+}
+
+/* Resalta sombra al pasar cursor */
+.card-testimonio:hover {
+    box-shadow: 0 8px 24px rgba(21, 101, 192, 0.09);
+}
+
+/* Texto en cursiva y mayor interlineado */
+.card-testimonio p {
+    font-size: 0.9rem;
+    color: #4a5568;
+    line-height: 1.75;
+    font-style: italic;
+    flex-grow: 1;
+}
+
+/* Color y tamaño de iconos de valoración */
+.estrellas i {
+    color: #f59e0b;
+    font-size: 0.85rem;
+}
+
+/* Fila con avatar y nombre */
+.testimonio-autor {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 1.2rem;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 1rem;
+}
+
+/* Avatar circular con fondo marca */
+.testimonio-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--azul-oscuro);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* Nombre del autor (tamaño y color) */
+.testimonio-autor strong {
+    font-size: 0.88rem;
+    color: var(--oscuro);
+}

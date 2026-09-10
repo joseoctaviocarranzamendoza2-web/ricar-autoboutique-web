@@ -1,0 +1,50 @@
+[
+  {
+    "nombre": "Cambio de Aceite",
+    "categoria": "Lubricación",
+    "precioBase": 45.00,
+    "duracionMinutos": 45,
+    "descripcion": "Cambio de aceite de motor con filtro incluido. Aceites sintéticos, semisintéticos y minerales.",
+    "estado": "Activo"
+  },
+  {
+    "nombre": "Mantenimiento General",
+    "categoria": "Mantenimiento",
+    "precioBase": 120.00,
+    "duracionMinutos": 90,
+    "descripcion": "Revisión integral del vehículo: motor, frenos, suspensión, filtros y correas.",
+    "estado": "Activo"
+  },
+  {
+    "nombre": "Diagnóstico Computarizado",
+    "categoria": "Diagnóstico",
+    "precioBase": 60.00,
+    "duracionMinutos": 30,
+    "descripcion": "Escaneo OBD2 para identificar fallas en el sistema electrónico del vehículo.",
+    "estado": "Activo"
+  },
+  {
+    "nombre": "Sistema Eléctrico",
+    "categoria": "Electricidad",
+    "precioBase": 80.00,
+    "duracionMinutos": 60,
+    "descripcion": "Diagnóstico y reparación del sistema eléctrico: batería, alternador, arranque e iluminación.",
+    "estado": "Activo"
+  },
+  {
+    "nombre": "Alineación y Balanceo",
+    "categoria": "Seguridad",
+    "precioBase": 75.00,
+    "duracionMinutos": 60,
+    "descripcion": "Corrección de geometría de ruedas para mayor estabilidad y ahorro de combustible.",
+    "estado": "Activo"
+  },
+  {
+    "nombre": "Frenos y Suspensión",
+    "categoria": "Seguridad",
+    "precioBase": 90.00,
+    "duracionMinutos": 75,
+    "descripcion": "Revisión y reemplazo de pastillas, discos, tambores y amortiguadores.",
+    "estado": "Activo"
+  }
+]

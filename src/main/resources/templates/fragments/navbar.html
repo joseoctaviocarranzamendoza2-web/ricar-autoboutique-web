@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<!-- Define el idioma español y habilita Thymeleaf para usar atributos como th:fragment, th:href, th:replace y th:block -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!-- Fragmento de navbar compartido: Navegación principal y controles de usuario para todas las páginas públicas -->
+    <th:block th:fragment="navbar">
+        <nav class="navbar navbar-expand-xl navbar-dark sticky-top" id="navbar-principal">
+            <div class="container">
+                <!-- Marca del sitio y enlace a la página de inicio -->
+                <a class="navbar-brand d-flex align-items-center gap-2" th:href="@{/inicio}">
+                    <div class="marca-icono">
+                        <i class="bi bi-tools"></i>
+                    </div>
+                    <div>
+                        <span class="marca-nombre">RICAR AUTOBOUTIQUE</span>
+                        <span class="marca-sac">S.A.C.</span>
+                    </div>
+                </a>
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#menuNav" aria-controls="menuNav" aria-expanded="false" aria-label="Abrir menú">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="menuNav">
+                    <!-- Enlaces de navegación principal: Apuntan a secciones clave del sitio mediante js y scroll suave -->
+                    <ul class="navbar-nav mx-auto gap-1">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="irAInicio(); return false;"><i class="bi bi-house me-1"></i>Inicio</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="irAServicios(); return false;"><i class="bi bi-gear me-1"></i>Servicios</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="irAProductos(); return false;"><i class="bi bi-grid me-1"></i>Productos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="irANosotros(); return false;"><i class="bi bi-people me-1"></i>Nosotros</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="irAContacto(); return false;"><i class="bi bi-envelope me-1"></i>Contacto</a>
+                        </li>
+                    </ul>
+                    <!-- Botones de usuario: Login, registro, perfil y paneles según el estado de autenticación -->
+                    <div class="d-flex flex-column flex-xl-row gap-2 mt-3 mt-xl-0" id="navbar-botones">
+                        <button class="btn btn-sm btn-navbar-registrarse d-none" id="btn-registrarse" data-bs-toggle="modal" data-bs-target="#modalRegister">
+                            <i class="bi bi-person-plus me-1"></i>Registrarse
+                        </button>
+                        <button class="btn btn-sm btn-navbar-login d-none" id="btn-login" data-bs-toggle="modal" data-bs-target="#modalLogin">
+                            <i class="bi bi-person me-1"></i>Iniciar Sesión
+                        </button>
+                        <button class="btn btn-sm btn-navbar-panel d-none" id="btn-perfil" onclick="irAPerfil()">
+                            <i class="bi bi-person-circle me-1"></i>Mi Perfil
+                        </button>
+                        <button class="btn btn-sm btn-navbar-panel d-none" id="btn-administracion" onclick="irAAdministracion()">
+                            <i class="bi bi-speedometer2 me-1"></i>Administración
+                        </button>
+                        <button class="btn btn-sm btn-navbar-panel d-none" id="btn-gestion" onclick="irAGestion()">
+                            <i class="bi bi-graph-up me-1"></i>Gestión
+                        </button>
+                        <button class="btn btn-sm btn-navbar-regresar d-none" id="btn-regresar" onclick="history.back()">
+                            <i class="bi bi-arrow-left me-1"></i>Regresar
+                        </button>
+                        <button class="btn btn-sm btn-navbar-cerrar d-none" id="btn-cerrar-sesion" onclick="cerrarSesion()">
+                            <i class="bi bi-box-arrow-right me-1"></i>Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        <!-- Inclusión del fragmento de modales compartidos para login, registro y verificación empresarial -->
+        <div th:replace="~{fragments/modales :: modales}"></div>
+    </th:block>
+</body>
+</html>

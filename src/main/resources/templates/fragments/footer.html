@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<!-- Define el idioma español y habilita Thymeleaf para usar atributos como th:fragment y th:href -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!-- Fragmento de footer compartido: Pie de página global usado en todas las vistas del navbar -->
+    <footer th:fragment="footer" class="footer-principal">
+        <div class="footer-cta">
+            <div class="container">
+                <div class="row align-items-center g-3">
+                    <!-- Columna de Bootstrap que ocupa la mayor parte del ancho en pantallas grandes y centra el texto en móviles -->
+                    <div class="col-12 col-lg-7 text-center text-lg-start">
+                        <h5 class="footer-cta-titulo mb-1">¿Necesitas atención para tu vehículo?</h5>
+                        <p class="footer-cta-sub mb-0">Encuentra repuestos y accesorios para tu vehículo en Trujillo.</p>
+                    </div>
+                    <!-- Columna de Bootstrap que organiza los botones en una columna en móviles y en fila en pantallas grandes, alineándolos a la derecha -->
+                    <div class="col-12 col-lg-5 d-flex flex-column flex-lg-row justify-content-lg-end gap-2">
+                        <!-- CTA del footer: Acciones directas para agendar o escribir por WhatsApp -->
+                        <button class="btn btn-celeste-outline" onclick="manejarBtnAgendar()"><i class="bi bi-calendar-check me-2"></i>Agendar Cita</button>
+                        <a href="https://wa.me/51949833092" target="_blank" class="btn btn-celeste-outline"><i class="bi bi-whatsapp me-2"></i>Escribir por WhatsApp</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-body">
+            <div class="container">
+                <div class="row g-5">
+                    <!-- Columna de Bootstrap que organiza el bloque de marca y redes sociales en pantallas pequeñas, medianas y grandes -->
+                    <div class="col-12 col-sm-6 col-lg-4">
+                        <!-- Bloque principal de marca y redes sociales: Refuerza imagen corporativa y enlaces externos -->
+                        <a th:href="@{/inicio}" class="d-flex align-items-center justify-content-center justify-content-sm-start gap-2 text-decoration-none mb-3">
+                            <div class="marca-icono">
+                                <i class="bi bi-tools"></i>
+                            </div>
+                            <div>
+                                <span class="marca-nombre">RICAR AUTOBOUTIQUE</span>
+                                <span class="marca-sac">S.A.C.</span>
+                            </div>
+                        </a>
+                        <p class="footer-desc">
+                            Soluciones automotrices, repuestos y accesorios para tu vehículo. En Ricar Autoboutique combinamos experiencia, calidad e innovación para ofrecerte productos y servicios pensados para tu seguridad, comodidad y estilo.
+                        </p>
+                        <div class="d-flex gap-2 mt-3">
+                            <!-- Enlaces a redes sociales: Acceso directo a las páginas oficiales de la marca -->
+                            <a href="https://www.facebook.com/gruporicar/" target="_blank" rel="noopener noreferrer" class="footer-social" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                            <a href="https://www.tiktok.com/@ricarperu" target="_blank" rel="noopener noreferrer" class="footer-social" aria-label="TikTok"><i class="bi bi-tiktok"></i></a>
+                        </div>
+                    </div>
+                    <!-- Columna de Bootstrap que organiza el bloque de servicios en pantallas pequeñas, medianas y grandes -->
+                    <div class="col-6 col-sm-3 col-lg-2">
+                        <!-- Enlaces de servicios en el footer: Accesos rápidos a la sección de servicios generales -->
+                        <h6 class="footer-titulo-col">Servicios</h6>
+                        <ul class="footer-links">
+                            <li><a th:href="@{/servicios}" onclick="event.preventDefault(); navegarConParametro('/servicios');"><i class="bi bi-chevron-right"></i>Mantenimiento</a></li>
+                            <li><a th:href="@{/servicios}" onclick="event.preventDefault(); navegarConParametro('/servicios');"><i class="bi bi-chevron-right"></i>Diagnóstico</a></li>
+                            <li><a th:href="@{/servicios}" onclick="event.preventDefault(); navegarConParametro('/servicios');"><i class="bi bi-chevron-right"></i>Frenos y suspensión</a></li>
+                            <li><a th:href="@{/servicios}" onclick="event.preventDefault(); navegarConParametro('/servicios');"><i class="bi bi-chevron-right"></i>Sistema eléctrico</a></li>
+                            <li><a th:href="@{/servicios}" onclick="event.preventDefault(); navegarConParametro('/servicios');"><i class="bi bi-chevron-right"></i>Cambio de aceite</a></li>
+                        </ul>
+                    </div>
+                    <!-- Columna de Bootstrap que organiza el bloque de productos en pantallas pequeñas, medianas y grandes -->
+                    <div class="col-6 col-sm-3 col-lg-2">
+                        <!-- Enlaces de productos en el footer: Accesos rápidos a la sección de catálogo público -->
+                        <h6 class="footer-titulo-col">Productos</h6>
+                        <ul class="footer-links">
+                            <li><a th:href="@{/productos}" onclick="event.preventDefault(); navegarConParametro('/productos');"><i class="bi bi-chevron-right"></i>Lubricantes</a></li>
+                            <li><a th:href="@{/productos}" onclick="event.preventDefault(); navegarConParametro('/productos');"><i class="bi bi-chevron-right"></i>Herramientas</a></li>
+                            <li><a th:href="@{/productos}" onclick="event.preventDefault(); navegarConParametro('/productos');"><i class="bi bi-chevron-right"></i>Filtros</a></li>
+                            <li><a th:href="@{/productos}" onclick="event.preventDefault(); navegarConParametro('/productos');"><i class="bi bi-chevron-right"></i>Repuestos</a></li>
+                            <li><a th:href="@{/productos}" onclick="event.preventDefault(); navegarConParametro('/productos');"><i class="bi bi-chevron-right"></i>Accesorios</a></li>
+                        </ul>
+                    </div>
+                    <!-- Columna de Bootstrap que organiza el bloque de contacto en pantallas pequeñas, medianas y grandes -->
+                    <div class="col-12 col-sm-6 col-lg-4">
+                        <!-- Datos de contacto principales: Dirección, teléfono, correo y horario del taller -->
+                        <h6 class="footer-titulo-col">Contacto</h6>
+                        <ul class="footer-contacto">
+                            <li><span class="footer-contacto-icono"><i class="bi bi-geo-alt-fill"></i></span><span>Av. Húsares de Junín 336 - Urb. La Merced</span></li>
+                            <li><span class="footer-contacto-icono"><i class="bi bi-telephone-fill"></i></span><a href="tel:+51949833092">+51 949 833 092</a></li>
+                            <li><span class="footer-contacto-icono"><i class="bi bi-envelope-fill"></i></span><a href="mailto:publicidad.tru@ricar.pe">publicidad.tru@ricar.pe</a></li>
+                            <li><span class="footer-contacto-icono"><i class="bi bi-clock-fill"></i></span><span>Lun - Sáb: 8:30 a.m. - 6:00 p.m.</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <!-- Sección inferior del footer: Derechos reservados y enlaces legales secundarios -->
+            <div class="container">
+                <div class="row align-items-center g-2">
+                    <!-- Columna de Bootstrap que ocupa la mitad del ancho en pantallas medianas y grandes y alinea el texto a la izquierda -->
+                    <div class="col-12 col-md-6 text-center text-md-start">
+                        <p class="mb-0">© 2026 <strong>RICAR AUTOBOUTIQUE S.A.C.</strong> - Todos los derechos reservados.</p>
+                    </div>
+                    <!-- Columna de Bootstrap que ocupa la mitad del ancho en pantallas medianas y grandes y alinea el texto a la derecha -->
+                    <div class="col-12 col-md-6 text-center text-md-end">
+                        <p class="mb-0 d-flex justify-content-center justify-content-md-end gap-4">
+                            <a href="#">Términos y condiciones</a>
+                            <a href="#">Política de privacidad</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

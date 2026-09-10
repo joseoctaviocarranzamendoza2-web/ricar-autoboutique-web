@@ -1,0 +1,296 @@
+<!-- Página cliente protegida a través del rol cliente; el HTML se renderiza como vista personalizada con Thymeleaf para mantener sesión y autorización del usuario -->
+<!DOCTYPE html>
+<!-- Thymeleaf requiere xmlns:th para habilitar th:href, th:src y th:text en toda la plantilla -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RICAR AUTOBOUTIQUE S.A.C.</title>
+    <!-- Bootstrap 5.3.3 CDN: Provee sistema de grilla responsiva, utilidades y componentes visuales usados en el perfil del cliente -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons 1.11.3 CDN: Iconos SVG usados en tarjetas, botones y badges del dashboard de cliente -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- global.css: Estilos compartidos entre todas las páginas del sitio -->
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <!-- cliente.css se carga después de global.css para anular estilos compartidos y definir el layout del perfil, tarjetas de compras y timeline del cliente -->
+    <link rel="stylesheet" th:href="@{/css/roles/cliente.css}">
+    <!-- Favicon del sitio -->
+    <link rel="icon" th:href="@{/img/icon.png}" type="image/png">
+</head>
+<!-- El body usa Bootstrap flex column para crear una página con footer fijo y una sección principal flexible; min-vh-100 asegura un alto mínimo completo en la ventana -->
+<body class="d-flex flex-column min-vh-100">
+    <!-- Fragmento de navbar incluido mediante Thymeleaf para reutilizar el encabezado, centralizar la navegación y mantener el menú consistente en todas las páginas del sitio -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <!-- El hero se coloca inmediatamente después del navbar para destacar el perfil del cliente con una capa visual de bienvenida -->
+    <div class="perfil-hero">
+        <div class="perfil-hero-overlay"></div>
+        <div class="container position-relative" style="z-index:2;">
+            <div class="d-flex flex-column flex-md-row align-items-center align-items-md-end gap-4 py-5">
+                <div class="perfil-avatar-wrap">
+                    <div class="perfil-avatar">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <span class="perfil-avatar-badge" title="Cliente verificado"><i class="bi bi-patch-check-fill"></i></span>
+                </div>
+                <div class="flex-grow-1 text-center text-md-start">
+                    <!-- Nombre dinámico del cliente inyectado mediante Thymeleaf desde param.nombre y renderizado con utilidades de Bootstrap -->
+                    <h2 class="perfil-hero-nombre mb-2" id="hero-nombre" th:text="${param.nombre}"></h2>
+                    <div class="d-flex flex-wrap justify-content-center justify-content-md-start gap-2">
+                        <span class="perfil-hero-tag"><i class="bi bi-shield-check me-1"></i>Cliente verificado</span>
+                        <span class="perfil-hero-tag"><i class="bi bi-calendar3 me-1"></i>Miembro desde Jul 2026</span>
+                    </div>
+                </div>
+                <div class="perfil-stat-sep"></div>
+                <div class="perfil-stat-hero">
+                    <!-- Las tarjetas KPI del hero muestran totales actualizados por cliente.js en tiempo real tras cargar perfil, compras y servicios; usan utilidades de Bootstrap para mantener el banner responsivo sin recargar la página -->
+                    <span class="perfil-stat-num" id="hero-compras">5</span>
+                    <span class="perfil-stat-lbl">Compras</span>
+                </div>
+                <div class="perfil-stat-sep"></div>
+                <div class="perfil-stat-hero">
+                    <span class="perfil-stat-num" id="hero-servicios">4</span>
+                    <span class="perfil-stat-lbl">Servicios</span>
+                </div>
+                <div class="perfil-stat-sep"></div>
+                <div class="perfil-stat-hero">
+                    <span class="perfil-stat-num" id="hero-total">S/420</span>
+                    <span class="perfil-stat-lbl">Gastado</span>
+                </div>
+                <div class="perfil-stat-sep"></div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <!-- Área principal de contenido: Sección central con pestañas de perfil, compras, servicios e historial, controladas por Bootstrap y cliente.js para una experiencia sin recarga -->
+    <main class="flex-grow-1 perfil-bg py-5">
+        <div class="container">
+            <!-- La navegación por pestañas organiza el contenido del cliente y permite mantener múltiples vistas sin recarga completa de página -->
+            <div class="perfil-tabs-wrap mb-4">
+                <!-- Los botones de pestañas de Bootstrap controlan los paneles sin recargar, y cliente.js puede marcar la pestaña activa según el estado del cliente; los atributos data-bs-toggle y data-bs-target coordinan el cambio de contenido entre pestañas -->
+                <ul class="perfil-tabs nav" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="perfil-tab-btn active" data-bs-toggle="tab" data-bs-target="#tab-perfil" type="button" role="tab" aria-controls="tab-perfil" aria-selected="true">
+                            <i class="bi bi-person me-2"></i>Mi Perfil
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="perfil-tab-btn" data-bs-toggle="tab" data-bs-target="#tab-compras" type="button" role="tab" aria-controls="tab-compras" aria-selected="false">
+                            <i class="bi bi-bag-check me-2"></i>Mis Compras
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="perfil-tab-btn" data-bs-toggle="tab" data-bs-target="#tab-servicios" type="button" role="tab" aria-controls="tab-servicios" aria-selected="false">
+                            <i class="bi bi-calendar-check me-2"></i>Servicios
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="perfil-tab-btn" data-bs-toggle="tab" data-bs-target="#tab-historial" type="button" role="tab" aria-controls="tab-historial" aria-selected="false">
+                            <i class="bi bi-clock-history me-2"></i>Historial
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="tab-content">
+                <!-- Pestaña de perfil: Información personal y controles editables gestionados con JavaScript del lado del cliente -->
+                <div class="tab-pane fade show active" id="tab-perfil" role="tabpanel">
+                    <div class="row g-4">
+                        <div class="col-12 col-lg-8">
+                            <!-- La tarjeta de información personal está deshabilitada por defecto y se activa con los controles de edición de JavaScript para actualizar el perfil de forma segura; los inputs solo se habilitan con el botón Editar para evitar cambios accidentales -->
+                            <div class="u-card">
+                                <div class="u-card-header">
+                                    <i class="bi bi-person-lines-fill me-2"></i>Información Personal
+                                    <button class="btn-editar ms-auto" id="btnEditar"><i class="bi bi-pencil me-1"></i>Editar</button>
+                                </div>
+                                <div class="u-card-body">
+                                    <!-- Los campos del perfil están deshabilitados por defecto y se activan solo cuando el cliente entra en modo edición; esto protege la información personal hasta que el usuario solicita cambios explícitamente -->
+                                    <div class="row g-3">
+                                        <div class="col-sm-6">
+                                            <label class="u-label">Nombres</label>
+                                            <input type="text" class="u-input" id="inp-nombres" disabled>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <label class="u-label">Apellidos</label>
+                                            <input type="text" class="u-input" id="inp-apellidos" disabled>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <label class="u-label">Correo electrónico</label>
+                                            <input type="email" class="u-input" id="inp-email" disabled>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <label class="u-label">Teléfono</label>
+                                            <input type="tel" class="u-input" id="inp-tel" disabled>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <label class="u-label">Ciudad</label>
+                                            <input type="text" class="u-input" id="inp-ciudad" value="Trujillo" disabled>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <label class="u-label">Tipo de cuenta</label>
+                                            <input type="text" class="u-input" value="Cliente registrado" disabled>
+                                        </div>
+                                    </div>
+                                    <!-- Edición de perfil habilitada por JS; botones aparecen cuando el cliente activa el modo editar -->
+                                    <div class="d-flex gap-2 mt-4 d-none" id="acciones-editar">
+                                        <button class="btn-guardar" id="btnGuardar"><i class="bi bi-check-lg me-1"></i>Guardar cambios</button>
+                                        <button class="btn-cancelar" id="btnCancelar"><i class="bi bi-x-lg me-1"></i>Cancelar</button>
+                                    </div>
+                                    <div class="alerta-guardado d-none mt-3" id="alertaGuardado">
+                                        <i class="bi bi-check-circle-fill me-2"></i>Perfil actualizado correctamente.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-4 d-flex flex-column gap-3">
+                            <div class="u-kpi">
+                                <div class="u-kpi-icono azul"><i class="bi bi-bag-check-fill"></i></div>
+                                <div>
+                                    <div class="u-kpi-val" id="kpi-compras">0</div>
+                                    <div class="u-kpi-lbl">Compras realizadas</div>
+                                </div>
+                            </div>
+                            <div class="u-kpi">
+                                <div class="u-kpi-icono verde"><i class="bi bi-calendar-check-fill"></i></div>
+                                <div>
+                                    <div class="u-kpi-val" id="kpi-servicios">0</div>
+                                    <div class="u-kpi-lbl">Servicios contratados</div>
+                                </div>
+                            </div>
+                            <div class="u-kpi">
+                                <div class="u-kpi-icono celeste"><i class="bi bi-credit-card-fill"></i></div>
+                                <div>
+                                    <div class="u-kpi-val" id="kpi-total">S/ 0.00</div>
+                                    <div class="u-kpi-lbl">Total gastado</div>
+                                </div>
+                            </div>
+                            <!-- Los botones de acceso rápido ejecutan funciones de JavaScript para cambiar de pestaña sin recargar la vista y mantienen la navegación interna del perfil; esto mejora la accesibilidad entre secciones clave del cliente -->
+                            <div class="u-card p-0 overflow-hidden">
+                                <div class="u-card-header" style="border-radius: 16px 16px 0 0;">
+                                    <i class="bi bi-lightning-fill me-2"></i>Acceso Rápido
+                                </div>
+                                <div class="p-3 d-flex flex-column gap-2">
+                                    <button class="btn-acceso" onclick="activarTab('tab-compras')">
+                                        <i class="bi bi-bag me-2 text-primary"></i>Ver mis compras
+                                        <i class="bi bi-chevron-right ms-auto opacity-50"></i>
+                                    </button>
+                                    <button class="btn-acceso" onclick="activarTab('tab-servicios')">
+                                        <i class="bi bi-calendar-event me-2 text-primary"></i>Ver mis citas
+                                        <i class="bi bi-chevron-right ms-auto opacity-50"></i>
+                                    </button>
+                                    <button class="btn-acceso" onclick="activarTab('tab-historial')">
+                                        <i class="bi bi-clock-history me-2 text-primary"></i>Ver historial
+                                        <i class="bi bi-chevron-right ms-auto opacity-50"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pestaña de compras: Tabla responsive de compras con input de búsqueda y estilos de Bootstrap -->
+                <div class="tab-pane fade" id="tab-compras" role="tabpanel">
+                    <div class="u-card">
+                        <div class="u-card-header">
+                            <i class="bi bi-bag-check-fill me-2"></i>Historial de Compras
+                            <!-- Búsqueda en tiempo real del historial de compras filtrada por cliente.js sobre tbody#tbody-compras -->
+                            <div class="ms-auto u-search-wrap">
+                                <i class="bi bi-search u-search-icon"></i>
+                                <input type="search" class="u-search" id="buscarCompra" placeholder="Buscar compra…">
+                            </div>
+                        </div>
+                        <!-- El cuerpo de la tabla de compras será rellenado dinámicamente por cliente.js desde la base de datos -->
+                        <div class="u-card-body p-0">
+                            <div class="table-responsive">
+                                <table class="u-table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Producto</th>
+                                            <th>Cant.</th>
+                                            <th>Total</th>
+                                            <th>Fecha</th>
+                                            <th>Estado</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <!-- Contenedor dinámico para las filas de compras sin datos por defecto -->
+                                    <tbody id="tbody-compras">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Mensaje de estado vacío cuando no hay compras realizadas -->
+                            <div id="sinCompras" class="text-center py-5 d-none">
+                                <i class="bi bi-bag-x display-4 text-muted mb-3 d-block"></i>
+                                <h5 class="text-muted">No tienes compras realizadas aún</h5>
+                                <p class="text-muted small">Explora nuestro catálogo de productos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pestaña de servicios: Tarjetas filtrables por estado y accionables mediante botones de JavaScript -->
+                <div class="tab-pane fade" id="tab-servicios" role="tabpanel">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                        <h5 class="fw-bold mb-0" style="color:var(--azul-oscuro)">
+                            <i class="bi bi-calendar-check me-2" style="color:var(--celeste)"></i>Mis Citas y Servicios
+                        </h5>
+                        <!-- Filtros de estado para servicios; cliente.js aplica la clase activo, lee data-filtro y oculta/ muestra cards usando el atributo data-estado para mantener una UI reactiva sin recarga -->
+                        <div class="d-flex gap-2 flex-wrap">
+                            <!-- Filtro tipo chip 'Todos' — usa .u-filtro.activo cuando está seleccionado -->
+                            <span class="u-filtro activo" data-filtro="todos">Todos</span>
+                            <!-- Filtro tipo chip 'Confirmadas' — aplica .u-filtro para estado inactivo/activo -->
+                            <span class="u-filtro" data-filtro="Confirmada">Confirmadas</span>
+                            <!-- Filtro tipo chip 'Pendientes' -->
+                            <span class="u-filtro" data-filtro="Pendiente">Pendientes</span>
+                            <!-- Filtro tipo chip 'Completadas' -->
+                            <span class="u-filtro" data-filtro="Completada">Completadas</span>
+                        </div>
+                    </div>
+                    <div class="row g-3" id="grid-servicios">
+                        <!-- Contenedor dinamizado por cliente.js que carga las citas desde base de datos según el filtro activo -->
+                    </div>
+                    <!-- Mensaje de estado vacío cuando no hay citas agendadas -->
+                    <div id="sinCitas" class="text-center py-5 d-none">
+                        <i class="bi bi-calendar-x display-4 text-muted mb-3 d-block"></i>
+                        <h5 class="text-muted">No hay citas agendadas</h5>
+                        <p class="text-muted small">Agenda una cita desde la sección de servicios</p>
+                    </div>
+                </div>
+                <!-- Pestaña de historial: Línea de tiempo de actividad construida con elementos de lista semánticos y badges de iconos de Bootstrap -->
+                <div class="tab-pane fade" id="tab-historial" role="tabpanel">
+                    <div class="u-card">
+                        <div class="u-card-header">
+                            <i class="bi bi-clock-history me-2"></i>Actividad Reciente
+                        </div>
+                        <div class="u-card-body">
+                            <!-- Contenedor dinámico del timeline que será rellenado por cliente.js desde la base de datos -->
+                            <ul class="u-timeline" id="u-timeline">
+                            </ul>
+                            <!-- Mensaje de estado vacío cuando no hay actividad reciente -->
+                            <div id="sinActividad" class="text-center py-5 d-none">
+                                <i class="bi bi-inbox display-4 text-muted mb-3 d-block"></i>
+                                <h5 class="text-muted">No hay actividad reciente</h5>
+                                <p class="text-muted small">Tu historial de acciones aparecerá aquí</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- El fragmento de footer se reutiliza en todas las páginas del sitio; los scripts se cargan al final para mantener el DOM interactivo y preservar el comportamiento de seguridad del rol cliente -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <!-- Bootstrap 5.3.3 JS Bundle CDN: Incluye Popper integrado y es requerido para el funcionamiento de los componentes Bootstrap usados en esta vista -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- global.js: Utilidades compartidas entre roles, maneja sesión, actualiza navbar y controla comportamiento general del frontend -->
+    <script th:src="@{/js/global.js}"></script>
+    <!-- cliente.js: Lógica específica del panel de cliente; carga datos de perfil, compras y servicios, gestiona pestañas y acciones del usuario sin recargar la página -->
+    <script th:src="@{/js/roles/cliente.js}"></script>
+    <!-- Activa la pestaña correspondiente según la URL solicitada al servidor (panel/cliente/{id}/perfil|compras|servicios|historial) -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const tabActiva = /*[[${tabActiva}]]*/ null;
+        /*]]>*/
+        document.addEventListener('DOMContentLoaded', () => {
+            if (tabActiva) activarTab(tabActiva, false);
+        });
+    </script>
+</body>
+</html>

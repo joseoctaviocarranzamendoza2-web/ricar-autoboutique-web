@@ -1,0 +1,590 @@
+<!-- Panel de administración protegido por Spring Security: Solo accede el rol "administrador" validado en PaginaController.java con Authentication + UsuarioDetails -->
+<!DOCTYPE html>
+<!-- Thymeleaf requiere el namespace xmlns:th para habilitar directivas th:href, th:src y th:text en todo el documento -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RICAR AUTOBOUTIQUE S.A.C.</title>
+    <!-- Bootstrap 5.3.3 CDN: Provee el sistema de grilla responsiva, utilidades de espaciado, componentes visuales (modales, badges, toasts, dropdowns) y clases de color usadas en todo el panel -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons 1.11.3 CDN: Librería de iconos SVG usada en sidebar, KPIs, botones de acción y badges de estado a lo largo del panel -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- global.css: Estilos compartidos entre todos los roles; incluye variables CSS (--azul-oscuro, --celeste), navbar, y utilidades de sesión visual -->
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <!-- administrador.css: Estilos exclusivos del panel admin; define sidebar, topbar, admin-card, kpi-card, status-badge, product-admin-card, service-admin-card y admin-table -->
+    <link rel="stylesheet" th:href="@{/css/roles/administrador.css}">
+    <!-- Favicon del sitio -->
+    <link rel="icon" th:href="@{/img/icon.png}" type="image/png">
+</head>
+<body>
+    <!-- Overlay semitransparente que cubre el contenido principal cuando el sidebar está abierto en móvil; onclick llama a cerrarSidebarMobile() definido en administrador.js -->
+    <div id="sidebarOverlay" onclick="cerrarSidebarMobile()"></div>
+    <!-- Sidebar de navegación lateral tipo SPA: Cada enlace llama a mostrarSeccion() en administrador.js para mostrar/ocultar secciones sin recargar la página; los href="#" usan return false para evitar que el navegador agregue "#" a la URL -->
+    <nav id="sidebar">
+        <!-- Encabezado del sidebar: Muestra el logo y el rol del panel para identificación visual inmediata del contexto de sesión -->
+        <div class="sidebar-brand">
+            <div class="brand-icon"><i class="bi bi-tools"></i></div>
+            <div class="brand-texts">
+                <span class="brand-name">RICAR AUTOBOUTIQUE</span>
+                <span class="brand-sac">PANEL ADMIN</span>
+            </div>
+        </div>
+        <!-- Menú de navegación interna: Agrupa los enlaces por sección funcional (Principal, Catálogo, Gestión); la clase active se gestiona dinámicamente desde mostrarSeccion() en administrador.js -->
+        <div class="sidebar-nav">
+            <div class="nav-section-label">RESERVAS</div>
+            <!-- Enlace activo por defecto al cargar; sidebar-badge muestra en tiempo real el conteo de citas pendientes actualizado por actualizarKPIsCitas() en administrador.js -->
+            <a href="#" class="sidebar-link active" data-seccion="citas" onclick="mostrarSeccion('citas', this); return false;">
+                <i class="bi bi-calendar-check"></i><span class="link-text">Citas</span><span class="sidebar-badge" id="badgePendientes">0</span>
+            </a>
+            <div class="nav-section-label">CATÁLOGO</div>
+            <a href="#" class="sidebar-link" data-seccion="productos" onclick="mostrarSeccion('productos', this); return false;">
+                <i class="bi bi-box-seam"></i><span class="link-text">Productos</span>
+            </a>
+            <a href="#" class="sidebar-link" data-seccion="servicios" onclick="mostrarSeccion('servicios', this); return false;">
+                <i class="bi bi-gear-fill"></i><span class="link-text">Servicios</span>
+            </a>
+            <a href="#" class="sidebar-link" data-seccion="categorias" onclick="mostrarSeccion('categorias', this); return false;">
+                <i class="bi bi-tag"></i><span class="link-text">Categorías</span>
+            </a>
+            <div class="nav-section-label">GESTIÓN</div>
+            <a href="#" class="sidebar-link" data-seccion="clientes" onclick="mostrarSeccion('clientes', this); return false;">
+                <i class="bi bi-people"></i><span class="link-text">Clientes</span>
+            </a>
+        </div>
+        <!-- Pie del sidebar: Enlaces de acción global; irAInicio() navega al sitio público preservando sesión; cerrarSesionAdmin() elimina la sesión de sessionStorage y redirige a /inicio -->
+        <div class="sidebar-footer">
+            <a href="#" class="sidebar-link" onclick="irAInicio(); return false;">
+                <i class="bi bi-house-door"></i><span class="link-text">Ir al Sitio Web</span>
+            </a>
+            <a href="#" class="sidebar-link sidebar-link-cerrar" onclick="cerrarSesionAdmin(); return false;">
+                <i class="bi bi-box-arrow-left"></i><span class="link-text">Cerrar Sesión</span>
+            </a>
+        </div>
+    </nav>
+    <!-- Topbar superior fijo: Contiene el botón de colapso del sidebar, el breadcrumb de ubicación, el botón de notificaciones y el dropdown de perfil del administrador con acceso a edición de datos y cierre de sesión -->
+    <header id="topbar">
+        <button class="btn-toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+        <div>
+            <div class="topbar-breadcrumb">RICAR AUTOBOUTIQUE S.A.C. / Administrador</div>
+        </div>
+        <!-- Dropdown de perfil: AdminNombreAvatar e adminNombreMenu se rellenan dinámicamente en el DOMContentLoaded de administrador.js con las iniciales y nombre completo desde sessionStorage -->
+        <div class="topbar-right">
+            <button class="topbar-icon-btn" title="Notificaciones">
+                <i class="bi bi-bell"></i><span class="topbar-notif-dot"></span>
+            </button>
+            <div class="dropdown">
+                <div class="admin-avatar dropdown-toggle" data-bs-toggle="dropdown" id="adminNombreAvatar">AD</div>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                    <li><h6 class="dropdown-header" id="adminNombreMenu">Administrador</h6></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <!-- abrirModalEditarDatos() abre el modal de edición de perfil precargando datos de sessionStorage y enviando PUT /api/usuarios/{id} al guardar -->
+                    <li><a class="dropdown-item small text-primary" href="#" onclick="abrirModalEditarDatos(); return false;"><i class="bi bi-pencil-square me-2"></i>Editar datos</a></li>
+                    <li><a class="dropdown-item small text-danger" href="#" onclick="cerrarSesionAdmin(); return false;"><i class="bi bi-box-arrow-left me-2"></i>Cerrar sesión</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+    <!-- Contenedor principal del panel SPA: Cada admin-section se muestra u oculta mediante la clase CSS active controlada por mostrarSeccion() en administrador.js sin recarga de página -->
+    <main id="mainContent">
+        <!-- Sección de Citas y Reservas: Carga al inicio vía cargarCitas() consumiendo GET /api/citas; incluye KPIs de estados, filtros combinados de texto/estado/fecha y tabla con acciones de cambio de estado -->
+        <section id="sec-citas" class="admin-section active">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                <div>
+                    <span class="section-tag mb-2 d-inline-block">RESERVAS</span>
+                    <h5 class="fw-bold mb-0">Citas</h5>
+                    <!-- infoCitas muestra el conteo de pendientes actualizado en tiempo real por actualizarKPIsCitas() cada vez que cambia el estado de una cita -->
+                    <small class="text-muted" id="infoCitas">Cargando citas...</small>
+                </div>
+            </div>
+            <!-- KPIs de citas: 4 tarjetas con contadores por estado (Pendiente, Confirmada, Completada, Cancelada) actualizadas por actualizarKPIsCitas() en administrador.js; usan Bootstrap grid responsivo col-6/col-md-3 -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3">
+                    <div class="kpi-card">
+                        <div class="kpi-icon orange"><i class="bi bi-hourglass-split"></i></div>
+                        <div>
+                            <div class="kpi-value" id="kpiPendientes">0</div>
+                            <div class="kpi-label">Pendientes</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="kpi-card">
+                        <div class="kpi-icon green"><i class="bi bi-check2-circle"></i></div>
+                        <div>
+                            <div class="kpi-value" id="kpiConfirmadas">0</div>
+                            <div class="kpi-label">Confirmadas</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="kpi-card">
+                        <div class="kpi-icon blue"><i class="bi bi-calendar-check"></i></div>
+                        <div>
+                            <div class="kpi-value" id="kpiCompletadas">0</div>
+                            <div class="kpi-label">Completadas</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="kpi-card">
+                        <div class="kpi-icon red"><i class="bi bi-calendar-x"></i></div>
+                        <div>
+                            <div class="kpi-value" id="kpiCanceladas">0</div>
+                            <div class="kpi-label">Canceladas</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Barra de filtros de citas: FiltroCitas (texto), filtroEstadoCita (select) y filtroFechaCita (date) disparan filtrarCitasTabla() en administrador.js que filtra el array _todasCitas en memoria sin nuevas peticiones al servidor -->
+            <div class="admin-card mb-3">
+                <div class="admin-card-body py-3">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-sm-4">
+                            <input type="text" class="form-control" id="filtroCitas" placeholder="Buscar cliente o servicio..." oninput="filtrarCitasTabla()">
+                        </div>
+                        <div class="col-sm-3">
+                            <select class="form-select" id="filtroEstadoCita" onchange="filtrarCitasTabla()">
+                                <option value="">Todos los estados</option>
+                                <option>Pendiente</option>
+                                <option>Confirmada</option>
+                                <option>Completada</option>
+                                <option>Cancelada</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-2">
+                            <input type="date" class="form-control" id="filtroFechaCita" onchange="filtrarCitasTabla()">
+                        </div>
+                        <div class="col-sm-3">
+                            <button class="btn btn-sm btn-outline-secondary w-100" onclick="limpiarFiltrosCitas()"><i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar filtros</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Tabla de citas: Tbody#tablaCitas es renderizado dinámicamente por renderCitas() en administrador.js; cada fila muestra cliente, servicio, fecha/hora, vehículo y botones de acción que llaman a cambiarEstadoCita() con PUT /api/citas/{id}/estado -->
+            <div class="admin-card">
+                <div class="table-responsive">
+                    <table class="table admin-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Cliente</th>
+                                <th>Servicio</th>
+                                <th>Fecha y hora</th>
+                                <th>Vehículo</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaCitas">
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    <div class="spinner-border spinner-border-sm me-2"></div>Cargando citas...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- infoPaginacionCitas muestra el conteo de resultados filtrados vs totales, actualizado por filtrarCitasTabla() y limpiarFiltrosCitas() en administrador.js -->
+                <div class="admin-card-body border-top py-2 d-flex justify-content-between align-items-center">
+                    <small class="text-muted" id="infoPaginacionCitas">Mostrando todas las citas</small>
+                </div>
+            </div>
+        </section>
+        <!-- Sección de Productos: Carga vía cargarProductos() consumiendo GET /api/productos; incluye filtros de búsqueda/categoría/stock, toggle de vista grid/list y grid de tarjetas con acciones CRUD -->
+        <section id="sec-productos" class="admin-section">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                <div>
+                    <span class="section-tag mb-2 d-inline-block">CATÁLOGO</span>
+                    <h5 class="fw-bold mb-0">Productos</h5>
+                    <!-- infoProductos muestra el total de productos y cuántos tienen stock bajo (<=5), actualizado por renderProductos() en administrador.js -->
+                    <small class="text-muted" id="infoProductos">Cargando productos...</small>
+                </div>
+                <!-- abrirNuevoProducto() verifica que existan categorías antes de abrir el modal; previene crear productos huérfanos sin categoría asignada -->
+                <button class="btn btn-primary fw-semibold" onclick="abrirNuevoProducto()"><i class="bi bi-plus-lg me-2"></i>Nuevo Producto</button>
+            </div>
+            <!-- Barra de filtros de productos: SearchProducto (texto), filterCategoria (select dinámico cargado por actualizarSelectCategorias()), filterEstado (todos/stock bajo) y toggles de vista grid/list controlados por setVista() en administrador.js -->
+            <div class="admin-card mb-4">
+                <div class="admin-card-body py-3">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-sm-4">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                                <input type="text" class="form-control border-start-0" placeholder="Buscar producto..." id="searchProducto" oninput="filtrarProductos()">
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <select class="form-select" id="filterCategoria" onchange="filtrarProductos()">
+                                <option value="">Todas las categorías</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-2">
+                            <select class="form-select" id="filterEstado" onchange="filtrarProductos()">
+                                <option value="">Todos</option>
+                                <option value="low">Stock bajo</option>
+                            </select>
+                        </div>
+                        <!-- Botones de toggle de vista: BtnGrid y btnList aplican/quitan la clase active visualmente; setVista() en administrador.js modifica las clases Bootstrap del grid (row-cols-1 vs row-cols-2/3/4) para cambiar entre lista y cuadrícula -->
+                        <div class="col-sm-3 d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-secondary flex-fill active" onclick="setVista('grid')" id="btnGrid"><i class="bi bi-grid"></i></button>
+                            <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="setVista('list')" id="btnList"><i class="bi bi-list-ul"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- productGrid: Contenedor renderizado dinámicamente por renderProductos() en administrador.js; cada tarjeta muestra imagen, categoría, nombre, precio, stock y botones de edición/eliminación con sus respectivos modales -->
+            <div class="row g-3" id="productGrid">
+                <div class="col-12 text-center py-5 text-muted">
+                    <div class="spinner-border spinner-border-sm me-2"></div>Cargando productos...
+                </div>
+            </div>
+        </section>
+        <!-- Sección de Servicios: Carga vía cargarServicios() consumiendo GET /api/servicios; renderiza tarjetas con precio base, duración, estado (Activo/Inactivo) y botones CRUD; incluye tarjeta especial "Agregar Servicio" al final del grid -->
+        <section id="sec-servicios" class="admin-section">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                <div>
+                    <span class="section-tag mb-2 d-inline-block">CATÁLOGO</span>
+                    <h5 class="fw-bold mb-0">Servicios</h5>
+                    <small class="text-muted">Administra los tipos de servicio y sus tarifas</small>
+                </div>
+                <button class="btn btn-primary fw-semibold" onclick="abrirNuevoServicio()"><i class="bi bi-plus-lg me-2"></i>Nuevo Servicio</button>
+            </div>
+            <!-- gridServicios: Renderizado por renderServicios() en administrador.js; incluye icono auto-detectado por keyword del nombre del servicio, badge de estado y botones de editar/eliminar -->
+            <div class="row g-3" id="gridServicios">
+                <div class="col-12 text-center py-5 text-muted">
+                    <div class="spinner-border spinner-border-sm me-2"></div>Cargando servicios...
+                </div>
+            </div>
+        </section>
+        <!-- Sección de Categorías: Carga vía cargarCategorias() consumiendo GET /api/categorias; cada tarjeta muestra ícono auto-detectado, conteo de productos asociados, descripción y botones de edición/eliminación con control de nombre duplicado (409 Conflict) -->
+        <section id="sec-categorias" class="admin-section">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <span class="section-tag mb-2 d-inline-block">CATÁLOGO</span>
+                    <h5 class="fw-bold mb-0">Categorías</h5>
+                    <!-- infoCategorias muestra el conteo de categorías activas, actualizado por renderCategorias() en administrador.js cada vez que se crea, edita o elimina una categoría -->
+                    <small class="text-muted" id="infoCategorias">Cargando...</small>
+                </div>
+                <button class="btn btn-primary fw-semibold" onclick="abrirNuevaCategoria()"><i class="bi bi-plus-lg me-2"></i>Nueva Categoría</button>
+            </div>
+            <!-- gridCategorias: Renderizado por renderCategorias() en administrador.js; cada tarjeta usa un color rotativo y un ícono por keyword del nombre; el conteo de productos se obtiene de cat.productos.length del JSON anidado de la API -->
+            <div class="row g-3" id="gridCategorias">
+                <div class="col-12 text-center py-5 text-muted">
+                    <div class="spinner-border spinner-border-sm me-2"></div>Cargando categorías...
+                </div>
+            </div>
+        </section>
+        <!-- Sección de Clientes: Carga vía cargarClientes() consumiendo GET /api/usuarios (solo rol cliente) y GET /api/compras/todas; incluye búsqueda en tiempo real, paginación de 10 por página, gasto total real (compras Entregado + citas Completada) y botones de ver compras y eliminar con confirmación en 2 pasos -->
+        <section id="sec-clientes" class="admin-section">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                <div>
+                    <span class="section-tag mb-2 d-inline-block">GESTIÓN</span>
+                    <h5 class="fw-bold mb-0">Clientes</h5>
+                    <!-- infoClientes muestra el total de clientes registrados con rol "cliente", actualizado por renderClientes() en administrador.js -->
+                    <small class="text-muted" id="infoClientes">Cargando clientes...</small>
+                </div>
+            </div>
+            <!-- Buscador de clientes: Filtra en tiempo real sobre el array _todosClientes en memoria por nombre, apellido, teléfono o email sin llamadas adicionales al servidor; resetea la paginación a página 1 en cada búsqueda -->
+            <div class="admin-card mb-3">
+                <div class="admin-card-body py-3">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-sm-5">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                                <input type="text" class="form-control border-start-0" placeholder="Buscar cliente..." id="searchCliente" oninput="filtrarClientesTabla()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Tabla de clientes: Tbody#tablaClientes renderizado por renderClientes() con paginación de 10 registros; incluye columnas de citas, gasto total (calculado en calcularGastoCliente()), última visita, estado y botones de ver compras (verComprasCliente()) y eliminar (confirmarEliminarCliente() con lógica de 2 pasos para cascada) -->
+            <div class="admin-card">
+                <div class="table-responsive">
+                    <table class="table admin-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Cliente</th>
+                                <th>Contacto</th>
+                                <th>Citas</th>
+                                <th>Gasto Total</th>
+                                <th>Última visita</th>
+                                <th>Estado</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaClientes">
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">
+                                    <div class="spinner-border spinner-border-sm me-2"></div>Cargando clientes...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- paginacionClientes: Div creado dinámicamente por renderPaginacionClientes() en administrador.js; muestra hasta 5 botones de página con Bootstrap btn-primary/btn-outline-primary según la página activa -->
+            </div>
+        </section>
+    </main>
+    <!-- Modal de creación/edición de producto: Reutilizado para ambas operaciones; modalProductoTitulo cambia entre "Nuevo Producto" y "Editar Producto"; prodCategoria se rellena dinámicamente por actualizarSelectCategorias(); guardarProducto() decide entre POST /api/productos o PUT /api/productos/{id} según el valor de productoEdit -->
+    <div class="modal fade" id="modalProducto" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header" style="background:var(--azul-oscuro);">
+                    <h5 class="modal-title text-white fw-bold" id="modalProductoTitulo"><i class="bi bi-box-seam me-2"></i>Nuevo Producto</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- formProducto: Se resetea con reset() al abrir "Nuevo Producto"; en edición se precarga mediante abrirEditarProducto() que fuerza la carga de categorías si el array está vacío para garantizar que el select tenga opciones antes de asignar el valor -->
+                    <form id="formProducto">
+                        <div class="row g-3">
+                            <div class="col-sm-8">
+                                <label class="form-label small fw-semibold">Nombre del producto <span class="text-danger">*</span></label>
+                                <input type="text" id="prodNombre" class="form-control" placeholder="Ej: Juego de Llaves 12 pzas" maxlength="100">
+                            </div>
+                            <!-- prodCategoria: Select dinámico poblado por actualizarSelectCategorias() en administrador.js; en modo edición se verifica con Array.from(options).some() que el id exista antes de asignarlo para evitar que quede en "Seleccionar..." -->
+                            <div class="col-sm-4">
+                                <label class="form-label small fw-semibold">Categoría <span class="text-danger">*</span></label>
+                                <select id="prodCategoria" class="form-select"><option value="">Seleccionar...</option></select>
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="form-label small fw-semibold">Precio (S/) <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">S/</span>
+                                    <input type="number" id="prodPrecio" class="form-control" placeholder="0.00" min="0.1" step="0.5">
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="form-label small fw-semibold">Stock <span class="text-danger">*</span></label>
+                                <input type="number" id="prodStock" class="form-control" placeholder="0" min="0">
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="form-label small fw-semibold">Etiqueta</label>
+                                <select id="prodEtiqueta" class="form-select">
+                                    <option value="">Ninguna</option>
+                                    <option value="Nuevo">Nuevo</option>
+                                    <option value="Oferta">Oferta</option>
+                                    <option value="Popular">Popular</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Descripción</label>
+                                <textarea id="prodDescripcion" class="form-control" rows="3" placeholder="Descripción breve..." maxlength="300"></textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">URL de imagen</label>
+                                <input type="text" id="prodImagen" class="form-control" placeholder="https://... (opcional)">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary fw-semibold px-4" onclick="guardarProducto()"><i class="bi bi-check2 me-1"></i>Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal de creación/edición de servicio: Reutilizado para ambas operaciones; modalServicioTitulo cambia dinámicamente; guardarServicio() decide entre POST /api/servicios o PUT /api/servicios/{id} según servicioEdit; el campo estado permite activar/desactivar servicios del catálogo público -->
+    <div class="modal fade" id="modalServicio" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background:var(--azul-oscuro);">
+                    <h5 class="modal-title text-white fw-bold" id="modalServicioTitulo"><i class="bi bi-gear-fill me-2"></i>Nuevo Servicio</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formServicio">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Nombre del servicio <span class="text-danger">*</span></label>
+                                <input type="text" id="servNombre" class="form-control" placeholder="Ej: Cambio de Aceite" maxlength="100">
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label small fw-semibold">Categoría</label>
+                                <input type="text" id="servCategoria" class="form-control" placeholder="Ej: Lubricación" maxlength="50">
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label small fw-semibold">Precio base (S/) <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">S/</span>
+                                    <input type="number" id="servPrecio" class="form-control" placeholder="0.00" min="0.1" step="0.5">
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label small fw-semibold">Duración (min)</label>
+                                <div class="input-group">
+                                    <input type="number" id="servDuracion" class="form-control" placeholder="60" min="5" step="5">
+                                    <span class="input-group-text">min</span>
+                                </div>
+                            </div>
+                            <!-- servEstado: Controla si el servicio aparece en el catálogo público de servicios.html; solo los servicios con estado "Activo" son devueltos por GET /api/servicios/activos consumido por servicios.js -->
+                            <div class="col-sm-6">
+                                <label class="form-label small fw-semibold">Estado</label>
+                                <select id="servEstado" class="form-select">
+                                    <option value="Activo">Activo</option>
+                                    <option value="Inactivo">Inactivo</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Descripción</label>
+                                <textarea id="servDescripcion" class="form-control" rows="3" placeholder="Descripción del servicio..." maxlength="300"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary fw-semibold px-4" onclick="guardarServicio()"><i class="bi bi-check2 me-1"></i>Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal de creación/edición de categoría: Reutilizado para ambas operaciones; guardarCategoria() maneja el 409 Conflict del servidor cuando el nombre ya existe; al guardar exitosamente refresca el grid y el select de categorías en el modal de productos -->
+    <div class="modal fade" id="modalCategoria" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background:var(--azul-oscuro);">
+                    <h5 class="modal-title text-white fw-bold" id="modalCategoriaTitulo"><i class="bi bi-tag me-2"></i>Nueva Categoría</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Nombre <span class="text-danger">*</span></label>
+                            <input type="text" id="catNombre" class="form-control" placeholder="Nombre de la categoría" maxlength="50">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Descripción</label>
+                            <textarea id="catDescripcion" class="form-control" rows="2" placeholder="Descripción breve..." maxlength="200"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary fw-semibold px-4" onclick="guardarCategoria()"><i class="bi bi-check2 me-1"></i>Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal de historial de compras de un cliente: Abierto por verComprasCliente() en administrador.js; tabla renderizada por renderTablaComprasCliente() con cada compra incluyendo un select de estado que dispara cambiarEstadoCompra() con PUT /api/compras/{id}/estado; actualiza el badge de estado en vivo sin cerrar el modal -->
+    <div class="modal fade" id="modalComprasCliente" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header" style="background:var(--azul-oscuro);">
+                    <h5 class="modal-title text-white fw-bold"><i class="bi bi-bag-check me-2"></i>Compras de <span id="nombreClienteCompras"></span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="table-responsive">
+                        <table class="table admin-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Productos</th>
+                                    <th>Total</th>
+                                    <th>Pago</th>
+                                    <th>Estado</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaComprasCliente">
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">Cargando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal de confirmación de eliminación reutilizable: Usado por confirmarEliminarProducto(), confirmarEliminarServicio(), confirmarEliminarCategoria() y confirmarEliminarCliente(); nombreEliminar y btnConfirmarEliminar.onclick se reescriben dinámicamente antes de mostrar el modal según la entidad a eliminar; confirmarEliminarCliente() implementa lógica de 2 pasos: primera llamada sin ?forzar=true devuelve 409 con conteo de registros, segunda con ?forzar=true elimina en cascada citas y compras antes del usuario -->
+    <div class="modal fade" id="modalEliminar" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-body text-center py-4 px-4">
+                    <div class="kpi-icon red mx-auto mb-3" style="width:56px;height:56px;font-size:1.5rem;">
+                        <i class="bi bi-trash3"></i>
+                    </div>
+                    <h6 class="fw-bold mb-2">¿Confirmar eliminación?</h6>
+                    <p class="text-muted small mb-0" id="nombreEliminar">Esta acción no se puede deshacer.</p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center gap-2 pt-0">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger px-4 fw-semibold" id="btnConfirmarEliminar">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal de edición de datos del administrador: Precargado por abrirModalEditarDatos() con datos de sessionStorage; al guardar llama a PUT /api/usuarios/{id} (mismo endpoint que usa el cliente), actualiza sessionStorage con guardarSesion() y refresca el avatar e iniciales del topbar en tiempo real sin recargar la página -->
+    <div class="modal fade" id="modalEditarDatos" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background:var(--azul-oscuro);">
+                    <h5 class="modal-title text-white fw-bold"><i class="bi bi-pencil-square me-2"></i>Editar mis datos</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-semibold">Nombres</label>
+                            <input type="text" id="editNombres" class="form-control" maxlength="50">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-semibold">Apellidos</label>
+                            <input type="text" id="editApellidos" class="form-control" maxlength="50">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-semibold">Teléfono</label>
+                            <input type="tel" id="editTelefono" class="form-control" maxlength="9">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-semibold">Ciudad</label>
+                            <input type="text" id="editCiudad" class="form-control" maxlength="50">
+                        </div>
+                    </div>
+                    <!-- editDatosError: Muestra mensajes de validación inline (nombre/apellido vacíos, teléfono inválido) o errores HTTP del servidor sin cerrar el modal -->
+                    <div id="editDatosError" class="alert alert-danger py-2 text-center mt-3 d-none"></div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary fw-semibold px-4" onclick="guardarEdicionDatos()"><i class="bi bi-check2 me-1"></i>Guardar cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Toast de notificación reutilizable: MostrarToast() en administrador.js cambia la clase entre text-bg-success y text-bg-danger según el tipo; se muestra 3 segundos tras cada operación CRUD exitosa o fallida -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+        <div id="toastExito" class="toast align-items-center text-bg-success border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-check2-circle me-2"></i>
+                    <span id="toastMensaje">Guardado correctamente</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+    <!-- Bootstrap 5.3.3 JS Bundle CDN: Incluye Popper.js integrado; requerido para el funcionamiento de modales, dropdowns, toasts y tooltips de Bootstrap usados en todo el panel -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- global.js: Define obtenerSesion(), guardarSesion(), cerrarSesion(), actualizarNavbar(), abrirModal(), limpiarBackdropsSobrantes() y otras utilidades compartidas entre todos los roles; debe cargarse antes de administrador.js -->
+    <script th:src="@{/js/global.js}"></script>
+    <!-- administrador.js: Lógica principal del panel; valida el rol "administrador" en sessionStorage al cargar, realiza todas las llamadas a la API REST (/api/categorias, /api/productos, /api/servicios, /api/citas, /api/usuarios, /api/compras) y gestiona el estado de la SPA -->
+    <script th:src="@{/js/roles/administrador.js}"></script>
+    <!-- Activa la sección correspondiente según la URL solicitada al servidor -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const seccionActiva = /*[[${seccionActiva}]]*/ null;
+        /*]]>*/
+        document.addEventListener('DOMContentLoaded', () => {
+            if (seccionActiva && seccionActiva !== 'citas') {
+                mostrarSeccion(seccionActiva);
+            }
+        });
+    </script>
+</body>
+</html>

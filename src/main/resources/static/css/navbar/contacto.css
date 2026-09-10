@@ -1,0 +1,327 @@
+/* Variables locales para este fragmento - Fondo suave */
+:root {
+    --color-fondo-suave: #f0f4f8;
+}
+
+/* Etiqueta de sección: Pill con fondo y borde de marca */
+.etiqueta-seccion {
+    display: inline-block;
+    background-color: rgba(86, 174, 232, 0.12);
+    color: var(--azul-medio);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 0.35em 1em;
+    border-radius: 50px;
+    border: 1px solid rgba(86, 174, 232, 0.3);
+}
+
+/* Título de sección: Tipografía responsiva y peso alto */
+.titulo-seccion {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+    color: var(--oscuro);
+}
+
+/* Hero interior: Fondo cover y padding vertical amplio */
+.hero-interior {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    padding: 5rem 0 4rem;
+}
+
+/* Imagen de hero para contacto (fondo remoto) */
+.hero-contacto {
+    background-image: url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1600&q=80');
+}
+
+/* Overlay oscuro absoluto para mejorar contraste del hero */
+.hero-interior-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(4, 32, 58, 0.82);
+}
+
+/* Contenido sobre el overlay (z-index superior) */
+.hero-interior-contenido {
+    position: relative;
+    z-index: 1;
+}
+
+/* Breadcrumb en hero: Separación inferior */
+.breadcrumb-hero {
+    margin-bottom: 1rem;
+}
+
+/* Enlaces breadcrumb: Tono blanco semi-transparente */
+.breadcrumb-hero .breadcrumb-item a {
+    color: rgba(255, 255, 255, 0.65);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+}
+
+/* Hover breadcrumb: Color marca */
+.breadcrumb-hero .breadcrumb-item a:hover {
+    color: var(--celeste);
+}
+
+/* Estado activo breadcrumb: Color marca */
+.breadcrumb-hero .breadcrumb-item.active {
+    color: var(--celeste);
+    font-size: 0.85rem;
+}
+
+/* Separador breadcrumb: Tono claro */
+.breadcrumb-hero .breadcrumb-item+.breadcrumb-item::before {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Título hero grande, blanco y con alto peso */
+.hero-interior-titulo {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 0.75rem;
+    line-height: 1.15;
+}
+
+/* Subtítulo del hero: Texto claro con ancho máximo */
+.hero-interior-sub {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 1rem;
+    max-width: 550px;
+}
+
+/* Tarjeta de canal rápido: Fila, fondo blanco y borde sutil */
+.canal-rapido {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1rem 1.2rem;
+    text-decoration: none;
+    transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+/* Hover: Eleva la tarjeta y cambia borde a color marca */
+.canal-rapido:hover {
+    box-shadow: 0 6px 20px rgba(21, 101, 192, 0.1);
+    border-color: var(--celeste);
+    transform: translateY(-2px);
+}
+
+/* Icono dentro del canal: Caja cuadrada centrada */
+.canal-icono {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+/* Label pequeño encima del valor (uppercase y tono gris) */
+.canal-label {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #a0aec0;
+    margin-bottom: 2px;
+}
+
+/* Valor principal del canal: Texto oscuro y peso */
+.canal-valor {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--oscuro);
+}
+
+/* Caja de formulario: Fondo blanco, borde y radios suaves */
+.formulario-contacto {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 1.8rem;
+}
+
+/* Label del formulario: Estilo importante para consistencia */
+.cont-label {
+    color: var(--azul-oscuro) !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.4px !important;
+    margin-bottom: 0.3rem !important;
+}
+
+/* Inputs del formulario: Borde y transición */
+.formulario-contacto .form-control, .formulario-contacto .form-select {
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    color: var(--oscuro);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Focus: Resaltar input con sombra de marca */
+.formulario-contacto .form-control:focus, .formulario-contacto .form-select:focus {
+    border-color: var(--celeste);
+    box-shadow: 0 0 0 3px rgba(86, 174, 232, 0.15);
+}
+
+/* Botón enviar: Gradiente de marca y estilo CTA */
+.btn-cont-enviar {
+    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul-medio) 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 0.75rem;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+/* Hover enviar: Ligera opacidad y elevación */
+.btn-cont-enviar:hover {
+    opacity: 0.9;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+/* Estado disabled: Fondo alternativo y opacidad estándar */
+.btn-cont-enviar:disabled {
+    background: #10b981;
+    opacity: 1;
+}
+
+/* Icono social: Caja cuadrada centrada con transición */
+.cont-social {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    text-decoration: none;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+/* Hover social: Levanta ligeramente y reduce opacidad */
+.cont-social:hover {
+    transform: translateY(-3px);
+    opacity: 0.85;
+}
+
+/* Facebook: Fondo azul oficial y texto blanco */
+.cont-fb {
+    background: #1877f2;
+    color: #fff;
+}
+
+/* Instagram: Gradiente multicolor y texto blanco */
+.cont-ig {
+    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+    color: #fff;
+}
+
+/* TikTok/Black: Fondo negro y texto blanco */
+.cont-tk {
+    background: #010101;
+    color: #fff;
+}
+
+/* Twitter/black fallback: Fondo negro y texto blanco */
+.cont-tw {
+    background: #000;
+    color: #fff;
+}
+
+/* WhatsApp: Verde característico y texto blanco */
+.cont-wa {
+    background: #25d366;
+    color: #fff;
+}
+
+/* Contenedor de mapa: Tamaño fijo, borde y sombra ligera */
+.mapa-wrap {
+    width: 100%;
+    height: 340px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 20px rgba(21, 101, 192, 0.08);
+}
+
+/* Iframe del mapa: Ocupa todo el contenedor */
+.mapa-wrap iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Bloque de dirección: Fila con icono y texto, fondo blanco */
+.info-dir {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem;
+    height: 100%;
+}
+
+/* Caja de icono en dirección: Fondo tenue y color de marca */
+.info-dir-icono {
+    width: 38px;
+    height: 38px;
+    background: rgba(86, 174, 232, 0.12);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: var(--celeste);
+    flex-shrink: 0;
+}
+
+/* Label de dirección: Uppercase y tono gris */
+.info-dir-label {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #a0aec0;
+    margin-bottom: 3px;
+}
+
+/* Valor de dirección: Texto legible y con buen interlineado */
+.info-dir-valor {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--oscuro);
+    line-height: 1.4;
+}
+
+/* Responsive pequeño: Reduce padding del formulario y altura del mapa */
+@media (max-width: 575px) {
+    .formulario-contacto {
+        padding: 1.2rem;
+    }
+    .mapa-wrap {
+        height: 260px;
+    }
+}

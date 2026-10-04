@@ -236,7 +236,7 @@ function actualizarTarjetaComentario(comentario, usuarioNombre, usuarioId) {
     tarjeta.innerHTML = `
         <div class="card-testimonio h-100">
             <div class="estrellas mb-3" style="color: var(--celeste, #0d6efd);">${estrellasSVG}</div>
-            <p>"${comentario.texto}"</p>
+            <p style="text-align: justify;">"${comentario.texto}"</p>
             <div class="testimonio-autor">
                 <div class="testimonio-avatar">${iniciales}</div>
                 <div>

@@ -95,17 +95,24 @@
     max-width: 550px;
 }
 
-/* Tarjeta de canal rápido: Fila, fondo blanco y borde sutil */
+/* Contenedor de canales con ancho optimizado para 4 columnas uniformes */
+#canales .container {
+    max-width: 1220px;
+}
+
+/* Tarjeta de canal rápido: Fila, fondo blanco, ancho uniforme y borde sutil */
 .canal-rapido {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     background: #fff;
     border: 1px solid #e2e8f0;
     border-radius: 14px;
-    padding: 1rem 1.2rem;
+    padding: 0.9rem 1.1rem;
     text-decoration: none;
     transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+    width: 100%;
+    height: 100%;
 }
 
 /* Hover: Eleva la tarjeta y cambia borde a color marca */
@@ -117,13 +124,13 @@
 
 /* Icono dentro del canal: Caja cuadrada centrada */
 .canal-icono {
-    width: 46px;
-    height: 46px;
+    width: 44px;
+    height: 44px;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.3rem;
+    font-size: 1.25rem;
     flex-shrink: 0;
 }
 
@@ -141,9 +148,10 @@
 /* Valor principal del canal: Texto oscuro y peso */
 .canal-valor {
     display: block;
-    font-size: 0.85rem;
+    font-size: 0.83rem;
     font-weight: 700;
     color: var(--oscuro);
+    white-space: nowrap;
 }
 
 /* Caja de formulario: Fondo blanco, borde y radios suaves */

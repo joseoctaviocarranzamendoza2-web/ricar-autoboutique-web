@@ -218,6 +218,7 @@
     color: #6c7d8e;
     margin: 0;
     line-height: 1.6;
+    text-align: justify;
 }
 
 /* Tarjeta de testimonio con padding */
@@ -250,6 +251,7 @@
     line-height: 1.75;
     font-style: italic;
     flex-grow: 1;
+    text-align: justify;
 }
 
 /* Color y tamaño de iconos de valoración */

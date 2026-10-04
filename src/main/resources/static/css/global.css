@@ -423,11 +423,22 @@ body {
     white-space: nowrap;
 }
 
-/* Cambia a fondo celeste, texto blanco y borde del mismo color */
-.btn-celeste-outline:hover {
-    background: var(--celeste);
-    color: var(--blanco);
-    border-color: var(--celeste);
+/* Cambia a fondo celeste, texto blanco y borde del mismo color al pasar cursor, enfocar o hacer clic */
+.btn-celeste-outline:hover,
+.btn-celeste-outline:focus,
+.btn-celeste-outline:active,
+.btn-celeste-outline:focus-visible,
+.btn-celeste-outline:hover:active,
+.btn-celeste-outline:hover:focus,
+.btn-celeste-outline.active,
+.footer-cta .btn-celeste-outline:active,
+.footer-cta .btn-celeste-outline:focus,
+.footer-cta .btn-celeste-outline:focus-visible {
+    background-color: var(--celeste) !important;
+    color: var(--blanco) !important;
+    border-color: var(--celeste) !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 /* CTA ocupa ancho completo en mobile y centra botones */
@@ -452,6 +463,7 @@ body {
     color: rgba(255, 255, 255, 0.55);
     font-size: 0.85rem;
     line-height: 1.7;
+    text-align: justify;
 }
 
 /* Caja cuadrada centrada con borde sutil */

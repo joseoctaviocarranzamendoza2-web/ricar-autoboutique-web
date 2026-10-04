@@ -188,7 +188,7 @@
     align-items: center;
     justify-content: center;
     font-size: 1.6rem;
-    margin-bottom: 1.2rem;
+    margin: 0 auto 1.2rem;
 }
 
 /* Variante visual para misión */
@@ -215,6 +215,7 @@
     font-weight: 800;
     color: var(--oscuro);
     margin-bottom: 0.75rem;
+    text-align: center;
 }
 
 /* Texto descriptivo dentro de tarjeta MV */
@@ -441,6 +442,8 @@
     flex-grow: 1;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 
 /* Nombre del creador (peso y tamaño) */
@@ -449,6 +452,7 @@
     font-weight: 800;
     color: var(--oscuro);
     margin-bottom: 3px;
+    text-align: center;
 }
 
 /* Etiqueta del rol con background tenue */
@@ -472,12 +476,14 @@
     line-height: 1.65;
     flex-grow: 1;
     margin-bottom: 0.85rem;
+    text-align: center;
 }
 
 /* Chips con skills/categorías, envueltas con flex-wrap para varias entradas */
 .creador-tags {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 5px;
     margin-top: auto;
 }

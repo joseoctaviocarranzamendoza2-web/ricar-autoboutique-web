@@ -217,7 +217,7 @@ function renderVentas() {
     if (_comprasFiltradas.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No hay ventas registradas para este filtro.</td></tr>`;
         const totalEl = document.querySelector('#sec-ventas .admin-card-body.border-top p');
-        if (totalEl) totalEl.innerHTML = `<strong>Total período:</strong><span class="text-primary fw-bold">S/ 0.00</span>`;
+        if (totalEl) totalEl.innerHTML = `<strong>Total período: </strong><span class="text-primary fw-bold">S/ 0.00</span>`;
         return;
     }
     const badgeEstado = { 'Entregado': 'bg-success', 'Por entregar': 'bg-warning', 'Sin pagar': 'bg-danger' };

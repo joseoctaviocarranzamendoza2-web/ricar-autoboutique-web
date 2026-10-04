@@ -55,8 +55,8 @@ public class Usuario {
     @Column(nullable = false)
     private String telefono;
 
-    // Valida que el teléfono no sea el valor prohibido de broma
-    @AssertTrue(message = "No te creas payaso")
+    // Valida que el teléfono no sea el valor prohibido
+    @AssertTrue(message = "Por favor ingresa un número de teléfono válido")
     public boolean isTelefonoValido() {
         return telefono != null && !telefono.equals("987654321");
     }

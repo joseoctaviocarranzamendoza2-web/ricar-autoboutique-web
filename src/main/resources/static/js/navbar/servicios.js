@@ -103,7 +103,7 @@ function renderizarServicios(grid, servicios) {
                 </div>
                 <div class="card-serv-footer">
                     <span class="badge-duracion"><i class="bi bi-clock me-1"></i>${duracion}</span>
-                    <button class="btn btn-sm btn-serv btn-agendar-serv"data-servicio-id="${s.id}"data-servicio="${s.nombre}"><i class="bi bi-calendar-check me-1"></i>Agendar</button>
+                    <button class="btn btn-sm btn-serv btn-agendar-serv" data-servicio-id="${s.id}" data-servicio="${s.nombre}"><i class="bi bi-calendar-check me-1"></i>Agendar</button>
                 </div>
             </div>
         </div>`;
@@ -265,6 +265,12 @@ function iniciarModalCita() {
     document.getElementById('btnConfirmarCita')?.addEventListener('click', async function () {
         const sesion = obtenerSesion();
         if (!sesion) return;
+        const mostrarResultado = (msg, tipo) => {
+            const el = document.getElementById('citaExito');
+            document.getElementById('citaExitoMsg').textContent = msg;
+            el.className = `alert alert-${tipo} py-3 text-center`;
+            el.classList.remove('d-none');
+        };
         let valido = true;
         const requeridos = [{ id: 'citaNombre', test: v => v.trim().length >= 3 }, { id: 'citaTelefono', test: v => /^9[0-9]{8}$/.test(v.trim()) }, { id: 'citaFecha', test: v => v !== '' }, { id: 'citaHora', test: v => v !== '' }, { id: 'citaMarca', test: v => v !== '' }, { id: 'citaModelo', test: v => v.trim().length >= 1 }, { id: 'citaAnio', test: v => +v >= 1990 && +v <= 2026 }];
         requeridos.forEach(({ id, test }) => {
@@ -296,12 +302,6 @@ function iniciarModalCita() {
         const vehiculo = `${marca} ${modelo} ${anio}`.trim();
         this.disabled = true;
         this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando...';
-        const mostrarResultado = (msg, tipo) => {
-            const el = document.getElementById('citaExito');
-            document.getElementById('citaExitoMsg').textContent = msg;
-            el.className = `alert alert-${tipo} py-3 text-center`;
-            el.classList.remove('d-none');
-        };
         try {
             const dispResp = await fetch(`/api/citas/disponible?fecha=${fecha}&hora=${encodeURIComponent(hora)}`);
             const disp = await dispResp.json();

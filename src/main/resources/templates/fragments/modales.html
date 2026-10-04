@@ -4,7 +4,7 @@
 <body>
     <!-- Fragmento de modales compartidos: Incluye login, registro y verificación empresarial en todas las páginas que aún no han sido autenticadas -->
     <div th:fragment="modales">
-        <!-- Modal de Login: Formulario para inicar sesión como cliente, administrador o gerente -->
+        <!-- Modal de Login: Formulario para iniciar sesión como cliente, administrador o gerente -->
         <div class="modal fade" id="modalLogin" tabindex="-1" aria-labelledby="tituloModalLogin" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
@@ -92,7 +92,7 @@
                             <!-- Campo de confirmación de contraseña con validación de coincidencia -->
                             <div class="col-sm-6">
                                 <label class="form-label" for="regConfirm">Confirmar contraseña</label>
-                                <input type="password" id="regConfirm" class="form-control"placeholder="Repite tu contraseña" maxlength="30" autocomplete="new-password">
+                                <input type="password" id="regConfirm" class="form-control" placeholder="Repite tu contraseña" maxlength="30" autocomplete="new-password">
                                 <div class="invalid-feedback"></div>
                             </div>
                             <!-- Selector de tipo de Cuenta: Permite elegir el rol del usuario al registrarse -->
@@ -148,7 +148,7 @@
                     <!-- Encabezado del modal de verificación empresarial: Muestra el título y el botón para cerrar -->
                     <div class="modal-header justify-content-center position-relative">
                         <h5 class="modal-title" id="tituloModalEmpresarial"><i class="bi bi-shield-lock me-2"></i>Verificación empresarial</h5>
-                        <button type="button" class="btn-close position-absolute end-0 me-3" id="btnCerrarEmpresarial"data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        <button type="button" class="btn-close position-absolute end-0 me-3" id="btnCerrarEmpresarial" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
                     <div class="modal-body">
                         <p class="text-muted small text-center mb-3">Ingresa la contraseña empresarial para registrarte como <strong id="rolEmpresarialTexto"></strong>.</p>

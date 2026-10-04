@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <!-- Thymeleaf requiere el namespace xmlns:th para habilitar directivas th:href, th:src y th:text en todo el documento -->
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,20 +18,26 @@
     <!-- Favicon del sitio -->
     <link rel="icon" th:href="@{/img/icon.png}" type="image/png">
 </head>
+
 <body class="d-flex flex-column min-vh-100">
     <div th:replace="~{fragments/navbar :: navbar}"></div>
     <!-- Carrusel principal: Muestra imágenes destacadas del servicio y refuerza el llamado a agendar cita -->
     <div id="carrusel-principal">
         <div class="carrusel-fondos">
-            <div class="fondo-slide activo" style="background-image: url('https://raw.githubusercontent.com/DAlvarezF7/multimedia/644601117d61742ce9b2e9972122b23cad182430/Ricarr4.webp');"></div>
-            <div class="fondo-slide" style="background-image: url('https://raw.githubusercontent.com/DAlvarezF7/multimedia/644601117d61742ce9b2e9972122b23cad182430/Ricarr2.webp');"></div>
+            <div class="fondo-slide activo"
+                style="background-image: url('https://raw.githubusercontent.com/DAlvarezF7/multimedia/644601117d61742ce9b2e9972122b23cad182430/Ricarr4.webp');">
+            </div>
+            <div class="fondo-slide"
+                style="background-image: url('https://raw.githubusercontent.com/DAlvarezF7/multimedia/644601117d61742ce9b2e9972122b23cad182430/Ricarr2.webp');">
+            </div>
         </div>
         <div class="carrusel-overlay"></div>
         <div class="carrusel-contenido">
             <div class="container">
                 <div class="row align-items-center justify-content-center justify-content-lg-between g-4">
                     <div class="col-12 col-lg-6 text-center text-lg-start">
-                        <span class="badge-slide"><i class="bi bi-patch-check-fill"></i> Taller certificado en Trujillo</span>
+                        <span class="badge-slide"><i class="bi bi-patch-check-fill"></i> Taller certificado en
+                            Trujillo</span>
                         <h1 class="titulo-slide mt-2">
                             <span class="texto-celeste">Servicio</span> mecánico profesional para tu
                             <span class="texto-celeste">vehículo</span>
@@ -41,8 +48,11 @@
                         </p>
                         <!-- CTA hero de servicios: Dirige al usuario a agendar una cita o ver el catálogo completo -->
                         <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-3">
-                            <button class="btn btn-light fw-bold px-4 text-primary btn-agendar-serv" data-servicio="Cita general"><i class="bi bi-calendar-check me-2"></i>Agendar Cita</button>
-                            <a href="#catalogo-servicios" class="btn btn-outline-light fw-bold px-4"><i class="bi bi-grid me-2"></i>Ver Servicios</a>
+                            <button class="btn btn-light fw-bold px-4 text-primary btn-agendar-serv"
+                                data-servicio="Cita general"><i class="bi bi-calendar-check me-2"></i>Agendar
+                                Cita</button>
+                            <a href="#catalogo-servicios" class="btn btn-outline-light fw-bold px-4"><i
+                                    class="bi bi-grid me-2"></i>Ver Servicios</a>
                         </div>
                         <!-- Métricas de confianza del hero: Refuerzan credibilidad antes de presentar el catálogo -->
                         <div class="row mt-4 g-3">
@@ -60,7 +70,8 @@
                     <!-- Imagen de soporte en hero: Fortalece la propuesta visual del servicio profesional ofrecido -->
                     <div class="col-lg-6 d-none d-lg-flex justify-content-center">
                         <div class="img-carrusel-box">
-                            <img src="https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm43VWuuhdynMjyBmue1Ex9Zk9X8WTws8bPdfx8bGaZEBJkbbZTTI_jWYfPyy2L2G6JzN-5PxllcfTScqNOOkqMtMSP9IwAW2xOnMYwRxZmhw0Jrorg86PfYyQ4HoIZMydNAnCUqA=s680-w680-h510-rw" alt="Taller mecánico RICAR AUTOBOUTIQUE" class="img-carrusel">
+                            <img src="https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm43VWuuhdynMjyBmue1Ex9Zk9X8WTws8bPdfx8bGaZEBJkbbZTTI_jWYfPyy2L2G6JzN-5PxllcfTScqNOOkqMtMSP9IwAW2xOnMYwRxZmhw0Jrorg86PfYyQ4HoIZMydNAnCUqA=s680-w680-h510-rw"
+                                alt="Taller mecánico RICAR AUTOBOUTIQUE" class="img-carrusel">
                             <div class="badge-flotante badge-top">
                                 <i class="bi bi-shield-check text-primary me-1"></i><span>Garantía incluida</span>
                             </div>
@@ -85,22 +96,26 @@
             <div class="row g-3 text-center">
                 <div class="col-6 col-md-3">
                     <div class="d-flex align-items-center justify-content-center gap-2">
-                        <i class="bi bi-truck text-primary fs-5"></i><span class="small fw-semibold">Envío a Trujillo</span>
+                        <i class="bi bi-truck text-primary fs-5"></i><span class="small fw-semibold">Envío a
+                            Trujillo</span>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="d-flex align-items-center justify-content-center gap-2">
-                        <i class="bi bi-headset text-primary fs-5"></i><span class="small fw-semibold">Soporte 24/7</span>
+                        <i class="bi bi-headset text-primary fs-5"></i><span class="small fw-semibold">Soporte
+                            24/7</span>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="d-flex align-items-center justify-content-center gap-2">
-                        <i class="bi bi-patch-check text-primary fs-5"></i><span class="small fw-semibold">Garantía 1 año</span>
+                        <i class="bi bi-patch-check text-primary fs-5"></i><span class="small fw-semibold">Garantía 1
+                            año</span>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="d-flex align-items-center justify-content-center gap-2">
-                        <i class="bi bi-credit-card text-primary fs-5"></i><span class="small fw-semibold">Pago seguro</span>
+                        <i class="bi bi-credit-card text-primary fs-5"></i><span class="small fw-semibold">Pago
+                            seguro</span>
                     </div>
                 </div>
             </div>
@@ -113,7 +128,8 @@
                 <div class="row align-items-center g-5">
                     <div class="col-lg-6">
                         <span class="etiqueta-seccion">¿Por qué elegirnos?</span>
-                        <h2 class="titulo-seccion mt-2">Servicio profesional con <span class="texto-celeste">garantía real</span></h2>
+                        <h2 class="titulo-seccion mt-2">Servicio profesional con <span class="texto-celeste">garantía
+                                real</span></h2>
                         <p class="text-muted mt-3" style="line-height:1.85;">En RICAR AUTOBOUTIQUE contamos con técnicos
                             certificados y equipos de diagnóstico de última generación. Cada servicio incluye revisión
                             previa sin costo, cotización transparente y garantía escrita. Atendemos autos, motos y
@@ -132,7 +148,8 @@
                             </div>
                             <div class="col-6">
                                 <div class="mini-stat">
-                                    <i class="bi bi-person-check-fill text-primary"></i><span>Técnicos certificados</span>
+                                    <i class="bi bi-person-check-fill text-primary"></i><span>Técnicos
+                                        certificados</span>
                                 </div>
                             </div>
                             <div class="col-6">
@@ -146,22 +163,26 @@
                         <div class="row g-3">
                             <div class="col-6">
                                 <div class="mini-kpi-card">
-                                    <span class="mini-kpi-num">+20 000</span><span class="mini-kpi-label">Vehículos atendidos</span>
+                                    <span class="mini-kpi-num">+20 000</span><span class="mini-kpi-label">Vehículos
+                                        atendidos</span>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="mini-kpi-card">
-                                    <span class="mini-kpi-num">+23</span><span class="mini-kpi-label">Años de experiencia</span>
+                                    <span class="mini-kpi-num">+23</span><span class="mini-kpi-label">Años de
+                                        experiencia</span>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="mini-kpi-card">
-                                    <span class="mini-kpi-num">12</span><span class="mini-kpi-label">Tipos de servicio</span>
+                                    <span class="mini-kpi-num">12</span><span class="mini-kpi-label">Tipos de
+                                        servicio</span>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="mini-kpi-card">
-                                    <span class="mini-kpi-num">98%</span><span class="mini-kpi-label">Clientes satisfechos</span>
+                                    <span class="mini-kpi-num">98%</span><span class="mini-kpi-label">Clientes
+                                        satisfechos</span>
                                 </div>
                             </div>
                         </div>
@@ -206,7 +227,8 @@
                             <div class="paso-num">02</div>
                             <div class="paso-icono"><i class="bi bi-car-front"></i></div>
                             <h6>Lleva tu vehículo</h6>
-                            <p>Preséntate en nuestro taller en Av. Húsares de Junín 336, Urb. La Merced, en el horario reservado.</p>
+                            <p>Preséntate en nuestro taller en Av. Húsares de Junín 336, Urb. La Merced, en el horario
+                                reservado.</p>
                         </div>
                     </div>
                     <div class="col-sm-6 col-lg-3">
@@ -222,7 +244,8 @@
                             <div class="paso-num">04</div>
                             <div class="paso-icono"><i class="bi bi-patch-check-fill"></i></div>
                             <h6>Entrega con garantía</h6>
-                            <p>Retira tu vehículo con informe técnico detallado y garantía escrita del trabajo realizado.</p>
+                            <p>Retira tu vehículo con informe técnico detallado y garantía escrita del trabajo
+                                realizado.</p>
                         </div>
                     </div>
                 </div>
@@ -230,7 +253,8 @@
         </section>
     </main>
     <!-- Modal de servicio personalizado: Formulario para solicitar una cotización o diagnóstico especial fuera del catálogo estándar -->
-    <div class="modal fade" id="modalServicioPersonalizado" tabindex="-1" aria-labelledby="tituloModalPersonalizado" aria-hidden="true">
+    <div class="modal fade" id="modalServicioPersonalizado" tabindex="-1" aria-labelledby="tituloModalPersonalizado"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
             <div class="modal-content modal-custom-serv">
                 <div class="modal-header modal-custom-header justify-content-center position-relative">
@@ -238,18 +262,27 @@
                         <i class="bi bi-sliders"></i>
                     </div>
                     <div class="text-center">
-                        <h5 class="modal-title mb-1" id="tituloModalPersonalizado">Solicitud de Servicio Personalizado</h5>
-                        <p class="modal-custom-sub mb-0">Cuéntanos qué necesita tu vehículo y te contactamos en menos de 24 h</p>
+                        <h5 class="modal-title mb-1" id="tituloModalPersonalizado">Solicitud de Servicio Personalizado
+                        </h5>
+                        <p class="modal-custom-sub mb-0">Cuéntanos qué necesita tu vehículo y te contactamos en menos de
+                            24 h</p>
                     </div>
-                    <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3"
+                        data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div class="modal-pasos mb-4">
-                        <div class="modal-paso activo"><div class="modal-paso-num">1</div><span>Datos del vehículo</span></div>
+                        <div class="modal-paso activo">
+                            <div class="modal-paso-num">1</div><span>Datos del vehículo</span>
+                        </div>
                         <div class="modal-paso-linea"></div>
-                        <div class="modal-paso"><div class="modal-paso-num">2</div><span>Problema y detalles</span></div>
+                        <div class="modal-paso">
+                            <div class="modal-paso-num">2</div><span>Problema y detalles</span>
+                        </div>
                         <div class="modal-paso-linea"></div>
-                        <div class="modal-paso"><div class="modal-paso-num">3</div><span>Contacto</span></div>
+                        <div class="modal-paso">
+                            <div class="modal-paso-num">3</div><span>Contacto</span>
+                        </div>
                     </div>
                     <div class="row g-3">
                         <div class="col-12">
@@ -281,7 +314,8 @@
                         </div>
                         <div class="col-sm-4">
                             <label class="form-label modal-label">Año <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="pAnio" placeholder="Ej: 2019" min="1990" max="2026">
+                            <input type="number" class="form-control" id="pAnio" placeholder="Ej: 2019" min="1990"
+                                max="2026">
                             <div class="invalid-feedback"></div>
                         </div>
                         <div class="col-sm-6">
@@ -299,7 +333,8 @@
                         <div class="col-sm-6">
                             <label class="form-label modal-label">Kilometraje aproximado</label>
                             <div class="input-group">
-                                <input type="number" class="form-control" id="pKm" placeholder="Ej: 85000" min="0"><span class="input-group-text">km</span>
+                                <input type="number" class="form-control" id="pKm" placeholder="Ej: 85000" min="0"><span
+                                    class="input-group-text">km</span>
                             </div>
                         </div>
                         <div class="col-12">
@@ -311,49 +346,58 @@
                             </div>
                         </div>
                         <div class="col-12">
-                            <label class="form-label modal-label">Área o sistema afectado <span class="text-danger">*</span></label>
+                            <label class="form-label modal-label">Área o sistema afectado <span
+                                    class="text-danger">*</span></label>
                             <div class="row g-2" id="checkAreas">
                                 <div class="col-6 col-sm-4">
                                     <div class="check-area">
                                         <input type="checkbox" class="check-area-input" id="aMotor">
-                                        <label class="check-area-label" for="aMotor"><i class="bi bi-gear-fill"></i> Motor</label>
+                                        <label class="check-area-label" for="aMotor"><i class="bi bi-gear-fill"></i>
+                                            Motor</label>
                                     </div>
                                 </div>
                                 <div class="col-6 col-sm-4">
                                     <div class="check-area">
                                         <input type="checkbox" class="check-area-input" id="aElectrico">
-                                        <label class="check-area-label" for="aElectrico"><i class="bi bi-battery-charging"></i> Sistema eléctrico</label>
+                                        <label class="check-area-label" for="aElectrico"><i
+                                                class="bi bi-battery-charging"></i> Sistema eléctrico</label>
                                     </div>
                                 </div>
                                 <div class="col-6 col-sm-4">
                                     <div class="check-area">
                                         <input type="checkbox" class="check-area-input" id="aFrenosS">
-                                        <label class="check-area-label" for="aFrenosS"><i class="bi bi-shield-check"></i> Frenos / Suspensión</label>
+                                        <label class="check-area-label" for="aFrenosS"><i
+                                                class="bi bi-shield-check"></i> Frenos / Suspensión</label>
                                     </div>
                                 </div>
                                 <div class="col-6 col-sm-4">
                                     <div class="check-area">
                                         <input type="checkbox" class="check-area-input" id="aRefrig">
-                                        <label class="check-area-label" for="aRefrig"><i class="bi bi-thermometer-half"></i> Refrigeración</label>
+                                        <label class="check-area-label" for="aRefrig"><i
+                                                class="bi bi-thermometer-half"></i> Refrigeración</label>
                                     </div>
                                 </div>
                                 <div class="col-6 col-sm-4">
                                     <div class="check-area">
                                         <input type="checkbox" class="check-area-input" id="aTransmision">
-                                        <label class="check-area-label" for="aTransmision"><i class="bi bi-arrow-repeat"></i> Transmisión</label>
+                                        <label class="check-area-label" for="aTransmision"><i
+                                                class="bi bi-arrow-repeat"></i> Transmisión</label>
                                     </div>
                                 </div>
                                 <div class="col-6 col-sm-4">
                                     <div class="check-area">
                                         <input type="checkbox" class="check-area-input" id="aOtro">
-                                        <label class="check-area-label" for="aOtro"><i class="bi bi-three-dots"></i> Otro</label>
+                                        <label class="check-area-label" for="aOtro"><i class="bi bi-three-dots"></i>
+                                            Otro</label>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-12">
-                            <label class="form-label modal-label">Describe el problema con detalle <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="pDescripcion" rows="4" placeholder="Ej: El motor hace un ruido extraño al acelerar..."></textarea>
+                            <label class="form-label modal-label">Describe el problema con detalle <span
+                                    class="text-danger">*</span></label>
+                            <textarea class="form-control" id="pDescripcion" rows="4"
+                                placeholder="Ej: El motor hace un ruido extraño al acelerar..."></textarea>
                             <div class="invalid-feedback"></div>
                             <div class="form-text text-end" id="contadorDesc">0 / 500 caracteres</div>
                         </div>
@@ -390,13 +434,16 @@
                             </div>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label modal-label">Nombre completo <span class="text-danger">*</span></label>
+                            <label class="form-label modal-label">Nombre completo <span
+                                    class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="pNombre" placeholder="Tu nombre y apellido">
                             <div class="invalid-feedback"></div>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label modal-label">Teléfono / WhatsApp <span class="text-danger">*</span></label>
-                            <input type="tel" class="form-control" id="pTelefono" placeholder="987 654 321" maxlength="9">
+                            <label class="form-label modal-label">Teléfono / WhatsApp <span
+                                    class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="pTelefono" placeholder="987 654 321"
+                                maxlength="9">
                             <div class="invalid-feedback"></div>
                         </div>
                         <div class="col-sm-6">
@@ -413,14 +460,17 @@
                         </div>
                         <div class="col-12">
                             <div id="alertaServPersonalizado" class="alert alert-success d-none py-2 text-center">
-                                <i class="bi bi-check-circle-fill me-2"></i>¡Solicitud enviada! Te contactaremos en menos de 24 horas.
+                                <i class="bi bi-check-circle-fill me-2"></i>¡Solicitud enviada! Te contactaremos en
+                                menos de 24 horas.
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer modal-custom-footer border-0 justify-content-between">
-                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancelar</button>
-                    <button type="button" class="btn btn-custom-enviar px-5" id="btnEnviarPersonalizado"><i class="bi bi-send-fill me-2"></i>Enviar solicitud</button>
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal"><i
+                            class="bi bi-x-lg me-1"></i>Cancelar</button>
+                    <button type="button" class="btn btn-custom-enviar px-5" id="btnEnviarPersonalizado"><i
+                            class="bi bi-send-fill me-2"></i>Enviar solicitud</button>
                 </div>
             </div>
         </div>
@@ -428,52 +478,63 @@
     <div class="modal fade" id="modalCita" tabindex="-1" aria-labelledby="tituloModalCita" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
             <div class="modal-content">
-                <div class="modal-header justify-content-center position-relative" style="background: linear-gradient(135deg, var(--azul-oscuro, #0d1b2a), var(--celeste, #0d6efd)); color: #fff;">
+                <div class="modal-header justify-content-center position-relative"
+                    style="background: linear-gradient(135deg, var(--azul-oscuro, #0d1b2a), var(--celeste, #0d6efd)); color: #fff;">
                     <div class="text-center">
                         <div class="mb-2" style="font-size:2rem;">
                             <i class="bi bi-calendar-check-fill"></i>
                         </div>
                         <h5 class="modal-title mb-1" id="tituloModalCita">Agendar Cita</h5>
-                        <p class="mb-0" style="font-size:.85rem; opacity:.85;">Servicio seleccionado: <strong id="citaNombreServicio">—</strong></p>
+                        <p class="mb-0" style="font-size:.85rem; opacity:.85;">Servicio seleccionado: <strong
+                                id="citaNombreServicio">—</strong></p>
                     </div>
-                    <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3 top-0 mt-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3 top-0 mt-3"
+                        data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div class="row g-3">
                         <div class="col-12">
-                            <div class="d-flex align-items-center gap-2 mb-1" style="color:var(--celeste,#0d6efd);font-weight:600;font-size:.9rem;">
+                            <div class="d-flex align-items-center gap-2 mb-1"
+                                style="color:var(--celeste,#0d6efd);font-weight:600;font-size:.9rem;">
                                 <i class="bi bi-person-fill"></i> Datos personales
                             </div>
                             <hr class="mt-1 mb-3">
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label" for="citaNombre">Nombre completo <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="citaNombre" placeholder="Tu nombre y apellido" maxlength="80" autocomplete="name">
+                            <label class="form-label" for="citaNombre">Nombre completo <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="citaNombre" placeholder="Tu nombre y apellido"
+                                maxlength="80" autocomplete="name">
                             <div class="invalid-feedback">Ingresa tu nombre completo.</div>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label" for="citaTelefono">Teléfono / WhatsApp <span class="text-danger">*</span></label>
+                            <label class="form-label" for="citaTelefono">Teléfono / WhatsApp <span
+                                    class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-telephone-fill"></i></span>
-                                <input type="tel" class="form-control" id="citaTelefono" placeholder="987 654 321" maxlength="9" autocomplete="tel">
+                                <input type="tel" class="form-control" id="citaTelefono" placeholder="987 654 321"
+                                    maxlength="9" autocomplete="tel">
                             </div>
                             <div class="invalid-feedback" id="citaTelefonoError">
                                 El teléfono debe empezar con 9 y tener 9 dígitos.
                             </div>
                         </div>
                         <div class="col-12 mt-2">
-                            <div class="d-flex align-items-center gap-2 mb-1" style="color:var(--celeste,#0d6efd);font-weight:600;font-size:.9rem;">
+                            <div class="d-flex align-items-center gap-2 mb-1"
+                                style="color:var(--celeste,#0d6efd);font-weight:600;font-size:.9rem;">
                                 <i class="bi bi-calendar2-week-fill"></i> Fecha y hora
                             </div>
                             <hr class="mt-1 mb-3">
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label" for="citaFecha">Fecha preferida <span class="text-danger">*</span></label>
+                            <label class="form-label" for="citaFecha">Fecha preferida <span
+                                    class="text-danger">*</span></label>
                             <input type="date" class="form-control" id="citaFecha">
                             <div class="invalid-feedback">Selecciona una fecha válida (desde mañana).</div>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label" for="citaHora">Hora preferida <span class="text-danger">*</span></label>
+                            <label class="form-label" for="citaHora">Hora preferida <span
+                                    class="text-danger">*</span></label>
                             <select class="form-select" id="citaHora">
                                 <option value="">Seleccionar horario...</option>
                                 <option>08:00 – 09:00</option>
@@ -488,7 +549,8 @@
                             <div class="invalid-feedback">Selecciona un horario.</div>
                         </div>
                         <div class="col-12 mt-2">
-                            <div class="d-flex align-items-center gap-2 mb-1" style="color:var(--celeste,#0d6efd);font-weight:600;font-size:.9rem;">
+                            <div class="d-flex align-items-center gap-2 mb-1"
+                                style="color:var(--celeste,#0d6efd);font-weight:600;font-size:.9rem;">
                                 <i class="bi bi-car-front-fill"></i> Datos del vehículo
                             </div>
                             <hr class="mt-1 mb-3">
@@ -512,23 +574,28 @@
                         </div>
                         <div class="col-sm-4">
                             <label class="form-label" for="citaModelo">Modelo <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="citaModelo" placeholder="Ej: Corolla, Sentra..." maxlength="40">
+                            <input type="text" class="form-control" id="citaModelo" placeholder="Ej: Corolla, Sentra..."
+                                maxlength="40">
                             <div class="invalid-feedback">Ingresa el modelo.</div>
                         </div>
                         <div class="col-sm-4">
                             <label class="form-label" for="citaAnio">Año <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="citaAnio" placeholder="Ej: 2019" min="1990" max="2026">
+                            <input type="number" class="form-control" id="citaAnio" placeholder="Ej: 2019" min="1990"
+                                max="2026">
                             <div class="invalid-feedback">Ingresa el año (1990–2026).</div>
                         </div>
                         <div class="col-12 mt-2">
-                            <div class="d-flex align-items-center gap-2 mb-1" style="color:var(--celeste,#0d6efd);font-weight:600;font-size:.9rem;">
+                            <div class="d-flex align-items-center gap-2 mb-1"
+                                style="color:var(--celeste,#0d6efd);font-weight:600;font-size:.9rem;">
                                 <i class="bi bi-chat-left-text-fill"></i> Descripción del problema
                             </div>
                             <hr class="mt-1 mb-3">
                         </div>
                         <div class="col-12">
-                            <label class="form-label" for="citaDescripcion">¿Algo adicional que debamos saber?<span class="text-muted">(opcional)</span></label>
-                            <textarea class="form-control" id="citaDescripcion" rows="3" placeholder="Ej: El motor hace un ruido al arrancar..." maxlength="400"></textarea>
+                            <label class="form-label" for="citaDescripcion">¿Algo adicional que debamos saber? <span
+                                    class="text-muted">(opcional)</span></label>
+                            <textarea class="form-control" id="citaDescripcion" rows="3"
+                                placeholder="Ej: El motor hace un ruido al arrancar..." maxlength="400"></textarea>
                             <div class="d-flex justify-content-end mt-1">
                                 <small class="text-muted" id="citaDescContador">0 / 400</small>
                             </div>
@@ -543,8 +610,10 @@
                     </div>
                 </div>
                 <div class="modal-footer border-0 justify-content-between px-4 pb-4">
-                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancelar</button>
-                    <button type="button" class="btn btn-primary px-5 fw-semibold" id="btnConfirmarCita"><i class="bi bi-calendar-check me-2"></i>Confirmar cita</button>
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal"><i
+                            class="bi bi-x-lg me-1"></i>Cancelar</button>
+                    <button type="button" class="btn btn-primary px-5 fw-semibold" id="btnConfirmarCita"><i
+                            class="bi bi-calendar-check me-2"></i>Confirmar cita</button>
                 </div>
             </div>
         </div>
@@ -558,4 +627,5 @@
     <!-- servicios.js: Lógica de comportamiento específica de la página de servicios -->
     <script th:src="@{/js/navbar/servicios.js}"></script>
 </body>
+
 </html>

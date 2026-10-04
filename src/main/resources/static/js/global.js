@@ -159,21 +159,21 @@ function abrirModal(id) {
     instancia.show();
 }
 
-// Sufijo de URL asociado a cada modal de autenticación (ej: /inicio/login, /servicios/registro)
-const SUFIJOS_MODAL_AUTH = { modalLogin: 'login', modalRegister: 'registro' };
-const REGEX_SUFIJO_AUTH = /\/(login|registro)\/?$/;
+// Sufijo de URL asociado a cada modal de autenticación (ej: /inicio/login, /servicios/register)
+const SUFIJOS_MODAL_AUTH = { modalLogin: 'login', modalRegister: 'register' };
+const REGEX_SUFIJO_AUTH = /\/(login|register)\/?$/;
 
 // Modal de autenticación que actualmente "posee" la URL (evita que el modal que se cierra pise la URL del que se abre)
 let modalAuthActivo = null;
 // Query string y hash de la página antes de abrir el primer modal, para restaurarlos al cerrar
 let extraUrlPreviaAuth = '';
 
-// Indica si la URL actual corresponde a un modal de autenticación (/login o /registro)
+// Indica si la URL actual corresponde a un modal de autenticación (/login o /register)
 function esUrlDeModalAuth() {
     return REGEX_SUFIJO_AUTH.test(window.location.pathname);
 }
 
-// Devuelve la ruta de la página actual sin el sufijo /login o /registro (ej: /inicio/login -> /inicio)
+// Devuelve la ruta de la página actual sin el sufijo /login o /register (ej: /inicio/login -> /inicio)
 function obtenerRutaBaseAuth() {
     const ruta = window.location.pathname.replace(REGEX_SUFIJO_AUTH, '').replace(/\/+$/, '');
     return ruta || '/inicio';
@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sincroniza el modal visible con la URL (carga directa y botones atrás/adelante del navegador)
     const sincronizarModalesConUrl = () => {
         const ruta = window.location.pathname.replace(/\/+$/, '');
-        [[modalLogin, '/login'], [modalRegister, '/registro']].forEach(([modal, sufijo]) => {
+        [[modalLogin, '/login'], [modalRegister, '/register']].forEach(([modal, sufijo]) => {
             if (!modal) return;
             const instancia = bootstrap.Modal.getOrCreateInstance(modal);
             const debeEstarAbierto = ruta.endsWith(sufijo);

@@ -69,7 +69,7 @@ public class ConfigSecurity {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                     // Recursos estáticos y páginas públicas sin sesión
-                    .requestMatchers("/", "/inicio", "/inicio/login", "/inicio/registro", "/servicios", "/servicios/login", "/servicios/registro", "/productos", "/productos/login", "/productos/registro", "/nosotros", "/nosotros/login", "/nosotros/registro", "/contacto", "/contacto/login", "/contacto/registro", "/css/**", "/js/**", "/img/**").permitAll()
+                    .requestMatchers("/", "/inicio", "/inicio/login", "/inicio/register", "/servicios", "/servicios/login", "/servicios/register", "/productos", "/productos/login", "/productos/register", "/nosotros", "/nosotros/login", "/nosotros/register", "/contacto", "/contacto/login", "/contacto/register", "/css/**", "/js/**", "/img/**").permitAll()
                     // Endpoints públicos de autenticación/registro
                     .requestMatchers("/api/usuarios/registro").permitAll()
                     // Lectura pública del catálogo (para que la página se muestre sin login)

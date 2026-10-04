@@ -23,7 +23,7 @@ public class PaginaPublicaController {
         return "navbar/inicio";
     }
 
-    @GetMapping("/inicio/registro")
+    @GetMapping("/inicio/register")
     public String inicioRegistro() {
         return "navbar/inicio";
     }
@@ -38,7 +38,7 @@ public class PaginaPublicaController {
         return "navbar/servicios";
     }
 
-    @GetMapping("/servicios/registro")
+    @GetMapping("/servicios/register")
     public String serviciosRegistro() {
         return "navbar/servicios";
     }
@@ -53,7 +53,7 @@ public class PaginaPublicaController {
         return "navbar/productos";
     }
 
-    @GetMapping("/productos/registro")
+    @GetMapping("/productos/register")
     public String productosRegistro() {
         return "navbar/productos";
     }
@@ -68,7 +68,7 @@ public class PaginaPublicaController {
         return "navbar/nosotros";
     }
 
-    @GetMapping("/nosotros/registro")
+    @GetMapping("/nosotros/register")
     public String nosotrosRegistro() {
         return "navbar/nosotros";
     }
@@ -83,7 +83,7 @@ public class PaginaPublicaController {
         return "navbar/contacto";
     }
 
-    @GetMapping("/contacto/registro")
+    @GetMapping("/contacto/register")
     public String contactoRegistro() {
         return "navbar/contacto";
     }

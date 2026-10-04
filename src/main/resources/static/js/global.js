@@ -159,61 +159,52 @@ function abrirModal(id) {
     instancia.show();
 }
 
-let urlAnteriorAlLogin = null;
-let urlAnteriorAlRegistro = null;
+// Sufijo de URL asociado a cada modal de autenticación (ej: /inicio/login, /servicios/registro)
+const SUFIJOS_MODAL_AUTH = { modalLogin: 'login', modalRegister: 'registro' };
+const REGEX_SUFIJO_AUTH = /\/(login|registro)\/?$/;
 
-function obtenerUrlBaseLogin() {
-    const url = new URL(window.location.href);
-    const ruta = url.pathname.replace(/\/$/, '');
-    if (ruta.endsWith('/login')) {
-        url.pathname = ruta.slice(0, -'/login'.length) || '/inicio';
-    } else if (ruta === '') {
-        url.pathname = '/inicio';
+// Modal de autenticación que actualmente "posee" la URL (evita que el modal que se cierra pise la URL del que se abre)
+let modalAuthActivo = null;
+// Query string y hash de la página antes de abrir el primer modal, para restaurarlos al cerrar
+let extraUrlPreviaAuth = '';
+
+// Indica si la URL actual corresponde a un modal de autenticación (/login o /registro)
+function esUrlDeModalAuth() {
+    return REGEX_SUFIJO_AUTH.test(window.location.pathname);
+}
+
+// Devuelve la ruta de la página actual sin el sufijo /login o /registro (ej: /inicio/login -> /inicio)
+function obtenerRutaBaseAuth() {
+    const ruta = window.location.pathname.replace(REGEX_SUFIJO_AUTH, '').replace(/\/+$/, '');
+    return ruta || '/inicio';
+}
+
+// Refleja en la URL el modal de autenticación que se está abriendo
+function actualizarUrlModalAuth(idModal) {
+    const sufijo = SUFIJOS_MODAL_AUTH[idModal];
+    if (!sufijo) return;
+    const rutaDestino = `${obtenerRutaBaseAuth()}/${sufijo}`;
+    const vieneDeOtroModal = esUrlDeModalAuth();
+    modalAuthActivo = idModal;
+    if (window.location.pathname === rutaDestino) return;
+    const estado = { ...(window.history.state || {}), modalAuth: idModal };
+    if (vieneDeOtroModal) {
+        // Cambio entre login <-> registro: se reemplaza la entrada para no acumular historial
+        window.history.replaceState(estado, '', rutaDestino);
+    } else {
+        extraUrlPreviaAuth = `${window.location.search}${window.location.hash}`;
+        window.history.pushState(estado, '', rutaDestino);
     }
-    return `${url.pathname}${url.search}${url.hash}`;
 }
 
-function actualizarUrlLogin() {
-    if (!urlAnteriorAlLogin) urlAnteriorAlLogin = obtenerUrlBaseLogin();
-    if (window.location.pathname.endsWith('/login')) return;
-    const urlLogin = new URL(urlAnteriorAlLogin, window.location.origin);
-    urlLogin.pathname = `${urlLogin.pathname.replace(/\/$/, '')}/login`;
-    urlLogin.search = '';
-    urlLogin.hash = '';
-    window.history.pushState({ ...window.history.state, modalLogin: true }, '', urlLogin.pathname);
-}
-
-function restaurarUrlAnteriorAlLogin() {
-    if (!urlAnteriorAlLogin) return;
-    window.history.replaceState(window.history.state, '', urlAnteriorAlLogin);
-    urlAnteriorAlLogin = null;
-}
-
-function obtenerUrlBaseRegistro() {
-    const url = new URL(window.location.href);
-    const ruta = url.pathname.replace(/\/$/, '');
-    if (ruta.endsWith('/registro')) {
-        url.pathname = ruta.slice(0, -'/registro'.length) || '/inicio';
-    } else if (ruta === '') {
-        url.pathname = '/inicio';
-    }
-    return `${url.pathname}${url.search}${url.hash}`;
-}
-
-function actualizarUrlRegistro() {
-    if (!urlAnteriorAlRegistro) urlAnteriorAlRegistro = obtenerUrlBaseRegistro();
-    if (window.location.pathname.endsWith('/registro')) return;
-    const urlRegistro = new URL(urlAnteriorAlRegistro, window.location.origin);
-    urlRegistro.pathname = `${urlRegistro.pathname.replace(/\/$/, '')}/registro`;
-    urlRegistro.search = '';
-    urlRegistro.hash = '';
-    window.history.pushState({ ...window.history.state, modalRegistro: true }, '', urlRegistro.pathname);
-}
-
-function restaurarUrlAnteriorAlRegistro() {
-    if (!urlAnteriorAlRegistro) return;
-    window.history.replaceState(window.history.state, '', urlAnteriorAlRegistro);
-    urlAnteriorAlRegistro = null;
+// Restaura la URL base al cerrar un modal, solo si sigue siendo el modal activo
+function restaurarUrlModalAuth(idModal) {
+    if (modalAuthActivo !== idModal) return;
+    modalAuthActivo = null;
+    if (!esUrlDeModalAuth()) return;
+    const { modalAuth, ...estadoSinModal } = window.history.state || {};
+    window.history.replaceState(estadoSinModal, '', `${obtenerRutaBaseAuth()}${extraUrlPreviaAuth}`);
+    extraUrlPreviaAuth = '';
 }
 
 // Limpia fondos (backdrops) sobrantes de modales para evitar problemas de scroll/overlay
@@ -346,28 +337,23 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('hidden.bs.modal', limpiarBackdropsSobrantes);
     const modalLogin = document.getElementById('modalLogin');
     const modalRegister = document.getElementById('modalRegister');
-    if (window.location.pathname.endsWith('/login')) {
-        urlAnteriorAlLogin = obtenerUrlBaseLogin();
-        abrirModal('modalLogin');
-    }
-    if (window.location.pathname.endsWith('/registro')) {
-        urlAnteriorAlRegistro = obtenerUrlBaseRegistro();
-        abrirModal('modalRegister');
-    }
-    modalLogin?.addEventListener('show.bs.modal', actualizarUrlLogin);
-    modalLogin?.addEventListener('hidden.bs.modal', restaurarUrlAnteriorAlLogin);
-    modalRegister?.addEventListener('show.bs.modal', actualizarUrlRegistro);
-    modalRegister?.addEventListener('hidden.bs.modal', restaurarUrlAnteriorAlRegistro);
-    window.addEventListener('popstate', () => {
-        if (!window.location.pathname.endsWith('/login') && modalLogin?.classList.contains('show')) {
-            urlAnteriorAlLogin = null;
-            bootstrap.Modal.getInstance(modalLogin)?.hide();
-        }
-        if (!window.location.pathname.endsWith('/registro') && modalRegister?.classList.contains('show')) {
-            urlAnteriorAlRegistro = null;
-            bootstrap.Modal.getInstance(modalRegister)?.hide();
-        }
-    });
+    modalLogin?.addEventListener('show.bs.modal', () => actualizarUrlModalAuth('modalLogin'));
+    modalLogin?.addEventListener('hidden.bs.modal', () => restaurarUrlModalAuth('modalLogin'));
+    modalRegister?.addEventListener('show.bs.modal', () => actualizarUrlModalAuth('modalRegister'));
+    modalRegister?.addEventListener('hidden.bs.modal', () => restaurarUrlModalAuth('modalRegister'));
+    // Sincroniza el modal visible con la URL (carga directa y botones atrás/adelante del navegador)
+    const sincronizarModalesConUrl = () => {
+        const ruta = window.location.pathname.replace(/\/+$/, '');
+        [[modalLogin, '/login'], [modalRegister, '/registro']].forEach(([modal, sufijo]) => {
+            if (!modal) return;
+            const instancia = bootstrap.Modal.getOrCreateInstance(modal);
+            const debeEstarAbierto = ruta.endsWith(sufijo);
+            if (debeEstarAbierto && !modal.classList.contains('show')) instancia.show();
+            else if (!debeEstarAbierto && modal.classList.contains('show')) instancia.hide();
+        });
+    };
+    sincronizarModalesConUrl();
+    window.addEventListener('popstate', sincronizarModalesConUrl);
     const btnAgendar = document.getElementById('btn-agendar-hero');
     if (btnAgendar) {
         btnAgendar.removeAttribute('data-bs-toggle');
@@ -411,7 +397,10 @@ async function manejarLogin() {
     const btnLogin = document.getElementById('btnLogin');
     divExito?.classList.add('d-none');
     divError?.classList.add('d-none');
-    if (!validarEmail(emailInput) || !validarRequerido(passwordInput, 'La contraseña es obligatoria')) return;
+    // Se evalúan ambos campos (sin cortocircuito) para mostrar todos los mensajes de error a la vez
+    const emailValido = validarEmail(emailInput);
+    const passwordValido = validarRequerido(passwordInput, 'La contraseña es obligatoria');
+    if (!emailValido || !passwordValido) return;
     btnLogin.disabled = true;
     btnLogin.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Ingresando...';
     try {

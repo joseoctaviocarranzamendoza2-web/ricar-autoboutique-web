@@ -577,9 +577,7 @@
     <script th:src="@{/js/roles/administrador.js}"></script>
     <!-- Activa la sección correspondiente según la URL solicitada al servidor -->
     <script th:inline="javascript">
-        /*<![CDATA[*/
-        const seccionActiva = /*[[${seccionActiva}]]*/ null;
-        /*]]>*/
+        const seccionActiva = null;
         document.addEventListener('DOMContentLoaded', () => {
             if (seccionActiva && seccionActiva !== 'citas') {
                 mostrarSeccion(seccionActiva);

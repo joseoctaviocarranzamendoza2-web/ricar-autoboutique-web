@@ -453,9 +453,7 @@
     <script th:src="@{/js/roles/gerente.js}"></script>
     <!-- Activa la sección correspondiente según la URL solicitada al servidor -->
     <script th:inline="javascript">
-        /*<![CDATA[*/
-        const seccionActiva = /*[[${seccionActiva}]]*/ null;
-        /*]]>*/
+        const seccionActiva = null;
         document.addEventListener('DOMContentLoaded', () => {
             if (seccionActiva && seccionActiva !== 'dashboard') {
                 mostrarSeccion(seccionActiva);

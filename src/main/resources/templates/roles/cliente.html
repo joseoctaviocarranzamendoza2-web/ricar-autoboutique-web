@@ -284,9 +284,7 @@
     <script th:src="@{/js/roles/cliente.js}"></script>
     <!-- Activa la pestaña correspondiente según la URL solicitada al servidor (panel/cliente/{id}/perfil|compras|servicios|historial) -->
     <script th:inline="javascript">
-        /*<![CDATA[*/
-        const tabActiva = /*[[${tabActiva}]]*/ null;
-        /*]]>*/
+        const tabActiva = null;
         document.addEventListener('DOMContentLoaded', () => {
             if (tabActiva) activarTab(tabActiva, false);
         });

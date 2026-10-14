@@ -15,7 +15,7 @@
     <!-- inicio.css: Estilos específicos de la página inicio (hero, carrusel, badges) -->
     <link th:href="@{/css/navbar/inicio.css}" rel="stylesheet">
     <!-- Favicon del sitio -->
-    <link rel="icon" th:href="@{/img/icon.png}" type="image/png">
+    <link rel="icon" th:href="@{/img/icono/icon.png}" type="image/png">
 </head>
 <body class="d-flex flex-column min-vh-100">
     <!-- Navbar fragment incluido vía Thymeleaf: Mantiene navegación consistente y centraliza el markup del header -->
@@ -23,10 +23,10 @@
     <!-- Carrusel principal: Rotador de imágenes con llamado a la acción y mensajes de marca en la página de inicio -->
     <div id="carrusel-principal">
         <div class="carrusel-fondos">
-            <div class="fondo-slide activo" style="background-image: url('https://lh3.googleusercontent.com/gps-cs-s/AHRPTWm7yuLs98Zz_xqmmhOKd_8A1aMAPRae35gKXGePEy8NrKzOG659P6rgTTjBHezIWMCn24v-VnKmBL3787TyO2trF1I0saoTQMPTeDPddvTRJtqCygjN6nAQwoQou5WLNhzyEjHCdA=s680-w680-h510-rw');"></div>
-            <div class="fondo-slide" style="background-image: url('https://raw.githubusercontent.com/DAlvarezF7/multimedia/644601117d61742ce9b2e9972122b23cad182430/Ricarr4.webp');"></div>
-            <div class="fondo-slide" style="background-image: url('https://raw.githubusercontent.com/DAlvarezF7/multimedia/644601117d61742ce9b2e9972122b23cad182430/Ricarr2.webp');"></div>
-            <div class="fondo-slide" style="background-image: url('https://raw.githubusercontent.com/DAlvarezF7/multimedia/644601117d61742ce9b2e9972122b23cad182430/Ricarr6.webp');"></div>
+            <div class="fondo-slide activo" style="background-image: url('/img/carrusel/Ricarr3.webp');"></div>
+            <div class="fondo-slide" style="background-image: url('/img/carrusel/Ricarr4.webp');"></div>
+            <div class="fondo-slide" style="background-image: url('/img/carrusel/Ricarr2.webp');"></div>
+            <div class="fondo-slide" style="background-image: url('/img/carrusel/Ricarr6.webp');"></div>
         </div>
         <div class="carrusel-overlay"></div>
         <div class="carrusel-contenido">
@@ -70,7 +70,7 @@
                     <!-- Columna de Bootstrap que muestra la imagen solo en pantallas grandes y la centra horizontalmente -->
                     <div class="col-lg-6 d-none d-lg-flex justify-content-center">
                         <div class="img-carrusel-box">
-                            <img src="https://lh3.googleusercontent.com/gps-cs-s/AHRPTWnKNKsKp37CZfwm4UUPHQae9xH0FWrzbOzjm_xonxd8od57dAWF0vjrHW7DLLZ9B_L592eV1_jpKIgbPRWkbE72q_mbWfMB_R45xlMbPhLykUC62y_ruOK4J8JXyLaR_JGxG2c=s680-w680-h510-rw" alt="Taller mecánico RICAR AUTOBOUTIQUE" class="img-carrusel">
+                            <img src="/img/carrusel/Ricarr1.webp" alt="Taller mecánico RICAR AUTOBOUTIQUE" class="img-carrusel">
                             <div class="badge-flotante badge-top">
                                 <i class="bi bi-shield-check text-primary me-1"></i><span>Garantía incluida</span>
                             </div>

@@ -11,7 +11,7 @@ import lombok.Setter;
 // Marca la clase como entidad JPA
 @Entity
 // Tabla de usuarios registrados
-@Table(name = "usuarios")
+@Table(name = "usuario")
 // Lombok genera getters
 @Getter
 // Lombok genera setters
@@ -65,8 +65,69 @@ public class Usuario {
     @Column
     private String ciudad;
 
-    // Rol del usuario dentro del sistema (cliente, gerente, administrador)
-    @Column(nullable = false)
+    // Relación ManyToMany para 3FN: Tabla de unión usuario_rol que correlaciona usuarios con múltiples roles
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "usuario_rol",
+        joinColumns = @JoinColumn(name = "usuario_id"),
+        inverseJoinColumns = @JoinColumn(name = "rol_id")
+    )
+    private java.util.Set<Rol> roles = new java.util.HashSet<>();
+
+    // Columna rol en tabla usuarios para sincronización directa y compatibilidad
+    @Column(name = "rol", nullable = true)
     private String rol;
+
+    // Helper para verificar si el usuario posee un rol específico considerando la jerarquía normalizada (3FN)
+    public boolean tieneRol(String nombreRol) {
+        if (nombreRol == null) return false;
+        if (roles != null && roles.stream().anyMatch(r -> nombreRol.equalsIgnoreCase(r.getNombre()))) {
+            return true;
+        }
+        if (this.rol != null) {
+            String r = this.rol.toLowerCase();
+            if ("gerente".equalsIgnoreCase(nombreRol)) return r.contains("gerente");
+            if ("administrador".equalsIgnoreCase(nombreRol)) return r.contains("admin") || r.contains("gerente");
+            if ("cliente".equalsIgnoreCase(nombreRol)) return true;
+        }
+        return false;
+    }
+
+    // Devuelve los nombres de todos los roles asociados al usuario según jerarquía:
+    // Gerente: cliente, administrador, gerente (3 roles)
+    // Administrador: cliente, administrador (2 roles)
+    // Cliente: cliente (1 rol)
+    public java.util.List<String> getNombresRoles() {
+        if (tieneRol("gerente") || (this.rol != null && this.rol.toLowerCase().contains("gerente"))) {
+            return java.util.List.of("cliente", "administrador", "gerente");
+        }
+        if (tieneRol("administrador") || (this.rol != null && this.rol.toLowerCase().contains("admin"))) {
+            return java.util.List.of("cliente", "administrador");
+        }
+        return java.util.List.of("cliente");
+    }
+
+    // Devuelve el rol principal para compatibilidad con código existente
+    public String getRol() {
+        if (tieneRol("gerente") || (this.rol != null && this.rol.toLowerCase().contains("gerente"))) {
+            return "gerente";
+        }
+        if (tieneRol("administrador") || (this.rol != null && this.rol.toLowerCase().contains("admin"))) {
+            return "administrador";
+        }
+        return "cliente";
+    }
+
+    public void setRol(String rol) {
+        this.rol = rol;
+    }
+
+    // Agrega un rol al conjunto de roles del usuario
+    public void agregarRol(Rol rol) {
+        if (this.roles == null) {
+            this.roles = new java.util.HashSet<>();
+        }
+        this.roles.add(rol);
+    }
 
 }

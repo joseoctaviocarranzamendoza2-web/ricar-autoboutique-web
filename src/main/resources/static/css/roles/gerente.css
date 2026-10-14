@@ -330,6 +330,46 @@ body {
     cursor: pointer;
 }
 
+/* Dropdown de perfil en topbar: Elimina el fondo azul predeterminado de Bootstrap al hacer clic */
+.topbar-right .dropdown-menu {
+    border-radius: 12px;
+    padding: 6px;
+    min-width: 180px;
+    --bs-dropdown-link-active-bg: transparent;
+    --bs-dropdown-link-active-color: inherit;
+}
+
+.topbar-right .dropdown-menu .dropdown-item {
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-weight: 500;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.topbar-right .dropdown-menu .dropdown-item:hover {
+    background-color: var(--color-gris-claro);
+}
+
+.topbar-right .dropdown-menu .dropdown-item:active,
+.topbar-right .dropdown-menu .dropdown-item:focus {
+    background-color: var(--color-gris-claro);
+    color: inherit;
+}
+
+.topbar-right .dropdown-menu .dropdown-item.text-primary:hover,
+.topbar-right .dropdown-menu .dropdown-item.text-primary:focus,
+.topbar-right .dropdown-menu .dropdown-item.text-primary:active {
+    background-color: var(--color-azul-claro);
+    color: var(--color-azul-principal) !important;
+}
+
+.topbar-right .dropdown-menu .dropdown-item.text-danger:hover,
+.topbar-right .dropdown-menu .dropdown-item.text-danger:focus,
+.topbar-right .dropdown-menu .dropdown-item.text-danger:active {
+    background-color: rgba(239, 68, 68, 0.08);
+    color: #ef4444 !important;
+}
+
 /* Contenedor principal ajustable por el sidebar, con padding interior */
 #mainContent {
     margin-left: var(--ancho-sidebar);

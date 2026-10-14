@@ -1,7 +1,7 @@
 <!-- Página cliente protegida a través del rol cliente; el HTML se renderiza como vista personalizada con Thymeleaf para mantener sesión y autorización del usuario -->
 <!DOCTYPE html>
 <!-- Thymeleaf requiere xmlns:th para habilitar th:href, th:src y th:text en toda la plantilla -->
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -87,6 +87,11 @@
                             <i class="bi bi-clock-history me-2"></i>Historial
                         </button>
                     </li>
+                    <li class="nav-item ms-auto" sec:authorize="hasAnyAuthority('administrador', 'gerente')">
+                        <a class="perfil-tab-btn text-decoration-none" href="/rol">
+                            <i class="bi bi-arrow-repeat me-2"></i>Cambiar rol
+                        </a>
+                    </li>
                 </ul>
             </div>
             <div class="tab-content">
@@ -159,26 +164,6 @@
                                 <div>
                                     <div class="u-kpi-val" id="kpi-total">S/ 0.00</div>
                                     <div class="u-kpi-lbl">Total gastado</div>
-                                </div>
-                            </div>
-                            <!-- Los botones de acceso rápido ejecutan funciones de JavaScript para cambiar de pestaña sin recargar la vista y mantienen la navegación interna del perfil; esto mejora la accesibilidad entre secciones clave del cliente -->
-                            <div class="u-card p-0 overflow-hidden">
-                                <div class="u-card-header" style="border-radius: 16px 16px 0 0;">
-                                    <i class="bi bi-lightning-fill me-2"></i>Acceso Rápido
-                                </div>
-                                <div class="p-3 d-flex flex-column gap-2">
-                                    <button class="btn-acceso" onclick="activarTab('tab-compras')">
-                                        <i class="bi bi-bag me-2 text-primary"></i>Ver mis compras
-                                        <i class="bi bi-chevron-right ms-auto opacity-50"></i>
-                                    </button>
-                                    <button class="btn-acceso" onclick="activarTab('tab-servicios')">
-                                        <i class="bi bi-calendar-event me-2 text-primary"></i>Ver mis citas
-                                        <i class="bi bi-chevron-right ms-auto opacity-50"></i>
-                                    </button>
-                                    <button class="btn-acceso" onclick="activarTab('tab-historial')">
-                                        <i class="bi bi-clock-history me-2 text-primary"></i>Ver historial
-                                        <i class="bi bi-chevron-right ms-auto opacity-50"></i>
-                                    </button>
                                 </div>
                             </div>
                         </div>

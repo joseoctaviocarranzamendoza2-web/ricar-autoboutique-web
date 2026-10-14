@@ -10,8 +10,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 // Marca la clase como entidad JPA
 @Entity
-// Tabla de detalles de compra
-@Table(name = "detalle_compras")
+// Tabla de detalle de compra
+@Table(name = "detalle_compra")
 // Lombok genera getters
 @Getter
 // Lombok genera setters

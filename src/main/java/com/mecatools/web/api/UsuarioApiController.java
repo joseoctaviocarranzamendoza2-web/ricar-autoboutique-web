@@ -48,12 +48,33 @@ public class UsuarioApiController {
         }
         try {
             Usuario guardado = usuarioService.registrar(usuario);
-            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("id", guardado.getId(), "nombres", guardado.getNombres(), "rol", guardado.getRol(), "mensaje", "Usuario registrado correctamente"));
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                    "id", guardado.getId(),
+                    "nombres", guardado.getNombres(),
+                    "rol", guardado.getRol(),
+                    "roles", guardado.getNombresRoles(),
+                    "mensaje", "Usuario registrado correctamente"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
         }
+    }
+
+    // Endpoint para consultar los roles disponibles del usuario autenticado
+    @GetMapping("/roles-disponibles")
+    public ResponseEntity<?> rolesDisponibles(Authentication auth) {
+        if (auth == null || !auth.isAuthenticated() || !(auth.getPrincipal() instanceof UsuarioDetails details)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "No autenticado"));
+        }
+        Usuario u = details.getUsuario();
+        return ResponseEntity.ok(Map.of(
+                "id", u.getId(),
+                "nombres", u.getNombres(),
+                "apellidos", u.getApellidos(),
+                "rolActual", u.getRol(),
+                "roles", u.getNombresRoles()
+        ));
     }
 
     // Método para editar el perfil de un cliente existente. Valida los datos recibidos y devuelve una respuesta HTTP con el estado OK y el cliente editado, o un estado Not Found si no se encuentra el cliente.

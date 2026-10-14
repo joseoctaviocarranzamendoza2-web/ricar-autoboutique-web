@@ -12,8 +12,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 // Marca la clase como entidad JPA
 @Entity
-// Asigna la entidad a la tabla compras
-@Table(name = "compras")
+// Asigna la entidad a la tabla compra
+@Table(name = "compra")
 // Lombok genera getters
 @Getter
 // Lombok genera setters

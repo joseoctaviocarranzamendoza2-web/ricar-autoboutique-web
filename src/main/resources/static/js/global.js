@@ -119,24 +119,27 @@ function mostrarModalNoPermitido() {
     if (!modal) {
         document.body.insertAdjacentHTML('beforeend', `
         <div class="modal fade" id="modalNoPermitido" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header justify-content-center" style="background:var(--azul-oscuro,#0d1b2a);">
                         <h6 class="modal-title text-white fw-bold">
                             <i class="bi bi-shield-exclamation me-2"></i>Acción no disponible
                         </h6>
                     </div>
-                    <div class="modal-body text-center py-4">
+                    <div class="modal-body text-center py-4 px-4">
                         <div style="font-size:3rem; color:var(--celeste,#56aee8);">
-                            <i class="bi bi-calendar-x"></i>
+                            <i class="bi bi-person-badge"></i>
                         </div>
-                        <p class="mt-3 mb-1 fw-semibold">Esta acción es solo para clientes.</p>
-                        <p class="text-muted small mb-0">
-                            Tu cuenta de <strong id="rolNoPermitido"></strong> no puede agendar citas ni realizar compras. Por favor ingresa con una cuenta de cliente.
+                        <h5 class="mt-3 mb-2 fw-bold text-dark">Esta acción es solo para clientes</h5>
+                        <p class="text-muted small mb-3">
+                            Tu cuenta se encuentra actualmente con el rol de <strong id="rolNoPermitido" class="text-capitalize text-primary"></strong>, por lo que no puede agendar citas ni realizar compras. Por favor cambia a tu rol de <strong>Cliente</strong> para realizar esta acción.
                         </p>
                     </div>
-                    <div class="modal-footer border-0 justify-content-center">
-                        <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal">Entendido</button>
+                    <div class="modal-footer border-0 justify-content-center gap-2 pb-4">
+                        <button type="button" class="btn btn-primary px-3 fw-semibold" onclick="cambiarRolDirecto('cliente')">
+                            <i class="bi bi-arrow-repeat me-1"></i>Cambiar a rol Cliente
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">Entendido</button>
                     </div>
                 </div>
             </div>
@@ -149,6 +152,31 @@ function mostrarModalNoPermitido() {
         rolEl.textContent = sesion.rol === 'administrador' ? 'administrador' : 'gerente';
     }
     abrirModal('modalNoPermitido');
+}
+
+// Redirige al selector de rol
+function irACambiarRol() {
+    window.location.href = '/rol';
+}
+
+// Cambia el rol activo directamente y redirige
+function cambiarRolDirecto(nuevoRol) {
+    const sesion = obtenerSesion();
+    if (!sesion) {
+        window.location.href = '/inicio';
+        return;
+    }
+    sesion.rol = nuevoRol;
+    guardarSesion(sesion);
+    const m1 = bootstrap.Modal.getInstance(document.getElementById('modalNoPermitido'));
+    if (m1) m1.hide();
+    const m2 = bootstrap.Modal.getInstance(document.getElementById('modalNoPermitidoComentario'));
+    if (m2) m2.hide();
+    if (nuevoRol === 'cliente') {
+        window.location.href = `/cliente/${sesion.id}`;
+    } else {
+        window.location.href = `/${nuevoRol}/${sesion.id}`;
+    }
 }
 
 // Abre un modal de Bootstrap por id
@@ -417,7 +445,16 @@ async function manejarLogin() {
         const usuario = await resp.json();
         guardarSesion(usuario);
         divExito?.classList.remove('d-none');
-        const destino = { administrador: `/administrador/${usuario.id}`, gerente: `/gerente/${usuario.id}`, cliente: `/cliente/${usuario.id}` }[usuario.rol] || '/inicio';
+        const roles = Array.isArray(usuario.roles) ? usuario.roles.map(r => String(r).toLowerCase()) : [String(usuario.rol || 'cliente').toLowerCase()];
+        const esAdmin = roles.includes('administrador') || (usuario.rol && usuario.rol.toLowerCase().includes('admin'));
+        const esGerente = roles.includes('gerente') || (usuario.rol && usuario.rol.toLowerCase().includes('gerente'));
+
+        let destino;
+        if (esAdmin || esGerente || roles.length > 1) {
+            destino = '/rol';
+        } else {
+            destino = `/cliente/${usuario.id}`;
+        }
         setTimeout(() => {
             bootstrap.Modal.getInstance(document.getElementById('modalLogin'))?.hide();
             window.location.href = destino;

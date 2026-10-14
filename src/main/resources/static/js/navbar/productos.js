@@ -191,7 +191,7 @@ function agregarAlCarrito() {
         return;
     }
     if (sesion.rol !== 'cliente') {
-        mostrarAlertaCompra('Solo los clientes pueden realizar compras. Inicia sesión con una cuenta de cliente.', 'warning');
+        mostrarModalNoPermitido();
         return;
     }
     if (!productoActualId) return;
@@ -257,7 +257,7 @@ function abrirCarrito() {
         return;
     }
     if (sesion.rol !== 'cliente') {
-        mostrarToastCarritoSimple('Solo los clientes pueden realizar compras.');
+        mostrarModalNoPermitido();
         return;
     }
     renderCarritoModal();

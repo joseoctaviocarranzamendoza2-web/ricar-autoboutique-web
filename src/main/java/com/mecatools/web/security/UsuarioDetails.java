@@ -7,7 +7,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
-import java.util.List;
 
 // Implementa UserDetails para que Spring Security pueda leer la información de usuario
 public class UsuarioDetails implements UserDetails {
@@ -28,7 +27,9 @@ public class UsuarioDetails implements UserDetails {
     // Devuelve los roles/autoridades del usuario en el formato que Spring Security requiere
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(usuario.getRol().toLowerCase()));
+        return usuario.getNombresRoles().stream()
+                .map(nombre -> new SimpleGrantedAuthority(nombre.toLowerCase()))
+                .toList();
     }
 
     // Devuelve la contraseña del usuario para la autenticación

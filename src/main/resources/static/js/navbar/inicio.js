@@ -139,23 +139,33 @@ function mostrarModalNoPermitidoComentario() {
     if (!modal) {
         document.body.insertAdjacentHTML('beforeend', `
         <div class="modal fade" id="modalNoPermitidoComentario" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header justify-content-center" style="background:var(--azul-oscuro,#0d1b2a);">
                         <h6 class="modal-title text-white fw-bold"><i class="bi bi-shield-exclamation me-2"></i>Acción no disponible</h6>
                     </div>
-                    <div class="modal-body text-center py-4">
+                    <div class="modal-body text-center py-4 px-4">
                         <div style="font-size:3rem; color:var(--celeste,#56aee8);"><i class="bi bi-chat-square-x"></i></div>
-                        <p class="mt-3 mb-1 fw-semibold">No puedes comentar.</p>
-                        <p class="text-muted small mb-0">Solo los clientes pueden dejar comentarios sobre nuestros servicios.</p>
+                        <h5 class="mt-3 mb-2 fw-bold text-dark">Solo los clientes pueden comentar</h5>
+                        <p class="text-muted small mb-3">
+                            Tu cuenta se encuentra actualmente con el rol de <strong id="rolComentarioNoPermitido" class="text-capitalize text-primary"></strong>. Para publicar o gestionar comentarios, por favor cambia a tu rol de <strong>Cliente</strong>.
+                        </p>
                     </div>
-                    <div class="modal-footer border-0 justify-content-center">
-                        <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal">Entendido</button>
+                    <div class="modal-footer border-0 justify-content-center gap-2 pb-4">
+                        <button type="button" class="btn btn-primary px-3 fw-semibold" onclick="cambiarRolDirecto('cliente')">
+                            <i class="bi bi-arrow-repeat me-1"></i>Cambiar a rol Cliente
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary px-3" data-bs-dismiss="modal">Entendido</button>
                     </div>
                 </div>
             </div>
         </div>`);
         modal = document.getElementById('modalNoPermitidoComentario');
+    }
+    const sesion = typeof obtenerSesion === 'function' ? obtenerSesion() : null;
+    const rolEl = document.getElementById('rolComentarioNoPermitido');
+    if (rolEl && sesion) {
+        rolEl.textContent = sesion.rol === 'administrador' ? 'administrador' : 'gerente';
     }
     abrirModal('modalNoPermitidoComentario');
 }

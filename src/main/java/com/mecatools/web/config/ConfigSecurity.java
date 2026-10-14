@@ -5,7 +5,6 @@ package com.mecatools.web.config;
 import com.mecatools.web.models.Usuario;
 import com.mecatools.web.security.UsuarioDetails;
 import com.mecatools.web.security.UsuarioDetailsService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -34,14 +33,15 @@ import jakarta.servlet.http.HttpServletResponse;
 @EnableWebSecurity
 // Habilita seguridad en métodos con anotaciones
 @EnableMethodSecurity
-// Genera un constructor para inyectar dependencias finales
-@RequiredArgsConstructor
-
 // Clase que configura los filtros y proveedores de seguridad
 public class ConfigSecurity {
 
     // Servicio que carga el usuario y sus autoridades
     private final UsuarioDetailsService usuarioDetailsService;
+
+    public ConfigSecurity(UsuarioDetailsService usuarioDetailsService) {
+        this.usuarioDetailsService = usuarioDetailsService;
+    }
 
     // Bean para encriptar contraseñas usando BCrypt
     @Bean
@@ -80,6 +80,8 @@ public class ConfigSecurity {
                         .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/servicios/**", "/api/categorias/**",
                                 "/api/comentarios/**")
                         .permitAll()
+                        // Selección de rol para usuarios autenticados con múltiples roles
+                        .requestMatchers("/setupRole", "/rol", "/seleccionar-rol", "/api/usuarios/roles-disponibles").authenticated()
                         // Páginas del navbar con sesión: /inicio/{rol}/{id}, /servicios/{rol}/{id},
                         // etc.
                         .requestMatchers("/*/cliente/**").hasAuthority("cliente")
@@ -149,11 +151,16 @@ public class ConfigSecurity {
                 Usuario u = details.getUsuario();
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
+                String rolesJson = u.getRoles().stream()
+                        .map(r -> "\"" + r.getNombre() + "\"")
+                        .collect(java.util.stream.Collectors.joining(",", "[", "]"));
                 response.getWriter().write(String.format(
-                        "{\"id\":%d,\"nombres\":\"%s\",\"apellidos\":\"%s\",\"email\":\"%s\",\"telefono\":\"%s\",\"ciudad\":\"%s\",\"rol\":\"%s\"}",
+                        "{\"id\":%d,\"nombres\":\"%s\",\"apellidos\":\"%s\",\"email\":\"%s\",\"telefono\":\"%s\",\"ciudad\":\"%s\",\"rol\":\"%s\",\"roles\":%s}",
                         u.getId(), u.getNombres(), u.getApellidos(), u.getEmail(),
                         u.getTelefono() != null ? u.getTelefono() : "",
-                        u.getCiudad() != null ? u.getCiudad() : "Trujillo", u.getRol()));
+                        u.getCiudad() != null ? u.getCiudad() : "Trujillo",
+                        u.getRol(),
+                        rolesJson));
             }
         };
     }

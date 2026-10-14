@@ -20,7 +20,7 @@ public class SesionValidator {
             return false;
         }
         Usuario u = details.getUsuario();
-        return u.getId().equals(id) && u.getRol().equalsIgnoreCase(rolEsperado);
+        return u.getId().equals(id) && (u.getRol().equalsIgnoreCase(rolEsperado) || u.tieneRol(rolEsperado));
     }
 
 }

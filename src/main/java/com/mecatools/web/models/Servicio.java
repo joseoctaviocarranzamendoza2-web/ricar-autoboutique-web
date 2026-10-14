@@ -10,7 +10,7 @@ import lombok.Setter;
 // Marca la clase como entidad JPA
 @Entity
 // Tabla de servicios ofrecidos por la empresa
-@Table(name = "servicios")
+@Table(name = "servicio")
 // Lombok genera getters
 @Getter
 // Lombok genera setters

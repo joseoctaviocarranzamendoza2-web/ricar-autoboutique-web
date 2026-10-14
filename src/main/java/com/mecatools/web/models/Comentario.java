@@ -13,8 +13,8 @@ import lombok.Setter;
 
 // Marca la clase como entidad JPA
 @Entity
-// Tabla comentarios con restricción única por usuario
-@Table(name = "comentarios", uniqueConstraints = @UniqueConstraint(columnNames = "usuario_id"))
+// Tabla comentario con restricción única por usuario
+@Table(name = "comentario", uniqueConstraints = @UniqueConstraint(columnNames = "usuario_id"))
 // Lombok genera getters
 @Getter
 // Lombok genera setters

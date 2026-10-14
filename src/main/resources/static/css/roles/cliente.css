@@ -628,29 +628,6 @@ body {
     margin-top: 2px;
 }
 
-/* Botón de acceso: Botón grande full-width para items clicables */
-.btn-acceso {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    padding: 0.65rem 0.9rem;
-    border: 1px solid #e8eef4;
-    border-radius: 10px;
-    background: #f8fbff;
-    color: var(--oscuro);
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background .2s, border-color .2s;
-    text-align: left;
-}
-
-/* Hover del botón de acceso: Fondo azul pálido y borde de acento */
-.btn-acceso:hover {
-    background: #eef4fb;
-    border-color: var(--celeste);
-}
-
 /* Tablas en vistas de cliente: Ancho completo y colapso de bordes */
 .u-table {
     width: 100%;

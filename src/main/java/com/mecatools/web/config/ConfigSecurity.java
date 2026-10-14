@@ -31,7 +31,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.http.HttpStatus;
 import org.springframework.core.annotation.Order;
 import jakarta.servlet.http.HttpServletRequest;
@@ -101,9 +101,10 @@ public class ConfigSecurity {
                         .requestMatchers("/api/citas/**", "/api/compras/**").hasAuthority("cliente")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(resourceServer -> resourceServer
-                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
+                                .authenticationEntryPoint(authenticationEntryPoint())
+                                .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                        .authenticationEntryPoint(authenticationEntryPoint())
                         .accessDeniedHandler(accessDeniedHandler()));
         return http.build();
     }
@@ -163,7 +164,7 @@ public class ConfigSecurity {
                         .logoutSuccessUrl("/inicio").permitAll())
                 // Si no hay sesión y se pide un recurso protegido, responde 401 en vez de
                 // redirigir a una página de login HTML
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint())
                         .accessDeniedHandler(accessDeniedHandler()));
         return http.build();
     }
@@ -205,10 +206,15 @@ public class ConfigSecurity {
                     AuthenticationException exception) throws java.io.IOException {
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
-                response.setStatus(401);
-                response.getWriter().write("{\"error\":\"Credenciales incorrectas\"}");
+                escribirErrorJson(response, HttpStatus.UNAUTHORIZED, "Credenciales incorrectas");
             }
         };
+    }
+
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return (request, response, authException) -> escribirErrorJson(
+                response, HttpStatus.UNAUTHORIZED, "Se requiere autenticación válida para acceder a este recurso");
     }
 
     // Bean que devuelve JSON 403 cuando un usuario autenticado no tiene el rol
@@ -216,11 +222,21 @@ public class ConfigSecurity {
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
         return (request, response, accessDeniedException) -> {
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            response.setStatus(403);
-            response.getWriter().write("{\"error\":\"No tienes permisos para acceder a este recurso\"}");
+            escribirErrorJson(response, HttpStatus.FORBIDDEN,
+                    "No tienes permisos para acceder a este recurso");
         };
+    }
+
+    private void escribirErrorJson(HttpServletResponse response, HttpStatus status, String message)
+            throws java.io.IOException {
+        response.setStatus(status.value());
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("status", status.value());
+        body.put("error", status.getReasonPhrase());
+        body.put("message", message);
+        objectMapper.writeValue(response.getWriter(), body);
     }
 
 }

@@ -9,15 +9,14 @@ import com.mecatools.web.models.Usuario;
 import com.mecatools.web.repositories.CompraRepository;
 import com.mecatools.web.repositories.ProductoRepository;
 import com.mecatools.web.repositories.UsuarioRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
-@RequiredArgsConstructor
 
 // Clase de servicio para manejar operaciones relacionadas con la entidad Compra.
 public class CompraService {
@@ -27,17 +26,27 @@ public class CompraService {
     private final ProductoRepository productoRepository;
     private final UsuarioRepository usuarioRepository;
 
+    public CompraService(CompraRepository compraRepository, ProductoRepository productoRepository,
+            UsuarioRepository usuarioRepository) {
+        this.compraRepository = compraRepository;
+        this.productoRepository = productoRepository;
+        this.usuarioRepository = usuarioRepository;
+    }
+
     // Método para listar todas las compras realizadas por un usuario específico. Devuelve una lista de compras asociadas al ID del usuario proporcionado.
+    @Transactional(readOnly = true)
     public List<Compra> listarPorUsuario(Long idUsuario) {
         return compraRepository.findByUsuario_Id(idUsuario);
     }
 
     // Método para listar todas las compras disponibles en la base de datos. Devuelve una lista completa de todas las compras registradas.
+    @Transactional(readOnly = true)
     public List<Compra> listarTodas() {
         return compraRepository.findAll();
     }
 
     // Método para procesar una nueva compra. Valida la existencia del usuario y los productos, verifica el stock disponible, calcula el total de la compra y guarda la información en la base de datos.
+    @Transactional
     public Compra procesarCompra(CrearCompraDTO dto) {
         Usuario usuario = usuarioRepository.findById(dto.idUsuario()).orElseThrow(() -> new IllegalArgumentException("Usuario no válido"));
         Compra compra = new Compra();
@@ -67,6 +76,7 @@ public class CompraService {
     }
 
     // Método para cambiar el estado de una compra existente. Valida que el nuevo estado no sea nulo o vacío y actualiza la información en la base de datos.
+    @Transactional
     public Compra cambiarEstado(Long id, String nuevoEstado) {
         if (nuevoEstado == null || nuevoEstado.isBlank()) {
             throw new IllegalArgumentException("Estado requerido");

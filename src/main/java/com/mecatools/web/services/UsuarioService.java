@@ -8,16 +8,15 @@ import com.mecatools.web.repositories.CitaRepository;
 import com.mecatools.web.repositories.CompraRepository;
 import com.mecatools.web.repositories.RolRepository;
 import com.mecatools.web.repositories.UsuarioRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 
 // Clase de servicio para manejar operaciones relacionadas con la entidad Usuario.
 public class UsuarioService {
@@ -28,6 +27,15 @@ public class UsuarioService {
     private final CitaRepository citaRepository;
     private final CompraRepository compraRepository;
     private final PasswordEncoder passwordEncoder;
+
+    public UsuarioService(UsuarioRepository usuarioRepository, RolRepository rolRepository,
+            CitaRepository citaRepository, CompraRepository compraRepository, PasswordEncoder passwordEncoder) {
+        this.usuarioRepository = usuarioRepository;
+        this.rolRepository = rolRepository;
+        this.citaRepository = citaRepository;
+        this.compraRepository = compraRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     // Método para listar todos los clientes estándar (3FN: filtra usuarios con rol cliente que no son administradores ni gerentes)
     public List<Usuario> listarClientes() {
@@ -44,6 +52,7 @@ public class UsuarioService {
     // - cliente: rol cliente
     // - administrador: rol cliente + administrador
     // - gerente: rol cliente + administrador + gerente
+    @Transactional
     public Usuario registrar(Usuario usuario) {
         if (usuario.getPassword() == null || usuario.getPassword().length() < 8 || usuario.getPassword().length() > 30) {
             throw new IllegalArgumentException("La contraseña debe tener entre 8 y 30 caracteres");
@@ -91,6 +100,7 @@ public class UsuarioService {
     }
 
     // Método para editar el perfil de un usuario existente. Permite actualizar nombres, apellidos, teléfono y ciudad.
+    @Transactional
     public Usuario editarPerfil(Long id, Map<String, String> body) {
         Usuario u = usuarioRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
         if (body.containsKey("nombres")) u.setNombres(body.get("nombres"));
@@ -101,6 +111,7 @@ public class UsuarioService {
     }
 
     // Método para eliminar un usuario con rol de cliente. Valida la existencia del usuario, verifica que sea un cliente y maneja la eliminación de citas y compras asociadas según el parámetro 'forzar'.
+    @Transactional
     public void eliminarCliente(Long id, boolean forzar) {
         Usuario usuario = usuarioRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
         if (!"cliente".equalsIgnoreCase(usuario.getRol())) {

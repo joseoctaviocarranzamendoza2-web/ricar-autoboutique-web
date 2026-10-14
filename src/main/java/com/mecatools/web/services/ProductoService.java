@@ -4,14 +4,13 @@ import com.mecatools.web.models.Categoria;
 import com.mecatools.web.models.Producto;
 import com.mecatools.web.repositories.CategoriaRepository;
 import com.mecatools.web.repositories.ProductoRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 
 // Clase de servicio para manejar operaciones relacionadas con la entidad Producto.
 public class ProductoService {
@@ -19,6 +18,11 @@ public class ProductoService {
     // Inyección de dependencia de los repositorios necesarios para interactuar con la base de datos.
     private final ProductoRepository productoRepository;
     private final CategoriaRepository categoriaRepository;
+
+    public ProductoService(ProductoRepository productoRepository, CategoriaRepository categoriaRepository) {
+        this.productoRepository = productoRepository;
+        this.categoriaRepository = categoriaRepository;
+    }
 
     // Método para listar todos los productos disponibles en la base de datos.
     public List<Producto> listar() {
@@ -28,6 +32,12 @@ public class ProductoService {
     // Método para listar todos los productos asociados a una categoría específica. Devuelve una lista de productos filtrados por el ID de la categoría proporcionada.
     public List<Producto> listarPorCategoria(Long idCategoria) {
         return productoRepository.findByCategoria_Id(idCategoria);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Producto> buscar(String nombre, Long idCategoria) {
+        String nombreNormalizado = nombre == null || nombre.isBlank() ? null : nombre.trim();
+        return productoRepository.buscarCatalogo(nombreNormalizado, idCategoria);
     }
 
     // Método para obtener un producto por su ID. Devuelve un Optional que puede estar vacío si no se encuentra el producto.

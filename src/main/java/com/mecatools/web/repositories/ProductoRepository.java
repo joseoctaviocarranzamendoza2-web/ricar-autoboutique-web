@@ -4,6 +4,8 @@ package com.mecatools.web.repositories;
 // Importa la entidad Producto usada por este repositorio y la interfaz base de Spring Data JPA para operaciones CRUD
 import com.mecatools.web.models.Producto;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 // Repositorio Spring Data para la entidad Producto
@@ -11,5 +13,15 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     
     // Obtiene todos los productos que pertenecen a una categoría específica
     List<Producto> findByCategoria_Id(Long idCategoria);
+
+    @Query("""
+            SELECT p
+            FROM Producto p
+            WHERE (:nombre IS NULL OR LOWER(p.nombre) LIKE LOWER(CONCAT('%', :nombre, '%')))
+              AND (:idCategoria IS NULL OR p.categoria.id = :idCategoria)
+            ORDER BY LOWER(p.nombre)
+            """)
+    List<Producto> buscarCatalogo(@Param("nombre") String nombre,
+            @Param("idCategoria") Long idCategoria);
 
 }

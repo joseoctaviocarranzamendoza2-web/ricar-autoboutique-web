@@ -34,6 +34,13 @@ public class ProductoApiController {
         return ResponseEntity.ok(productoService.listar());
     }
 
+    @GetMapping("/buscar")
+    public ResponseEntity<List<Producto>> buscar(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) Long categoria) {
+        return ResponseEntity.ok(productoService.buscar(nombre, categoria));
+    }
+
     // Método para obtener un producto por su ID. Devuelve una respuesta HTTP con el estado OK y el producto encontrado, o un estado Not Found si no se encuentra.
     @GetMapping("/{id}")
     public ResponseEntity<?> obtener(@PathVariable Long id) {

@@ -5,17 +5,26 @@ package com.mecatools.web.config;
 import com.mecatools.web.models.Usuario;
 import com.mecatools.web.security.UsuarioDetails;
 import com.mecatools.web.security.UsuarioDetailsService;
+import tools.jackson.databind.ObjectMapper;
+import com.mecatools.web.security.JwtTokenService;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -24,6 +33,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.http.HttpStatus;
+import org.springframework.core.annotation.Order;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -38,9 +48,14 @@ public class ConfigSecurity {
 
     // Servicio que carga el usuario y sus autoridades
     private final UsuarioDetailsService usuarioDetailsService;
+    private final JwtTokenService jwtTokenService;
+    private final ObjectMapper objectMapper;
 
-    public ConfigSecurity(UsuarioDetailsService usuarioDetailsService) {
+    public ConfigSecurity(UsuarioDetailsService usuarioDetailsService, JwtTokenService jwtTokenService,
+            ObjectMapper objectMapper) {
         this.usuarioDetailsService = usuarioDetailsService;
+        this.jwtTokenService = jwtTokenService;
+        this.objectMapper = objectMapper;
     }
 
     // Bean para encriptar contraseñas usando BCrypt
@@ -63,8 +78,46 @@ public class ConfigSecurity {
         return provider;
     }
 
-    // Bean que define reglas de acceso, login y logout
     @Bean
+    @Order(1)
+    public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.securityMatcher("/api/**")
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios/registro").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/servicios/**",
+                                "/api/categorias/**", "/api/comentarios/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios/roles-disponibles").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios/**").hasAnyAuthority("administrador", "gerente")
+                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/**").hasAnyAuthority("administrador", "cliente")
+                        .requestMatchers(HttpMethod.DELETE, "/api/usuarios/**").hasAuthority("administrador")
+                        .requestMatchers(HttpMethod.POST, "/api/productos/**", "/api/servicios/**", "/api/categorias/**")
+                        .hasAnyAuthority("administrador", "gerente")
+                        .requestMatchers(HttpMethod.PUT, "/api/productos/**", "/api/servicios/**", "/api/categorias/**")
+                        .hasAnyAuthority("administrador", "gerente")
+                        .requestMatchers(HttpMethod.DELETE, "/api/productos/**", "/api/servicios/**",
+                                "/api/categorias/**").hasAuthority("administrador")
+                        .requestMatchers("/api/citas/**", "/api/compras/**").hasAuthority("cliente")
+                        .anyRequest().authenticated())
+                .oauth2ResourceServer(resourceServer -> resourceServer
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                        .accessDeniedHandler(accessDeniedHandler()));
+        return http.build();
+    }
+
+    private Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter() {
+        return jwt -> {
+            UsuarioDetails usuario = (UsuarioDetails) usuarioDetailsService.loadUserByUsername(jwt.getSubject());
+            return new UsernamePasswordAuthenticationToken(usuario, jwt, usuario.getAuthorities());
+        };
+    }
+
+    // Bean que define reglas de acceso, login y logout para las vistas web con sesión.
+    @Bean
+    @Order(2)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
@@ -74,14 +127,8 @@ public class ConfigSecurity {
                                 "/productos/register", "/nosotros", "/nosotros/login", "/nosotros/register",
                                 "/contacto", "/contacto/login", "/contacto/register", "/css/**", "/js/**", "/img/**")
                         .permitAll()
-                        // Endpoints públicos de autenticación/registro
-                        .requestMatchers("/api/usuarios/registro").permitAll()
-                        // Lectura pública del catálogo (para que la página se muestre sin login)
-                        .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/servicios/**", "/api/categorias/**",
-                                "/api/comentarios/**")
-                        .permitAll()
                         // Selección de rol para usuarios autenticados con múltiples roles
-                        .requestMatchers("/setupRole", "/rol", "/seleccionar-rol", "/api/usuarios/roles-disponibles").authenticated()
+                        .requestMatchers("/setupRole", "/rol", "/seleccionar-rol").authenticated()
                         // Páginas del navbar con sesión: /inicio/{rol}/{id}, /servicios/{rol}/{id},
                         // etc.
                         .requestMatchers("/*/cliente/**").hasAuthority("cliente")
@@ -96,25 +143,6 @@ public class ConfigSecurity {
                         .requestMatchers("/cliente/**").hasAuthority("cliente")
                         .requestMatchers("/administrador/**").hasAuthority("administrador")
                         .requestMatchers("/gerente/**").hasAuthority("gerente")
-                        // Escritura del catálogo: solo administrador y gerente
-                        .requestMatchers(HttpMethod.POST, "/api/productos/**", "/api/servicios/**",
-                                "/api/categorias/**")
-                        .hasAnyAuthority("administrador", "gerente")
-                        .requestMatchers(HttpMethod.PUT, "/api/productos/**", "/api/servicios/**", "/api/categorias/**")
-                        .hasAnyAuthority("administrador", "gerente")
-                        .requestMatchers(HttpMethod.DELETE, "/api/productos/**", "/api/servicios/**",
-                                "/api/categorias/**")
-                        .hasAuthority("administrador")
-                        // Lectura de clientes para los paneles de administración y gerencia
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios/**").hasAnyAuthority("administrador", "gerente")
-                        // El cliente puede actualizar su propio perfil; el controlador valida el ID
-                        // propietario
-                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/**").hasAnyAuthority("administrador", "cliente")
-                        // Gestión de clientes: solo administrador
-                        .requestMatchers("/api/usuarios/**").hasAuthority("administrador")
-                        // Citas, compras y comentarios: cualquier usuario autenticado (la propia clase
-                        // valida el rol puntual)
-                        .requestMatchers("/api/citas/**", "/api/compras/**", "/api/comentarios/**").authenticated()
                         // Cualquier otra petición requiere sesión iniciada
                         .anyRequest().authenticated())
                 .formLogin(form -> form
@@ -151,16 +179,19 @@ public class ConfigSecurity {
                 Usuario u = details.getUsuario();
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
-                String rolesJson = u.getRoles().stream()
-                        .map(r -> "\"" + r.getNombre() + "\"")
-                        .collect(java.util.stream.Collectors.joining(",", "[", "]"));
-                response.getWriter().write(String.format(
-                        "{\"id\":%d,\"nombres\":\"%s\",\"apellidos\":\"%s\",\"email\":\"%s\",\"telefono\":\"%s\",\"ciudad\":\"%s\",\"rol\":\"%s\",\"roles\":%s}",
-                        u.getId(), u.getNombres(), u.getApellidos(), u.getEmail(),
-                        u.getTelefono() != null ? u.getTelefono() : "",
-                        u.getCiudad() != null ? u.getCiudad() : "Trujillo",
-                        u.getRol(),
-                        rolesJson));
+                Map<String, Object> body = new LinkedHashMap<>();
+                body.put("id", u.getId());
+                body.put("nombres", u.getNombres());
+                body.put("apellidos", u.getApellidos());
+                body.put("email", u.getEmail());
+                body.put("telefono", u.getTelefono() != null ? u.getTelefono() : "");
+                body.put("ciudad", u.getCiudad() != null ? u.getCiudad() : "Trujillo");
+                body.put("rol", u.getRol());
+                body.put("roles", u.getNombresRoles());
+                body.put("token", jwtTokenService.generarToken(u));
+                body.put("tokenType", "Bearer");
+                body.put("expiresIn", JwtTokenService.TOKEN_LIFETIME.toSeconds());
+                objectMapper.writeValue(response.getWriter(), body);
             }
         };
     }

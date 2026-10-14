@@ -1,5 +1,22 @@
 // Clave usada en sessionStorage para guardar la sesión del usuario
 const SESION_KEY = 'mecatools_sesion';
+const JWT_KEY = 'mecatools_access_token';
+
+const fetchOriginal = window.fetch.bind(window);
+window.fetch = (input, init = {}) => {
+    const url = new URL(input instanceof Request ? input.url : input, window.location.href);
+    if (url.origin !== window.location.origin || !url.pathname.startsWith('/api/')) {
+        return fetchOriginal(input, init);
+    }
+
+    const headers = new Headers(init.headers || (input instanceof Request ? input.headers : undefined));
+    const token = sessionStorage.getItem(JWT_KEY);
+    const method = String(init.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
+    const esLecturaPublica = method === 'GET'
+        && /^\/api\/(productos|servicios|categorias|comentarios)(\/|$)/.test(url.pathname);
+    if (token && !esLecturaPublica) headers.set('Authorization', `Bearer ${token}`);
+    return fetchOriginal(input, { ...init, headers });
+};
 
 // Recupera el objeto de sesión desde sessionStorage o null si no existe
 function obtenerSesion() {
@@ -9,12 +26,23 @@ function obtenerSesion() {
 
 // Guarda el usuario en sessionStorage para mantener sesión en el cliente
 function guardarSesion(usuario) {
-    sessionStorage.setItem(SESION_KEY, JSON.stringify(usuario));
+    const datosSesion = { ...usuario };
+    if (typeof datosSesion.token === 'string' && datosSesion.token) {
+        sessionStorage.setItem(JWT_KEY, datosSesion.token);
+        delete datosSesion.token;
+    }
+    sessionStorage.setItem(SESION_KEY, JSON.stringify(datosSesion));
 }
 
 // Elimina la sesión del cliente y redirige al inicio
-function cerrarSesion() {
+async function cerrarSesion() {
     sessionStorage.removeItem(SESION_KEY);
+    sessionStorage.removeItem(JWT_KEY);
+    try {
+        await fetchOriginal('/logout', { method: 'POST' });
+    } catch (error) {
+        console.error('No se pudo invalidar la sesión web en el servidor:', error);
+    }
     window.location.href = '/inicio';
 }
 

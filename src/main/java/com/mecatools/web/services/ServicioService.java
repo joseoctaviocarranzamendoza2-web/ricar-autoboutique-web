@@ -2,20 +2,21 @@ package com.mecatools.web.services;
 
 import com.mecatools.web.models.Servicio;
 import com.mecatools.web.repositories.ServicioRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
-
 // Clase de servicio para manejar operaciones relacionadas con la entidad Servicio.
 public class ServicioService {
 
     // Inyección de dependencia del repositorio de servicios para interactuar con la base de datos.
     private final ServicioRepository servicioRepository;
+
+    public ServicioService(ServicioRepository servicioRepository) {
+        this.servicioRepository = servicioRepository;
+    }
 
     // Método para listar todos los servicios disponibles en la base de datos.
     public List<Servicio> listar() {

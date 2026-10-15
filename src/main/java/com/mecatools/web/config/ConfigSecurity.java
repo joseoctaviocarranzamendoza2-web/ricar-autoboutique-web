@@ -28,11 +28,18 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import com.mecatools.web.security.JwtCookieAuthenticationFilter;
 import org.springframework.core.annotation.Order;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -62,6 +69,11 @@ public class ConfigSecurity {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SecurityContextRepository webSecurityContextRepository() {
+        return new HttpSessionSecurityContextRepository();
     }
 
     // Bean que expone el AuthenticationManager de Spring
@@ -116,11 +128,22 @@ public class ConfigSecurity {
         };
     }
 
+    @Bean
+    public JwtCookieAuthenticationFilter jwtCookieAuthenticationFilter(JwtDecoder jwtDecoder) {
+        return new JwtCookieAuthenticationFilter(jwtDecoder, usuarioDetailsService, webSecurityContextRepository());
+    }
+
     // Bean que define reglas de acceso, login y logout para las vistas web con sesión.
     @Bean
     @Order(2)
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtDecoder jwtDecoder) throws Exception {
         http.csrf(csrf -> csrf.disable())
+                .securityContext(context -> context
+                        .securityContextRepository(webSecurityContextRepository())
+                        .requireExplicitSave(false))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .addFilterBefore(jwtCookieAuthenticationFilter(jwtDecoder), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         // Recursos estáticos y páginas públicas sin sesión
                         .requestMatchers("/", "/inicio", "/inicio/login", "/inicio/register", "/servicios",
@@ -128,8 +151,9 @@ public class ConfigSecurity {
                                 "/productos/register", "/nosotros", "/nosotros/login", "/nosotros/register",
                                 "/contacto", "/contacto/login", "/contacto/register", "/css/**", "/js/**", "/img/**")
                         .permitAll()
-                        // Selección de rol para usuarios autenticados con múltiples roles
-                        .requestMatchers("/setupRole", "/rol", "/seleccionar-rol").authenticated()
+                        // Selección de rol: pública para que funcione aunque la sesión HTTP haya
+                        // expirado. La autenticación real la gestiona rol.js via sessionStorage.
+                        .requestMatchers("/setupRole", "/rol", "/seleccionar-rol").permitAll()
                         // Páginas del navbar con sesión: /inicio/{rol}/{id}, /servicios/{rol}/{id},
                         // etc.
                         .requestMatchers("/*/cliente/**").hasAuthority("cliente")
@@ -147,29 +171,30 @@ public class ConfigSecurity {
                         // Cualquier otra petición requiere sesión iniciada
                         .anyRequest().authenticated())
                 .formLogin(form -> form
+                        .securityContextRepository(webSecurityContextRepository())
                         // Ruta de procesamiento de login personalizada
                         .loginProcessingUrl("/login")
                         // Nombre del parámetro de usuario en el formulario
                         .usernameParameter("email")
                         // Nombre del parámetro de contraseña en el formulario
                         .passwordParameter("password")
-                        // Handler que devuelve JSON en login exitoso
+                        // Handler que devuelve JSON en login exitoso y emite cookie de 24h
                         .successHandler(successHandler())
                         // Handler que devuelve JSON en login fallido
                         .failureHandler(failureHandler()).permitAll())
                 .logout(logout -> logout
                         // Ruta de logout personalizada
                         .logoutUrl("/logout")
+                        .deleteCookies("JSESSIONID", "access_token", "jwt_token", "rol_activo")
                         // Redirige a /inicio tras cerrar sesión
                         .logoutSuccessUrl("/inicio").permitAll())
-                // Si no hay sesión y se pide un recurso protegido, responde 401 en vez de
-                // redirigir a una página de login HTML
+                // Si no hay sesión ni token válido, responde 401 JSON; si no tiene permisos, responde 403 JSON
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint())
                         .accessDeniedHandler(accessDeniedHandler()));
         return http.build();
     }
 
-    // Bean que devuelve JSON cuando el login es exitoso
+    // Bean que devuelve JSON cuando el login es exitoso y emite la cookie JWT de 24 horas
     @Bean
     public AuthenticationSuccessHandler successHandler() {
         return new AuthenticationSuccessHandler() {
@@ -178,6 +203,27 @@ public class ConfigSecurity {
                     Authentication authentication) throws java.io.IOException {
                 UsuarioDetails details = (UsuarioDetails) authentication.getPrincipal();
                 Usuario u = details.getUsuario();
+                String token = jwtTokenService.generarToken(u);
+
+                // Emite cookie con el JWT de 24 horas para que persista la autenticación en todas las vistas web
+                ResponseCookie cookie = ResponseCookie.from("access_token", token)
+                        .path("/")
+                        .maxAge(JwtTokenService.TOKEN_LIFETIME)
+                        .httpOnly(false)
+                        .sameSite("Lax")
+                        .build();
+                response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+                if (u.getNombresRoles().size() == 1) {
+                    ResponseCookie rolCookie = ResponseCookie.from("rol_activo", u.getRol().toLowerCase())
+                            .path("/")
+                            .maxAge(JwtTokenService.TOKEN_LIFETIME)
+                            .httpOnly(false)
+                            .sameSite("Lax")
+                            .build();
+                    response.addHeader(HttpHeaders.SET_COOKIE, rolCookie.toString());
+                }
+
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
                 Map<String, Object> body = new LinkedHashMap<>();
@@ -189,7 +235,7 @@ public class ConfigSecurity {
                 body.put("ciudad", u.getCiudad() != null ? u.getCiudad() : "Trujillo");
                 body.put("rol", u.getRol());
                 body.put("roles", u.getNombresRoles());
-                body.put("token", jwtTokenService.generarToken(u));
+                body.put("token", token);
                 body.put("tokenType", "Bearer");
                 body.put("expiresIn", JwtTokenService.TOKEN_LIFETIME.toSeconds());
                 objectMapper.writeValue(response.getWriter(), body);
@@ -213,12 +259,13 @@ public class ConfigSecurity {
 
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
-        return (request, response, authException) -> escribirErrorJson(
-                response, HttpStatus.UNAUTHORIZED, "Se requiere autenticación válida para acceder a este recurso");
+        return (request, response, authException) -> {
+            escribirErrorJson(
+                    response, HttpStatus.UNAUTHORIZED, "Se requiere autenticación válida para acceder a este recurso");
+        };
     }
 
-    // Bean que devuelve JSON 403 cuando un usuario autenticado no tiene el rol
-    // requerido
+    // Bean que devuelve JSON 403 cuando un usuario autenticado no tiene el rol requerido
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
         return (request, response, accessDeniedException) -> {
@@ -240,3 +287,4 @@ public class ConfigSecurity {
     }
 
 }
+

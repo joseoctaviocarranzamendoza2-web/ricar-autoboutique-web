@@ -3,20 +3,21 @@ package com.mecatools.web.services;
 import com.mecatools.web.models.Comentario;
 import com.mecatools.web.models.Usuario;
 import com.mecatools.web.repositories.ComentarioRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
-
 // Clase de servicio para manejar operaciones relacionadas con la entidad Comentario.
 public class ComentarioService {
 
     // Inyección de dependencia del repositorio de comentarios para interactuar con la base de datos.
     private final ComentarioRepository comentarioRepository;
+
+    public ComentarioService(ComentarioRepository comentarioRepository) {
+        this.comentarioRepository = comentarioRepository;
+    }
 
     // Método para listar todos los comentarios disponibles en la base de datos.
     public List<Comentario> listar() {

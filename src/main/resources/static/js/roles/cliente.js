@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
     actualizarNavbar();
+    verificarBotonCambiarRol();
     await Promise.all([cargarCompras(), cargarCitas()]);
     poblarPerfil();
     iniciarEdicion();
@@ -19,6 +20,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     iniciarFiltrosServicios();
     iniciarSincronizacionUrl();
 });
+
+// Hace visible el botón de cambiar rol si el usuario en sesión cuenta con más de un rol disponible
+function verificarBotonCambiarRol() {
+    const s = (typeof obtenerSesion === 'function') ? obtenerSesion() : null;
+    if (s && Array.isArray(s.roles) && s.roles.length > 1) {
+        const item = document.getElementById('item-cambiar-rol');
+        if (item) {
+            item.classList.remove('d-none');
+        }
+    }
+}
 
 // Sincroniza la pestaña activa con la URL del navegador al usar los botones de atrás/adelante
 window.addEventListener('popstate', (e) => {

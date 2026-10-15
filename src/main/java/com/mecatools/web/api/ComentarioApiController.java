@@ -5,7 +5,6 @@ import com.mecatools.web.models.Usuario;
 import com.mecatools.web.security.UsuarioDetails;
 import com.mecatools.web.services.ComentarioService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -19,14 +18,15 @@ import java.util.NoSuchElementException;
 @RestController
 // Mapeo de la ruta base para las operaciones de comentario.
 @RequestMapping("/api/comentarios")
-// Anotación de Lombok para generar un constructor con los campos finales.
-@RequiredArgsConstructor
-
 // Clase de controlador para manejar las solicitudes HTTP relacionadas con la entidad Comentario.
 public class ComentarioApiController {
 
     // Inyección de dependencia del servicio de comentario para manejar la lógica de negocio.
     private final ComentarioService comentarioService;
+
+    public ComentarioApiController(ComentarioService comentarioService) {
+        this.comentarioService = comentarioService;
+    }
 
     // Método para listar todos los comentarios disponibles en la base de datos. Devuelve una respuesta HTTP con el estado OK y la lista de comentarios.
     @GetMapping

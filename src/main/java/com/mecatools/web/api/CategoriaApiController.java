@@ -3,7 +3,6 @@ package com.mecatools.web.api;
 import com.mecatools.web.models.Categoria;
 import com.mecatools.web.services.CategoriaService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -16,14 +15,14 @@ import java.util.NoSuchElementException;
 @RestController
 // Mapeo de la ruta base para las operaciones de categoría.
 @RequestMapping("/api/categorias")
-// Anotación de Lombok para generar un constructor con los campos finales.
-@RequiredArgsConstructor
-
-// Clase de controlador para manejar las solicitudes HTTP relacionadas con la entidad Categoria.
 public class CategoriaApiController {
 
     // Inyección de dependencia del servicio de categoría para manejar la lógica de negocio.
     private final CategoriaService categoriaService;
+
+    public CategoriaApiController(CategoriaService categoriaService) {
+        this.categoriaService = categoriaService;
+    }
 
     // Método para listar todas las categorías disponibles en la base de datos. Devuelve una respuesta HTTP con el estado OK y la lista de categorías.
     @GetMapping

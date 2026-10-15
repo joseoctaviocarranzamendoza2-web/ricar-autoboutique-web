@@ -3,7 +3,6 @@ package com.mecatools.web.api;
 import com.mecatools.web.models.Cita;
 import com.mecatools.web.services.CitaService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -17,14 +16,15 @@ import java.util.NoSuchElementException;
 @RestController
 // Mapeo de la ruta base para las operaciones de cita.
 @RequestMapping("/api/citas")
-// Anotación de Lombok para generar un constructor con los campos finales.
-@RequiredArgsConstructor
-
 // Clase de controlador para manejar las solicitudes HTTP relacionadas con la entidad Cita.
 public class CitaApiController {
 
     // Inyección de dependencia del servicio de cita para manejar la lógica de negocio.
     private final CitaService citaService;
+
+    public CitaApiController(CitaService citaService) {
+        this.citaService = citaService;
+    }
 
     // Método para listar todas las citas disponibles en la base de datos. Devuelve una respuesta HTTP con el estado OK y la lista de citas, o filtra por usuario si se proporciona un parámetro.
     @GetMapping

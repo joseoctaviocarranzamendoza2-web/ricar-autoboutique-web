@@ -4,18 +4,21 @@ import com.mecatools.web.models.Rol;
 import com.mecatools.web.models.Usuario;
 import com.mecatools.web.repositories.RolRepository;
 import com.mecatools.web.repositories.UsuarioRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
-@RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
     private final RolRepository rolRepository;
     private final UsuarioRepository usuarioRepository;
+
+    public DataInitializer(RolRepository rolRepository, UsuarioRepository usuarioRepository) {
+        this.rolRepository = rolRepository;
+        this.usuarioRepository = usuarioRepository;
+    }
 
     @Override
     public void run(String... args) {
@@ -24,7 +27,8 @@ public class DataInitializer implements CommandLineRunner {
         Rol rolAdmin = obtenerOCrearRol("administrador");
         Rol rolGerente = obtenerOCrearRol("gerente");
 
-        // Sincroniza y correlaciona usuarios existentes con la tabla de unión usuario_rol
+        // Sincroniza y correlaciona usuarios existentes con la tabla de unión
+        // usuario_rol
         List<Usuario> usuarios = usuarioRepository.findAll();
         for (Usuario u : usuarios) {
             String rolStr = (u.getRol() != null ? u.getRol() : "").toLowerCase();

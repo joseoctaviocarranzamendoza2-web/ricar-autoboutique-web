@@ -4,7 +4,6 @@ import com.mecatools.web.dto.CrearCompraDTO;
 import com.mecatools.web.models.Compra;
 import com.mecatools.web.services.CompraService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -17,14 +16,14 @@ import java.util.NoSuchElementException;
 @RestController
 // Mapeo de la ruta base para las operaciones de compra.
 @RequestMapping("/api/compras")
-// Anotación de Lombok para generar un constructor con los campos finales.
-@RequiredArgsConstructor
-
-// Clase de controlador para manejar las solicitudes HTTP relacionadas con la entidad Compra.
 public class CompraApiController {
 
     // Inyección de dependencia del servicio de compra para manejar la lógica de negocio.
     private final CompraService compraService;
+
+    public CompraApiController(CompraService compraService) {
+        this.compraService = compraService;
+    }
 
     // Método para listar todas las compras disponibles en la base de datos. Devuelve una respuesta HTTP con el estado OK y la lista de compras, o filtra por usuario si se proporciona un parámetro.
     @GetMapping

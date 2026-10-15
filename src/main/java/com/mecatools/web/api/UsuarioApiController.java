@@ -4,7 +4,6 @@ import com.mecatools.web.models.Usuario;
 import com.mecatools.web.security.UsuarioDetails;
 import com.mecatools.web.services.UsuarioService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,14 +17,14 @@ import java.util.NoSuchElementException;
 @RestController
 // Mapeo de la ruta base para las operaciones de usuario.
 @RequestMapping("/api/usuarios")
-// Anotación de Lombok para generar un constructor con los campos finales.
-@RequiredArgsConstructor
-
-// Clase de controlador para manejar las solicitudes HTTP relacionadas con la entidad Usuario.
 public class UsuarioApiController {
 
     // Inyección de dependencia del servicio de usuario para manejar la lógica de negocio.
     private final UsuarioService usuarioService;
+
+    public UsuarioApiController(UsuarioService usuarioService) {
+        this.usuarioService = usuarioService;
+    }
 
     // Método para listar todos los clientes disponibles en la base de datos. Devuelve una respuesta HTTP con el estado OK y la lista de clientes.
     @GetMapping

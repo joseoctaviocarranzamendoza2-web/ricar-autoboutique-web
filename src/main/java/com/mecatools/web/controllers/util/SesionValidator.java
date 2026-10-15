@@ -2,7 +2,9 @@ package com.mecatools.web.controllers.util;
 
 import com.mecatools.web.models.Usuario;
 import com.mecatools.web.security.UsuarioDetails;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -10,17 +12,24 @@ import org.springframework.stereotype.Component;
 // Clase que valida la sesión activa del usuario
 public class SesionValidator {
 
-    // Verifica que la sesión activa corresponda al rol e id esperados
-    public boolean esValida(Authentication authentication, String rolEsperado, Long id) {
+    // Valida que la sesión activa corresponda al usuario y rol esperados.
+    public void validarAcceso(Authentication authentication, String rolEsperado, Long id) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return false;
+            throw new AuthenticationCredentialsNotFoundException("Se requiere una sesión autenticada");
         }
         Object principal = authentication.getPrincipal();
         if (!(principal instanceof UsuarioDetails details)) {
-            return false;
+            throw new AccessDeniedException("La identidad autenticada no corresponde a un usuario del sistema");
         }
         Usuario u = details.getUsuario();
-        return u.getId().equals(id) && (u.getRol().equalsIgnoreCase(rolEsperado) || u.tieneRol(rolEsperado));
+        if (u.getId() == null || !u.getId().equals(id)) {
+            throw new AccessDeniedException("No tienes permisos para acceder a este recurso");
+        }
+        boolean tieneAutoridad = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equalsIgnoreCase(rolEsperado));
+        if (!tieneAutoridad) {
+            throw new AccessDeniedException("No tienes permisos para acceder a este recurso");
+        }
     }
 
 }

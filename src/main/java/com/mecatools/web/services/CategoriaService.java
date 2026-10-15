@@ -2,20 +2,21 @@ package com.mecatools.web.services;
 
 import com.mecatools.web.models.Categoria;
 import com.mecatools.web.repositories.CategoriaRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
-
 // Clase de servicio para manejar operaciones relacionadas con la entidad Categoria.
 public class CategoriaService {
 
     // Inyección de dependencia del repositorio de categorías para interactuar con la base de datos.
     private final CategoriaRepository categoriaRepository;
+
+    public CategoriaService(CategoriaRepository categoriaRepository) {
+        this.categoriaRepository = categoriaRepository;
+    }
 
     // Método para listar todas las categorías disponibles en la base de datos.
     public List<Categoria> listar() {

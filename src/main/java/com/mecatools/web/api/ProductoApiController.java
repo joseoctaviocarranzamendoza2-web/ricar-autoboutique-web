@@ -3,7 +3,6 @@ package com.mecatools.web.api;
 import com.mecatools.web.models.Producto;
 import com.mecatools.web.services.ProductoService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -16,14 +15,14 @@ import java.util.NoSuchElementException;
 @RestController
 // Mapeo de la ruta base para las operaciones de producto.
 @RequestMapping("/api/productos")
-// Anotación de Lombok para generar un constructor con los campos finales.
-@RequiredArgsConstructor
-
-// Clase de controlador para manejar las solicitudes HTTP relacionadas con la entidad Producto.
 public class ProductoApiController {
 
     // Inyección de dependencia del servicio de producto para manejar la lógica de negocio.
     private final ProductoService productoService;
+
+    public ProductoApiController(ProductoService productoService) {
+        this.productoService = productoService;
+    }
 
     // Método para listar todos los productos disponibles en la base de datos. Devuelve una respuesta HTTP con el estado OK y la lista de productos, o filtra por categoría si se proporciona un parámetro.
     @GetMapping

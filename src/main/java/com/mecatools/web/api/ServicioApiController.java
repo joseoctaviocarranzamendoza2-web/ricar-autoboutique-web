@@ -3,7 +3,6 @@ package com.mecatools.web.api;
 import com.mecatools.web.models.Servicio;
 import com.mecatools.web.services.ServicioService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -16,14 +15,14 @@ import java.util.NoSuchElementException;
 @RestController
 // Mapeo de la ruta base para las operaciones de servicio.
 @RequestMapping("/api/servicios")
-// Anotación de Lombok para generar un constructor con los campos finales.
-@RequiredArgsConstructor
-
-// Clase de controlador para manejar las solicitudes HTTP relacionadas con la entidad Servicio.
 public class ServicioApiController {
 
     // Inyección de dependencia del servicio de servicio para manejar la lógica de negocio.
     private final ServicioService servicioService;
+
+    public ServicioApiController(ServicioService servicioService) {
+        this.servicioService = servicioService;
+    }
 
     // Método para listar todos los servicios disponibles en la base de datos. Devuelve una respuesta HTTP con el estado OK y la lista de servicios.
     @GetMapping

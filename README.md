@@ -49,7 +49,7 @@ El sistema implementa una **Arquitectura en Capas Desacoplada** que combina el p
 1. **Normalización en Tercera Forma Normal (3FN):** La relación de usuarios y roles está desacoplada en `usuario`, `rol` y la tabla relacional `usuario_rol`, permitiendo que un usuario tenga múltiples roles simultáneos (ej. Administrador o Gerente conservan también los privilegios de Cliente).
 2. **Seguridad Híbrida (Web MVC + REST Stateless):**
    - La API (`/api/**`) es **Stateless** y se protege mediante tokens **JWT** (JSON Web Tokens) transmitidos en el encabezado `Authorization: Bearer <token>` o mediante la cookie segura `access_token`.
-   - Las vistas Web gestionan la navegación con sesión HTTP respaldada por la misma cookie JWT con vigencia de 24 horas, garantizando que el usuario navegue sin pérdida de contexto entre diferentes roles.
+   - Las vistas Web gestionan la navegación con sesión HTTP respaldada por la misma cookie JWT con vigencia de 20 minutos, garantizando que el usuario navegue sin pérdida de contexto entre diferentes roles.
 3. **Transaccionalidad ACID:** Operaciones complejas como la orden de compra (`CompraService`) garantizan consistencia atómica mediante `@Transactional`, ejecutando rollback automático ante fallas de stock.
 
 ---
@@ -99,7 +99,7 @@ A continuación se detalla la organización de paquetes y la responsabilidad de 
 | **`repositories`** | `ServicioRepository.java` | `JpaRepository<Servicio, Long>` | Operaciones de persistencia y catálogo para servicios automotrices ofrecidos. |
 | **`repositories`** | `UsuarioRepository.java` | `JpaRepository<Usuario, Long>` | Consultas JPQL avanzadas: búsqueda por email (`findByEmail`), verificación de existencia y búsqueda ordenada de usuarios con rol cliente (`findByRol`). |
 | **`security`** | `JwtCookieAuthenticationFilter.java` | `OncePerRequestFilter` | Filtro de seguridad que intercepta cada petición HTTP, extrae el JWT desde la cookie `access_token` o el header `Authorization: Bearer`, valida la firma y carga la autenticación en el `SecurityContext`. |
-| **`security`** | `JwtTokenService.java` | `@Service` | Genera y valida tokens JWT firmados con HMAC SHA-256, asignando claims de subject, roles, emisión y expiración fijada a 24 horas. |
+| **`security`** | `JwtTokenService.java` | `@Service` | Genera y valida tokens JWT firmados con HMAC SHA-256, asignando claims de subject, roles, emisión y expiración fijada a 20 minutos. |
 | **`security`** | `UsuarioDetails.java` | `UserDetails` | Adaptador que implementa el contrato de Spring Security envolviendo a la entidad `Usuario`, convirtiendo sus roles a `GrantedAuthority`. |
 | **`security`** | `UsuarioDetailsService.java` | `@Service`, `UserDetailsService` | Carga el usuario desde la base de datos por su email para autenticación contra DaoAuthenticationProvider de Spring Security. |
 | **`services`** | `CategoriaService.java` | `@Service` | Capa de negocio para validación, creación, actualización y eliminación de categorías de productos. |
@@ -118,7 +118,7 @@ A continuación se desglosan todos los recursos de configuración, datos SQL, es
 
 | Módulo / Carpeta | Archivo / Recurso | Tipo de Archivo | Descripción y Función en la Aplicación |
 | :--- | :--- | :--- | :--- |
-| **Configuración** | `application.properties` | Configuración Spring | Define el puerto, credenciales de conexión a MySQL (`ricar_autoboutique`), `ddl-auto=update`, tiempo de sesión HTTP (24h) y clave secreta del JWT. |
+| **Configuración** | `application.properties` | Configuración Spring | Define el puerto, credenciales de conexión a MySQL (`ricar_autoboutique`), `ddl-auto=update`, tiempo de sesión HTTP (20m) y clave secreta del JWT. |
 | **`data`** | `mecatools.sql` | Script SQL | Script para inicializar y reiniciar la base de datos en MySQL con explicación de la normalización en 1FN, 2FN y 3FN, y consultas de auditoría por tabla. |
 | **`data/postman`** | `*.json`, `endpoints.md` | JSON / Markdown | Colecciones de prueba con datos iniciales de usuarios, categorías, productos y catálogo de endpoints para pruebas de API en Postman o Thunder Client. |
 | **`static/css`** | `global.css` | Hoja de estilo CSS | Estilos globales, variables de color temáticas (modo oscuro/claro), tipografías, navbar flotante, footer, badges, botones y modales reutilizables. |
@@ -393,10 +393,10 @@ Esta sección detalla el **flujo exacto, paso a paso**, para evidenciar en vivo 
       "roles": ["cliente", "administrador"],
       "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBnbWFpbC5jb20iLCJyb2xlcyI6WyJjbGllbnRlIiwiYWRtaW5pc3RyYWRvciJdLCJleHAiOjE3NjA3MzY4MDB9.s7...",
       "tokenType": "Bearer",
-      "expiresIn": 86400
+      "expiresIn": 1200
     }
     ```
-  - **Response Headers:** Se evidencia el encabezado `Set-Cookie: access_token=eyJhbGci...; Path=/; Max-Age=86400; SameSite=Lax`, garantizando 24 horas de persistencia de la sesión en el navegador.
+  - **Response Headers:** Se evidencia el encabezado `Set-Cookie: access_token=eyJhbGci...; Path=/; Max-Age=1200; SameSite=Lax`, garantizando 20 minutos de vigencia de la sesión en el navegador.
 
 ---
 

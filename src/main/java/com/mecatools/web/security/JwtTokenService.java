@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class JwtTokenService {
 
-    public static final Duration TOKEN_LIFETIME = Duration.ofHours(24);
+    public static final Duration TOKEN_LIFETIME = Duration.ofMinutes(20);
     public static final String ISSUER = "ricar-autoboutique";
 
     private final JwtEncoder jwtEncoder;

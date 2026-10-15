@@ -28,7 +28,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 /**
  * Filtro de seguridad que autentica peticiones web y API a partir del JWT
  * almacenado en cookies (access_token / jwt_token) o en la cabecera Authorization: Bearer.
- * Garantiza que la sesión del usuario persista durante las 24 horas del JWT sin depender
+ * Garantiza que la sesión del usuario persista durante los 20 minutos del JWT sin depender
  * exclusivamente de la sesión en memoria de Tomcat y aplica las autoridades del rol_activo seleccionado.
  */
 public class JwtCookieAuthenticationFilter extends OncePerRequestFilter {

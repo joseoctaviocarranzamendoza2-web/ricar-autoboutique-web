@@ -178,7 +178,7 @@ public class ConfigSecurity {
                         .usernameParameter("email")
                         // Nombre del parámetro de contraseña en el formulario
                         .passwordParameter("password")
-                        // Handler que devuelve JSON en login exitoso y emite cookie de 24h
+                        // Handler que devuelve JSON en login exitoso y emite cookie de 20m
                         .successHandler(successHandler())
                         // Handler que devuelve JSON en login fallido
                         .failureHandler(failureHandler()).permitAll())
@@ -194,7 +194,7 @@ public class ConfigSecurity {
         return http.build();
     }
 
-    // Bean que devuelve JSON cuando el login es exitoso y emite la cookie JWT de 24 horas
+    // Bean que devuelve JSON cuando el login es exitoso y emite la cookie JWT de 20 minutos
     @Bean
     public AuthenticationSuccessHandler successHandler() {
         return new AuthenticationSuccessHandler() {
@@ -205,7 +205,7 @@ public class ConfigSecurity {
                 Usuario u = details.getUsuario();
                 String token = jwtTokenService.generarToken(u);
 
-                // Emite cookie con el JWT de 24 horas para que persista la autenticación en todas las vistas web
+                // Emite cookie con el JWT de 20 minutos para que persista la autenticación en todas las vistas web
                 ResponseCookie cookie = ResponseCookie.from("access_token", token)
                         .path("/")
                         .maxAge(JwtTokenService.TOKEN_LIFETIME)

@@ -24,7 +24,7 @@ function obtenerSesion() {
     return data ? JSON.parse(data) : null;
 }
 
-// Guarda el usuario en sessionStorage para mantener sesión en el cliente y sincroniza la cookie de 24h
+// Guarda el usuario en sessionStorage para mantener sesión en el cliente y sincroniza la cookie de 20m
 function guardarSesion(usuario) {
     const datosSesion = { ...usuario };
     const token = (typeof datosSesion.token === 'string' && datosSesion.token)
@@ -33,12 +33,12 @@ function guardarSesion(usuario) {
 
     if (token) {
         sessionStorage.setItem(JWT_KEY, token);
-        // Persistir en cookie de 24 horas para todas las navegaciones entre vistas y cambios de rol
-        document.cookie = `access_token=${token}; path=/; max-age=${24 * 3600}; SameSite=Lax`;
+        // Persistir en cookie de 20 minutos para todas las navegaciones entre vistas y cambios de rol
+        document.cookie = `access_token=${token}; path=/; max-age=${20 * 60}; SameSite=Lax`;
         delete datosSesion.token;
     }
     if (datosSesion.rol) {
-        document.cookie = `rol_activo=${datosSesion.rol}; path=/; max-age=${24 * 3600}; SameSite=Lax`;
+        document.cookie = `rol_activo=${datosSesion.rol}; path=/; max-age=${20 * 60}; SameSite=Lax`;
     }
     sessionStorage.setItem(SESION_KEY, JSON.stringify(datosSesion));
 }
@@ -412,14 +412,14 @@ async function confirmarEmpresarial() {
 
 // Inicializaciones y bindings que deben ejecutarse cuando el DOM está listo
 document.addEventListener('DOMContentLoaded', () => {
-    // Garantiza que la cookie access_token de 24h y rol_activo estén activas si ya existen en sessionStorage
+    // Garantiza que la cookie access_token de 20m y rol_activo estén activas si ya existen en sessionStorage
     const tokenActivo = sessionStorage.getItem(JWT_KEY);
     if (tokenActivo && !document.cookie.includes('access_token=')) {
-        document.cookie = `access_token=${tokenActivo}; path=/; max-age=${24 * 3600}; SameSite=Lax`;
+        document.cookie = `access_token=${tokenActivo}; path=/; max-age=${20 * 60}; SameSite=Lax`;
     }
     const sesionActiva = (typeof obtenerSesion === 'function') ? obtenerSesion() : null;
     if (sesionActiva && sesionActiva.rol && !document.cookie.includes('rol_activo=')) {
-        document.cookie = `rol_activo=${sesionActiva.rol}; path=/; max-age=${24 * 3600}; SameSite=Lax`;
+        document.cookie = `rol_activo=${sesionActiva.rol}; path=/; max-age=${20 * 60}; SameSite=Lax`;
     }
     actualizarNavbar();
     document.addEventListener('hidden.bs.modal', limpiarBackdropsSobrantes);

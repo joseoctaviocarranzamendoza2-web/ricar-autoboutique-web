@@ -21,14 +21,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     iniciarSincronizacionUrl();
 });
 
-// Hace visible el botón de cambiar rol si el usuario en sesión cuenta con más de un rol disponible
-function verificarBotonCambiarRol() {
-    const s = (typeof obtenerSesion === 'function') ? obtenerSesion() : null;
-    if (s && Array.isArray(s.roles) && s.roles.length > 1) {
-        const item = document.getElementById('item-cambiar-rol');
-        if (item) {
+// Hace visible el botón de cambiar rol únicamente para cuentas que tienen rol administrador o gerente
+async function verificarBotonCambiarRol() {
+    const item = document.getElementById('item-cambiar-rol');
+    if (!item) return;
+
+    let s = (typeof obtenerSesion === 'function') ? obtenerSesion() : null;
+    if (s && Array.isArray(s.roles) && s.roles.length > 0) {
+        const roles = s.roles.map(r => String(r).toLowerCase());
+        const esAdminOGerente = roles.includes('administrador') || roles.includes('gerente') || roles.length > 1;
+        if (esAdminOGerente) {
             item.classList.remove('d-none');
+        } else {
+            item.classList.add('d-none');
         }
+        return;
+    }
+
+    // Fallback: Si s.roles no estuviera en sessionStorage, consultar roles-disponibles
+    try {
+        const resp = await fetch('/api/usuarios/roles-disponibles');
+        if (resp.ok) {
+            const data = await resp.json();
+            const roles = Array.isArray(data.roles) ? data.roles.map(r => String(r).toLowerCase()) : [];
+            if (s) {
+                s.roles = roles;
+                guardarSesion(s);
+            }
+            const esAdminOGerente = roles.includes('administrador') || roles.includes('gerente') || roles.length > 1;
+            if (esAdminOGerente) {
+                item.classList.remove('d-none');
+            } else {
+                item.classList.add('d-none');
+            }
+        }
+    } catch (e) {
+        console.warn('No se pudo verificar roles disponibles:', e);
     }
 }
 

@@ -1,6 +1,8 @@
 package com.mecatools.web.controllers;
 
 import com.mecatools.web.controllers.util.SesionValidator;
+import com.mecatools.web.models.Usuario;
+import com.mecatools.web.security.UsuarioDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -64,6 +66,7 @@ public class PaginaClienteController {
     public String panelPerfil(@PathVariable Long id, Authentication auth, Model model) {
         sesionValidator.validarAcceso(auth, ROL, id);
         model.addAttribute("tabActiva", "tab-perfil");
+        cargarAtributosCliente(auth, model);
         return "roles/cliente";
     }
 
@@ -71,6 +74,7 @@ public class PaginaClienteController {
     public String panelCompras(@PathVariable Long id, Authentication auth, Model model) {
         sesionValidator.validarAcceso(auth, ROL, id);
         model.addAttribute("tabActiva", "tab-compras");
+        cargarAtributosCliente(auth, model);
         return "roles/cliente";
     }
 
@@ -78,6 +82,7 @@ public class PaginaClienteController {
     public String panelServicios(@PathVariable Long id, Authentication auth, Model model) {
         sesionValidator.validarAcceso(auth, ROL, id);
         model.addAttribute("tabActiva", "tab-servicios");
+        cargarAtributosCliente(auth, model);
         return "roles/cliente";
     }
 
@@ -85,7 +90,17 @@ public class PaginaClienteController {
     public String panelHistorial(@PathVariable Long id, Authentication auth, Model model) {
         sesionValidator.validarAcceso(auth, ROL, id);
         model.addAttribute("tabActiva", "tab-historial");
+        cargarAtributosCliente(auth, model);
         return "roles/cliente";
+    }
+
+    private void cargarAtributosCliente(Authentication auth, Model model) {
+        boolean puedeCambiarRol = false;
+        if (auth != null && auth.getPrincipal() instanceof UsuarioDetails uDetails) {
+            Usuario u = uDetails.getUsuario();
+            puedeCambiarRol = u.tieneRol("administrador") || u.tieneRol("gerente") || u.getNombresRoles().size() > 1;
+        }
+        model.addAttribute("puedeCambiarRol", puedeCambiarRol);
     }
 
 }

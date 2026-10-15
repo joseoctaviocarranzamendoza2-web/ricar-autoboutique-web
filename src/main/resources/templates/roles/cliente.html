@@ -87,7 +87,7 @@
                             <i class="bi bi-clock-history me-2"></i>Historial
                         </button>
                     </li>
-                    <li class="nav-item ms-auto" id="item-cambiar-rol" sec:authorize="hasAnyAuthority('administrador', 'gerente')">
+                    <li class="nav-item ms-auto" id="item-cambiar-rol" th:classappend="${puedeCambiarRol == true ? '' : 'd-none'}">
                         <a class="perfil-tab-btn text-decoration-none" href="/rol" onclick="irACambiarRol(); return false;">
                             <i class="bi bi-arrow-repeat me-2"></i>Cambiar rol
                         </a>

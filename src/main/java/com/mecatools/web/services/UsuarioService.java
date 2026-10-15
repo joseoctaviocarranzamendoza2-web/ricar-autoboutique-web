@@ -37,9 +37,9 @@ public class UsuarioService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // Método para listar todos los clientes estándar (3FN: filtra usuarios con rol cliente que no son administradores ni gerentes)
+    // Método para listar todos los clientes (incluye a administradores y gerentes que también tienen el rol de cliente)
     public List<Usuario> listarClientes() {
-        return usuarioRepository.findClientesPuros();
+        return usuarioRepository.findByRol("cliente");
     }
 
     // Método para obtener un usuario por su ID. Devuelve un Optional que puede estar vacío si no se encuentra el usuario.
@@ -114,7 +114,7 @@ public class UsuarioService {
     @Transactional
     public void eliminarCliente(Long id, boolean forzar) {
         Usuario usuario = usuarioRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
-        if (!"cliente".equalsIgnoreCase(usuario.getRol())) {
+        if (!usuario.tieneRol("cliente")) {
             throw new IllegalArgumentException("Solo se pueden eliminar usuarios con rol cliente");
         }
         List<Cita> citas = citaRepository.findByUsuario_Id(id);

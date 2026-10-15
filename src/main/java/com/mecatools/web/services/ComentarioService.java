@@ -31,7 +31,7 @@ public class ComentarioService {
 
     // Método para crear un nuevo comentario. Verifica que el usuario autenticado tenga rol de cliente y que no tenga un comentario registrado previamente.
     public Comentario crear(Comentario comentario, Usuario usuarioAutenticado) {
-        if (!"cliente".equalsIgnoreCase(usuarioAutenticado.getRol())) {
+        if (!usuarioAutenticado.tieneRol("cliente")) {
             throw new IllegalArgumentException("Solo clientes pueden comentar");
         }
         if (comentarioRepository.findByUsuario_Id(usuarioAutenticado.getId()).isPresent()) {
@@ -60,7 +60,7 @@ public class ComentarioService {
 
     // Verifica que el usuario autenticado sea el dueño del comentario y tenga rol cliente
     private void validarPropietario(Long usuarioId, Usuario usuarioAutenticado) {
-        boolean autorizado = usuarioAutenticado.getId().equals(usuarioId) && "cliente".equalsIgnoreCase(usuarioAutenticado.getRol());
+        boolean autorizado = usuarioAutenticado.getId().equals(usuarioId) && usuarioAutenticado.tieneRol("cliente");
         if (!autorizado) {
             throw new SecurityException("No autorizado");
         }

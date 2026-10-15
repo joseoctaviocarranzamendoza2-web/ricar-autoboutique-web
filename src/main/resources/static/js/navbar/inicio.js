@@ -110,7 +110,7 @@ document.getElementById('btnAbrirComentario')?.addEventListener('click', async f
         }
         return;
     }
-    if (sesion.rol !== 'cliente') {
+    if (sesion.rol !== 'cliente' && (!Array.isArray(sesion.roles) || !sesion.roles.includes('cliente'))) {
         mostrarModalNoPermitidoComentario();
         return;
     }

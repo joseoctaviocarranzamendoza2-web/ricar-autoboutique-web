@@ -573,7 +573,7 @@ function renderCitas(citas) {
     const estadoBadge = { 'Pendiente': 'status-pending', 'Confirmada': 'status-confirmed', 'Completada': 'status-completed', 'Cancelada': 'status-inactive' };
     tbody.innerHTML = citas.map(c => `
     <tr>
-        <td class="text-muted">#C-${String(c.id).padStart(3, '0')}</td>
+        <td class="text-muted fw-semibold">#S-${String(c.id).padStart(3, '0')}</td>
         <td>
             <div class="fw-semibold">${c.usuario?.nombres || ''} ${c.usuario?.apellidos || ''}</div>
             <div class="text-muted" style="font-size:.72rem">${c.usuario?.telefono || ''}</div>
@@ -680,7 +680,7 @@ function renderClientes(clientes) {
         const ultimaCita = citasCliente.length > 0 ? citasCliente.sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)))[0].fecha : '—';
         const gastoTotal = calcularGastoCliente(c.id);
         return `<tr>
-            <td class="text-muted">${inicio + i + 1}</td>
+            <td class="text-muted fw-semibold">#C-${String(inicio + i + 1).padStart(3, '0')}</td>
             <td>
                 <div class="fw-semibold">${c.nombres} ${c.apellidos}</div>
                 <small class="text-muted">${c.email || ''}</small>

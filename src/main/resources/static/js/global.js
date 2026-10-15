@@ -146,7 +146,7 @@ function manejarBtnAgendar() {
         abrirModal('modalLogin');
         return;
     }
-    if (sesion.rol === 'cliente') {
+    if (sesion.rol === 'cliente' || (Array.isArray(sesion.roles) && sesion.roles.includes('cliente'))) {
         navegarConParametro('/servicios');
         return;
     }
@@ -212,7 +212,18 @@ function cambiarRolDirecto(nuevoRol) {
     if (m1) m1.hide();
     const m2 = bootstrap.Modal.getInstance(document.getElementById('modalNoPermitidoComentario'));
     if (m2) m2.hide();
-    if (nuevoRol === 'cliente') {
+    const path = window.location.pathname;
+    if (path.startsWith('/productos')) {
+        window.location.href = `/productos/${nuevoRol}/${sesion.id}`;
+    } else if (path.startsWith('/servicios')) {
+        window.location.href = `/servicios/${nuevoRol}/${sesion.id}`;
+    } else if (path.startsWith('/inicio')) {
+        window.location.href = `/inicio/${nuevoRol}/${sesion.id}`;
+    } else if (path.startsWith('/nosotros')) {
+        window.location.href = `/nosotros/${nuevoRol}/${sesion.id}`;
+    } else if (path.startsWith('/contacto')) {
+        window.location.href = `/contacto/${nuevoRol}/${sesion.id}`;
+    } else if (nuevoRol === 'cliente') {
         window.location.href = `/cliente/${sesion.id}`;
     } else {
         window.location.href = `/${nuevoRol}/${sesion.id}`;

@@ -19,7 +19,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByEmailAndPassword(String email, String password);
 
     // Lista todos los usuarios con un rol específico a través de la tabla de correlación usuario_rol (3FN)
-    @Query("SELECT DISTINCT u FROM Usuario u JOIN u.roles r WHERE LOWER(r.nombre) = LOWER(:rol)")
+    @Query("SELECT DISTINCT u FROM Usuario u JOIN u.roles r WHERE LOWER(r.nombre) = LOWER(:rol) ORDER BY u.id ASC")
     List<Usuario> findByRol(@Param("rol") String rol);
 
     // Lista clientes estándar que no tienen roles de administrador ni gerente

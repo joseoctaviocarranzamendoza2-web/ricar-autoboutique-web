@@ -24,7 +24,7 @@ document.getElementById('btnContacto')?.addEventListener('click', function () {
         return;
     }
     // Solo clientes pueden enviar mensajes desde la UI de contacto
-    if (sesion.rol !== 'cliente') {
+    if (sesion.rol !== 'cliente' && (!Array.isArray(sesion.roles) || !sesion.roles.includes('cliente'))) {
         mostrarModalNoPermitido();
         return;
     }

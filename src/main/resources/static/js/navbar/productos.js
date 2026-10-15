@@ -190,7 +190,7 @@ function agregarAlCarrito() {
         cerrarModalYAbrirLogin('modalProductoDetalle');
         return;
     }
-    if (sesion.rol !== 'cliente') {
+    if (sesion.rol !== 'cliente' && (!Array.isArray(sesion.roles) || !sesion.roles.includes('cliente'))) {
         mostrarModalNoPermitido();
         return;
     }
@@ -256,7 +256,7 @@ function abrirCarrito() {
         abrirModal('modalLogin');
         return;
     }
-    if (sesion.rol !== 'cliente') {
+    if (sesion.rol !== 'cliente' && (!Array.isArray(sesion.roles) || !sesion.roles.includes('cliente'))) {
         mostrarModalNoPermitido();
         return;
     }

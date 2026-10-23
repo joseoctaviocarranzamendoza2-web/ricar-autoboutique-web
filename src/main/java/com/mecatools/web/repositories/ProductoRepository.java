@@ -17,8 +17,17 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     @Query("""
             SELECT p
             FROM Producto p
+            WHERE (p.estado IS NULL OR p.estado = 'Activo')
+            ORDER BY LOWER(p.nombre)
+            """)
+    List<Producto> findActivos();
+
+    @Query("""
+            SELECT p
+            FROM Producto p
             WHERE (:nombre IS NULL OR LOWER(p.nombre) LIKE LOWER(CONCAT('%', :nombre, '%')))
               AND (:idCategoria IS NULL OR p.categoria.id = :idCategoria)
+              AND (p.estado IS NULL OR p.estado = 'Activo')
             ORDER BY LOWER(p.nombre)
             """)
     List<Producto> buscarCatalogo(@Param("nombre") String nombre,

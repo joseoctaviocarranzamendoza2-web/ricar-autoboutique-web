@@ -78,6 +78,27 @@ public class Usuario {
     @Column(name = "rol", nullable = true)
     private String rol;
 
+    // Estado del usuario: Activo o Inactivo (controla si puede acceder al sistema)
+    @Column(name = "estado")
+    private String estado = "Activo";
+
+    public String getEstado() {
+        return (estado != null && !estado.isBlank()) ? estado : "Activo";
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public boolean isActivo() {
+        return "Activo".equalsIgnoreCase(getEstado());
+    }
+
+    // Devuelve el rol base con el que fue creada la cuenta
+    public String getRolBase() {
+        return getRol();
+    }
+
     // Helper para verificar si el usuario posee un rol específico considerando la jerarquía normalizada (3FN)
     public boolean tieneRol(String nombreRol) {
         if (nombreRol == null) return false;

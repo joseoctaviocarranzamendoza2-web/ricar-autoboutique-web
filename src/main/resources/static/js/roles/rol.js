@@ -149,6 +149,9 @@ function seleccionarRolCard(rol) {
 function confirmarRolSeleccionado() {
     if (!rolSeleccionado || !sesionActual || sesionActual.roles.indexOf(rolSeleccionado) === -1) return;
 
+    if (!sesionActual.rolBase) {
+        sesionActual.rolBase = sesionActual.roles.indexOf('gerente') !== -1 ? 'gerente' : (sesionActual.roles.indexOf('administrador') !== -1 ? 'administrador' : 'cliente');
+    }
     sesionActual.rol = rolSeleccionado;
     guardarSesion(sesionActual);
 

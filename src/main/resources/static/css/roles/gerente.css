@@ -78,27 +78,21 @@ body {
 
 /* Textos de marca: Ocultables al colapsar para ahorrar espacio */
 .brand-texts {
+    display: flex;
+    align-items: center;
     transition: opacity 0.2s;
 }
 
-/* Nombre de la marca: Título compacto que se muestra junto al icono */
+/* Nombre de la marca: Centrado con respecto al icono del logo */
 .brand-texts .brand-name {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: var(--color-blanco);
-    line-height: 1;
-    display: block;
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
     margin: 0;
-}
-
-/* Subtítulo de marca: Texto pequeño secundario debajo del nombre */
-.brand-texts .brand-sac {
-    font-size: 0.6rem;
-    color: var(--color-celeste);
-    font-weight: 600;
-    letter-spacing: 1px;
-    display: block;
-    margin: 0;
+    letter-spacing: 0.3px;
 }
 
 /* Comportamiento al colapsar: Esconder texto de la marca */
@@ -108,15 +102,18 @@ body {
 }
 
 /* Contenedor de la navegación: Scroll vertical para enlaces */
+/* Área de navegación: Lista vertical con scroll personalizado, sin desbordamiento horizontal */
 .sidebar-nav {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden !important;
     padding: 12px 8px;
 }
 
-/* Estilo del scrollbar para una apariencia discreta */
+/* Estilo del scrollbar para una apariencia discreta y eliminación de scroll horizontal */
 .sidebar-nav::-webkit-scrollbar {
     width: 4px;
+    height: 0px !important;
 }
 
 /* Pulgar del scrollbar: Color tenue y esquinas redondeadas para un look limpio */
@@ -134,13 +131,18 @@ body {
     color: rgba(255, 255, 255, 0.35);
     padding: 14px 12px 4px;
     white-space: nowrap;
-    transition: opacity 0.2s;
     margin: 0;
 }
 
-/* Oculta las labels cuando el sidebar está colapsado */
+/* Oculta las labels cuando el sidebar está colapsado: display none total para evitar desbordes */
 #sidebar.collapsed .nav-section-label {
+    display: none !important;
     opacity: 0;
+    height: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    pointer-events: none;
 }
 
 /* Enlace de navegación: Fila con icono y texto, con estados hover/active */
@@ -197,7 +199,12 @@ body {
 }
 
 /* Ajustes para ocultar texto y evitar overflow al colapsar */
+#sidebar.collapsed .sidebar-link {
+    overflow: hidden;
+}
+
 #sidebar.collapsed .sidebar-link .link-text {
+    display: none !important;
     opacity: 0;
     width: 0;
     overflow: hidden;
@@ -215,8 +222,9 @@ body {
     transition: opacity 0.2s;
 }
 
-/* Ocultar badges en estado colapsado */
+/* Ocultar badges en estado colapsado para evitar scrollbars */
 #sidebar.collapsed .sidebar-badge {
+    display: none !important;
     opacity: 0;
 }
 
@@ -224,6 +232,7 @@ body {
 .sidebar-footer {
     padding: 12px 8px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
 }
 
 /* Barra superior: Breadcrumb, acciones y espacio para avatar */
@@ -500,6 +509,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    min-height: 64px;
 }
 
 /* Título de la tarjeta: Peso y tamaño para jerarquía visual */
@@ -508,6 +518,14 @@ body {
     font-size: 0.95rem;
     color: var(--color-oscuro);
     margin: 0;
+}
+
+/* Botones en header de tarjeta: Altura estandarizada para garantizar alineación de líneas divisorias */
+.admin-card-header .btn:not(.btn-exportar-excel):not(.btn-exportar-pdf) {
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Estilos base para tablas en la sección gerente */
@@ -844,3 +862,344 @@ body {
         padding: 20px;
     }
 }
+
+/* Leyenda personalizada en 2 columnas para el gráfico Por Categoría */
+.legend-cat-grid {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(var(--legend-rows, 4), minmax(26px, auto));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 16px;
+    row-gap: 6px;
+}
+
+.legend-cat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--color-gris-texto);
+    cursor: pointer;
+    user-select: none;
+    min-width: 0;
+    transition: opacity 0.2s ease, color 0.15s ease;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.legend-cat-item:hover {
+    color: var(--color-oscuro);
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.legend-cat-item.legend-cat-inactive {
+    opacity: 0.35 !important;
+    text-decoration: line-through;
+}
+
+.legend-cat-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    display: inline-block;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.legend-cat-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+/* ========================================================
+   DISEÑO UI PERSONALIZADO: MÓDULO DE VENTAS (GERENTE)
+   ======================================================== */
+
+/* Botón Exportar Excel con color verde sólido institucional y dimensiones idénticas en todas las secciones */
+.btn-exportar-excel {
+    background-color: #16a34a;
+    color: #ffffff !important;
+    border: none;
+    border-radius: 9px;
+    padding: 0.55rem 1.25rem !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    font-weight: 600;
+    font-size: 0.88rem !important;
+    line-height: 1.2;
+    letter-spacing: 0.2px;
+    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.22);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.btn-exportar-excel:hover {
+    background-color: #15803d;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(22, 163, 74, 0.3);
+}
+.btn-exportar-excel:active {
+    background-color: #166534;
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(22, 163, 74, 0.2);
+}
+.btn-exportar-excel i {
+    font-size: 1rem;
+}
+.admin-card-header .btn.btn-exportar-excel {
+    height: 38px !important;
+    min-height: 38px !important;
+}
+
+/* Botón Exportar PDF con fondo negro e identidad corporativa */
+.btn-exportar-pdf {
+    background-color: #111827;
+    color: #ffffff !important;
+    border: none;
+    border-radius: 9px;
+    padding: 0.55rem 1.25rem !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    font-weight: 600;
+    font-size: 0.88rem !important;
+    line-height: 1.2;
+    letter-spacing: 0.2px;
+    box-shadow: 0 2px 6px rgba(17, 24, 39, 0.22);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.btn-exportar-pdf:hover {
+    background-color: #1f2937;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(17, 24, 39, 0.3);
+}
+.btn-exportar-pdf:active {
+    background-color: #030712;
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(17, 24, 39, 0.2);
+}
+.btn-exportar-pdf i {
+    font-size: 1rem;
+    color: #ffffff;
+}
+.admin-card-header .btn.btn-exportar-pdf {
+    height: 38px !important;
+    min-height: 38px !important;
+}
+
+/* Botón Filtrar con color sólido azul corporativo */
+.btn-filtrar-ventas {
+    background-color: var(--color-azul-oscuro);
+    color: #ffffff !important;
+    border: none;
+    border-radius: 9px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.2px;
+    padding: 0.55rem 1rem;
+    box-shadow: 0 2px 6px rgba(10, 61, 107, 0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.btn-filtrar-ventas:hover {
+    background-color: #072c4e;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(10, 61, 107, 0.28);
+}
+.btn-filtrar-ventas:active {
+    background-color: #051f38;
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(10, 61, 107, 0.18);
+}
+.btn-filtrar-ventas i {
+    color: #ffffff;
+    font-size: 0.95rem;
+}
+
+/* Entradas de búsqueda y fechas en filtros de ventas */
+#sec-ventas .form-control {
+    border-radius: 9px;
+    border: 1.5px solid #dbe5f0;
+    font-size: 0.9rem;
+    color: var(--color-oscuro);
+    padding: 0.5rem 0.85rem;
+    transition: all 0.2s ease;
+}
+#sec-ventas .form-control:focus {
+    border-color: var(--color-azul-oscuro);
+    box-shadow: 0 0 0 3px rgba(10, 61, 107, 0.12);
+    outline: none;
+}
+
+/* Contenedor tipo pastilla segmentada para alternar ventas */
+.ventas-tabs-nav {
+    display: inline-flex;
+    background: #eef3f9;
+    padding: 4px;
+    border-radius: 10px;
+    border: 1px solid #dce5f0;
+    gap: 4px;
+}
+.tab-ventas-btn {
+    border: none;
+    background: transparent;
+    color: var(--color-gris-texto);
+    font-weight: 600;
+    font-size: 0.88rem;
+    padding: 0.5rem 1.1rem;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.tab-ventas-btn i {
+    font-size: 1rem;
+    color: #64748b;
+    transition: color 0.2s ease;
+}
+.tab-ventas-btn:hover:not(.active) {
+    background-color: #ffffff;
+    color: var(--color-azul-oscuro);
+}
+.tab-ventas-btn:hover:not(.active) i {
+    color: var(--color-azul-oscuro);
+}
+.tab-ventas-btn.active {
+    background-color: var(--color-azul-oscuro);
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(10, 61, 107, 0.2);
+}
+.tab-ventas-btn.active i {
+    color: #ffffff;
+}
+
+/* Botones de paginación con color sólido y tipografía consistente */
+.btn-paginacion-ventas {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    border: 1.5px solid #dbe5f0;
+    background-color: #ffffff;
+    color: var(--color-azul-oscuro);
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+.btn-paginacion-ventas:hover:not(.active) {
+    background-color: var(--color-azul-claro);
+    border-color: var(--color-azul-oscuro);
+    color: var(--color-azul-oscuro);
+    transform: translateY(-1px);
+}
+.btn-paginacion-ventas.active {
+    background-color: var(--color-azul-oscuro);
+    color: #ffffff !important;
+    border-color: var(--color-azul-oscuro);
+    box-shadow: 0 2px 6px rgba(10, 61, 107, 0.2);
+}
+.paginacion-resumen-paginas {
+    font-size: 0.82rem;
+    color: var(--color-gris-texto);
+    font-weight: 600;
+    align-self: center;
+}
+
+/* Estilo para precio en tabla: un solo color sólido y peso consistente con #V-001 */
+.monto-tabla {
+    font-weight: 600;
+    color: var(--color-azul-oscuro);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.92rem;
+    display: inline-block;
+}
+
+/* Estilo para total semanal en letras nada más (sin fondo ni borde, tamaño balanceado) */
+.lbl-total-ventas {
+    font-size: 0.95rem;
+    color: var(--color-oscuro);
+    margin: 0;
+}
+.lbl-total-ventas strong {
+    font-weight: 700;
+}
+.lbl-total-monto {
+    color: var(--color-azul-oscuro);
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-left: 0.25rem;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Cabeceras de cards de períodos en Reportes (Esta Semana, Este Mes, Este Año) */
+#sec-reportes .row.g-3 .admin-card {
+    border: 1px solid #dbe5f0;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(10, 61, 107, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#sec-reportes .row.g-3 .admin-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(10, 61, 107, 0.08);
+}
+
+#sec-reportes .row.g-3 .admin-card-header,
+.card-header-periodo {
+    background-color: var(--color-azul-oscuro) !important;
+    border-bottom: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding: 13px 20px !important;
+    min-height: 52px !important;
+    border-top-left-radius: 13px;
+    border-top-right-radius: 13px;
+}
+
+#sec-reportes .row.g-3 .admin-card-header .admin-card-title,
+.card-header-periodo .admin-card-title {
+    color: #ffffff !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.4px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    width: 100% !important;
+    margin: 0 !important;
+}
+
+#sec-reportes .row.g-3 .admin-card-header .admin-card-title i,
+.card-header-periodo .admin-card-title i {
+    color: var(--color-celeste) !important;
+    font-size: 1.1rem !important;
+    display: inline-flex;
+    align-items: center;
+}
+

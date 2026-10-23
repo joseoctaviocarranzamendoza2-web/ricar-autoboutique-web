@@ -58,4 +58,8 @@ public class Servicio {
     @Column(nullable = false)
     private String estado;
 
+    // Nombre de archivo o URL de la imagen del servicio
+    @Column
+    private String imagen;
+
 }

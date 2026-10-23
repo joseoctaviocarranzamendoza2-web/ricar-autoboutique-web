@@ -22,9 +22,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     const avatar = document.getElementById('adminNombreAvatar');
     const menu = document.getElementById('adminNombreMenu');
+    const breadcrumb = document.getElementById('topbarBreadcrumb');
+    const nombreCompleto = `${sesion.nombres || ''} ${sesion.apellidos || ''}`.trim();
     const iniciales = (sesion.nombres[0] + (sesion.apellidos?.[0] || '')).toUpperCase();
     if (avatar) avatar.textContent = iniciales;
-    if (menu) menu.textContent = sesion.nombres + ' ' + (sesion.apellidos || '');
+    if (menu) menu.textContent = nombreCompleto;
+    if (breadcrumb) breadcrumb.textContent = `Administrador ${nombreCompleto}`;
     await cargarCategorias();
     await cargarProductos();
     await cargarCitas();
@@ -138,11 +141,11 @@ function renderCategorias() {
         return `<div class="col-sm-6 col-lg-3 d-flex">
             <div class="admin-card category-card p-4 text-center h-100 d-flex flex-column">
                 <div class="kpi-icon ${color} mx-auto mb-3" style="width:52px;height:52px;font-size:1.4rem;"><i class="bi ${icono}"></i></div>
-                <h6 class="fw-bold">${cat.nombre}</h6>
-                <div class="text-primary fw-bold fs-5">${total}</div>
-                <small class="text-muted">productos</small>
-                <p class="category-description text-muted small mt-1 mb-2">${cat.descripcion || ''}</p>
-                <div class="d-flex justify-content-center gap-2 mt-3 card-actions">
+                <h6 class="fw-bold mb-1">${cat.nombre}</h6>
+                <div class="text-primary fw-bold fs-5 mb-0">${total}</div>
+                <span class="fw-bold text-uppercase" style="color: var(--color-celeste, #0284c7); font-size: 0.75rem; letter-spacing: 0.5px;">productos</span>
+                <p class="category-description text-muted small mt-2 mb-2 flex-grow-1" style="text-align: justify; text-justify: inter-word;">${cat.descripcion || ''}</p>
+                <div class="d-flex justify-content-center gap-2 mt-auto pt-2 card-actions">
                     <button class="btn btn-sm btn-outline-primary" onclick="abrirEditarCategoria(${cat.id})"><i class="bi bi-pencil"></i></button>
                     <button class="btn btn-sm btn-outline-danger" onclick="eliminarCategoria(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}')"> <i class="bi bi-trash"></i></button>
                 </div>
@@ -213,24 +216,50 @@ async function guardarCategoria() {
     }
 }
 
+// Muestra modal genérico de confirmación/acción adaptando icono, color, título y botones
+function mostrarModalAccion({ titulo, mensaje, icono = 'bi-trash3', colorIcono = 'red', textoBtn = 'Eliminar', claseBtn = 'btn-danger', onConfirmar }) {
+    const iconoCont = document.getElementById('iconoModalEliminarContenedor');
+    const iconoEl = document.getElementById('iconoModalEliminar');
+    const tituloEl = document.getElementById('tituloModalEliminar');
+    const mensajeEl = document.getElementById('nombreEliminar');
+    const btn = document.getElementById('btnConfirmarEliminar');
+
+    if (iconoCont) iconoCont.className = `kpi-icon ${colorIcono} mx-auto mb-3`;
+    if (iconoEl) iconoEl.className = `bi ${icono}`;
+    if (tituloEl) tituloEl.textContent = titulo;
+    if (mensajeEl) mensajeEl.innerHTML = mensaje;
+    if (btn) {
+        btn.textContent = textoBtn;
+        btn.className = `btn ${claseBtn} px-4 fw-semibold`;
+        btn.onclick = onConfirmar;
+    }
+    new bootstrap.Modal(document.getElementById('modalEliminar')).show();
+}
+
 // Solicita confirmación y elimina una categoría por id
 async function eliminarCategoria(id, nombre) {
-    document.getElementById('nombreEliminar').textContent = `¿Eliminar la categoría "${nombre}"? Sus productos también serán afectados.`;
-    document.getElementById('btnConfirmarEliminar').onclick = async () => {
-        try {
-            const resp = await fetch(`${API.categorias}/${id}`, { method: 'DELETE' });
-            if (!resp.ok) {
-                mostrarToast('No se pudo eliminar', 'error');
-                return;
+    mostrarModalAccion({
+        titulo: '¿Confirmar eliminación?',
+        mensaje: `¿Eliminar la categoría "${nombre}"? Sus productos también serán afectados.`,
+        icono: 'bi-trash3',
+        colorIcono: 'red',
+        textoBtn: 'Eliminar',
+        claseBtn: 'btn-danger',
+        onConfirmar: async () => {
+            try {
+                const resp = await fetch(`${API.categorias}/${id}`, { method: 'DELETE' });
+                if (!resp.ok) {
+                    mostrarToast('No se pudo eliminar', 'error');
+                    return;
+                }
+                bootstrap.Modal.getInstance(document.getElementById('modalEliminar'))?.hide();
+                mostrarToast('Categoría eliminada', 'success');
+                await cargarCategorias();
+            } catch (e) {
+                mostrarToast('Error de conexión', 'error');
             }
-            bootstrap.Modal.getInstance(document.getElementById('modalEliminar'))?.hide();
-            mostrarToast('Categoría eliminada', 'success');
-            await cargarCategorias();
-        } catch (e) {
-            mostrarToast('Error de conexión', 'error');
         }
-    };
-    new bootstrap.Modal(document.getElementById('modalEliminar')).show();
+    });
 }
 
 // Renderiza la lista de productos para la vista de administrador
@@ -248,10 +277,12 @@ function renderProductos(productos) {
         const stockClass = p.stock <= 5 ? 'text-danger' : 'text-muted';
         const badgeClass = p.stock <= 5 ? 'bg-danger' : 'bg-primary';
         const badgeTxt = p.stock <= 5 ? 'Stock bajo' : (p.etiqueta || '');
-        return `<div class="col-6 col-md-4 col-xl-3 prod-item">
-            <div class="product-admin-card h-100">
+        const isInactive = p.estado === 'Inactivo';
+        return `<div class="col-6 col-md-4 col-xl-3 prod-item" data-estado="${p.estado || 'Activo'}">
+            <div class="product-admin-card h-100 ${isInactive ? 'opacity-75' : ''}">
                 <div class="product-img-box">
                     ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" style="width:100%;height:100%;object-fit:cover;">` : `<i class="bi bi-box-seam product-icon"></i>`}
+                    ${isInactive ? `<span class="badge bg-secondary position-absolute top-0 start-0 m-2" style="font-size:0.7rem;"><i class="bi bi-eye-slash me-1"></i>Inactivo</span>` : ''}
                     ${badgeTxt ? `<span class="badge ${badgeClass} badge-new">${badgeTxt}</span>` : ''}
                 </div>
                 <div class="product-admin-body">
@@ -259,6 +290,7 @@ function renderProductos(productos) {
                     <div class="product-name mb-1">${p.nombre}</div>
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="product-price">S/ ${p.precio.toFixed(2)}</span>
+                        ${!isInactive ? '<span class="badge bg-success-subtle text-success small" style="font-size:0.7rem;">Activo</span>' : ''}
                     </div>
                     <small class="${stockClass}">Stock: <strong>${p.stock}</strong> unidades</small>
                 </div>
@@ -281,6 +313,8 @@ function abrirNuevoProducto() {
     document.getElementById('modalProductoTitulo').textContent = 'Nuevo Producto';
     document.getElementById('formProducto').reset();
     document.getElementById('prodCategoria').value = '';
+    const estadoEl = document.getElementById('prodEstado');
+    if (estadoEl) estadoEl.value = 'Activo';
     new bootstrap.Modal(document.getElementById('modalProducto')).show();
 }
 
@@ -296,6 +330,8 @@ async function abrirEditarProducto(id) {
         document.getElementById('prodStock').value = producto.stock;
         document.getElementById('prodDescripcion').value = producto.descripcion || '';
         document.getElementById('prodEtiqueta').value = producto.etiqueta || '';
+        const estadoEl = document.getElementById('prodEstado');
+        if (estadoEl) estadoEl.value = producto.estado || 'Activo';
         document.getElementById('prodImagen').value = producto.imagen || '';
         if (producto.categoria && producto.categoria.id) {
             document.getElementById('prodCategoria').value = String(producto.categoria.id);
@@ -315,6 +351,7 @@ async function guardarProducto() {
     const stock = parseInt(document.getElementById('prodStock').value);
     const descripcion = document.getElementById('prodDescripcion').value.trim();
     const etiqueta = document.getElementById('prodEtiqueta').value;
+    const estado = document.getElementById('prodEstado')?.value || 'Activo';
     const imagen = document.getElementById('prodImagen').value.trim();
     const catId = document.getElementById('prodCategoria').value;
     if (!nombre || isNaN(precio) || isNaN(stock) || !catId) {
@@ -322,7 +359,7 @@ async function guardarProducto() {
         return;
     }
     const body = {
-        nombre, precio, stock, descripcion, etiqueta, imagen, categoria: { id: parseInt(catId) }
+        nombre, precio, stock, descripcion, etiqueta, estado, imagen, categoria: { id: parseInt(catId) }
     };
     const url = productoEdit ? `${API.productos}/${productoEdit}` : API.productos;
     const method = productoEdit ? 'PUT' : 'POST';
@@ -343,22 +380,28 @@ async function guardarProducto() {
 
 // Pide confirmación para eliminar un producto y lo elimina si confirma
 function confirmarEliminarProducto(id, nombre) {
-    document.getElementById('nombreEliminar').textContent = `¿Eliminar el producto "${nombre}"? Esta acción no se puede deshacer.`;
-    document.getElementById('btnConfirmarEliminar').onclick = async () => {
-        try {
-            const resp = await fetch(`${API.productos}/${id}`, { method: 'DELETE' });
-            if (!resp.ok) {
-                mostrarToast('No se pudo eliminar', 'error');
-                return;
+    mostrarModalAccion({
+        titulo: '¿Confirmar eliminación?',
+        mensaje: `¿Eliminar el producto "${nombre}"? Esta acción no se puede deshacer.`,
+        icono: 'bi-trash3',
+        colorIcono: 'red',
+        textoBtn: 'Eliminar',
+        claseBtn: 'btn-danger',
+        onConfirmar: async () => {
+            try {
+                const resp = await fetch(`${API.productos}/${id}`, { method: 'DELETE' });
+                if (!resp.ok) {
+                    mostrarToast('No se pudo eliminar', 'error');
+                    return;
+                }
+                bootstrap.Modal.getInstance(document.getElementById('modalEliminar'))?.hide();
+                mostrarToast('Producto eliminado', 'success');
+                await cargarProductos();
+            } catch (e) {
+                mostrarToast('Error de conexión', 'error');
             }
-            bootstrap.Modal.getInstance(document.getElementById('modalEliminar'))?.hide();
-            mostrarToast('Producto eliminado', 'success');
-            await cargarProductos();
-        } catch (e) {
-            mostrarToast('Error de conexión', 'error');
         }
-    };
-    new bootstrap.Modal(document.getElementById('modalEliminar')).show();
+    });
 }
 
 // Filtra la grilla de productos por búsqueda, categoría y estado
@@ -371,9 +414,13 @@ function filtrarProductos() {
         const cat = item.querySelector('.product-category')?.textContent.trim() || '';
         const stockTxt = item.querySelector('small strong')?.textContent || '999';
         const stock = parseInt(stockTxt);
+        const itemEstado = item.dataset.estado || 'Activo';
         const matchBusq = nombre.includes(busqueda);
         const matchCat = !catFiltro || categorias.find(c => String(c.id) === catFiltro && cat.includes(c.nombre));
-        const matchEstado = estadoFiltro !== 'low' || stock <= 5;
+        const matchEstado = !estadoFiltro
+            || (estadoFiltro === 'low' && stock <= 5)
+            || (estadoFiltro === 'Activo' && itemEstado !== 'Inactivo')
+            || (estadoFiltro === 'Inactivo' && itemEstado === 'Inactivo');
         item.style.display = (matchBusq && matchCat && matchEstado) ? '' : 'none';
     });
 }
@@ -418,8 +465,12 @@ function renderServicios(servicios) {
         const iconKey = Object.keys(iconos).find(k => key.includes(k));
         const icono = iconKey ? iconos[iconKey] : 'bi-gear-fill';
         const badge = s.estado === 'Activo' ? 'status-active' : 'status-inactive';
+        const imgThumb = s.imagen
+            ? `<div class="service-admin-thumb"><img src="${s.imagen}" alt="${s.nombre}"></div>`
+            : `<div class="service-admin-thumb service-admin-thumb-empty"><i class="bi ${icono}"></i></div>`;
         return `<div class="col-sm-6 col-xl-4 d-flex">
-            <div class="service-admin-card h-100 d-flex flex-column">
+            <div class="service-admin-card h-100 d-flex flex-column w-100">
+                ${imgThumb}
                 <div class="d-flex align-items-start gap-3 mb-3">
                     <div class="service-icon"><i class="bi ${icono}"></i></div>
                     <div class="flex-grow-1">
@@ -455,6 +506,7 @@ function abrirNuevoServicio() {
     servicioEdit = null;
     document.getElementById('modalServicioTitulo').textContent = 'Nuevo Servicio';
     document.getElementById('formServicio').reset();
+    document.getElementById('servImagen').value = '';
     new bootstrap.Modal(document.getElementById('modalServicio')).show();
 }
 
@@ -477,6 +529,7 @@ async function abrirEditarServicio(id) {
         document.getElementById('servDuracion').value = servicio.duracionMinutos ?? '';
         document.getElementById('servDescripcion').value = servicio.descripcion || '';
         document.getElementById('servEstado').value = servicio.estado || '';
+        document.getElementById('servImagen').value = servicio.imagen || '';
         new bootstrap.Modal(document.getElementById('modalServicio')).show();
     } catch (e) {
         console.error(e);
@@ -492,11 +545,12 @@ async function guardarServicio() {
     const duracion = parseInt(document.getElementById('servDuracion').value);
     const desc = document.getElementById('servDescripcion').value.trim();
     const estado = document.getElementById('servEstado').value;
+    const imagen = document.getElementById('servImagen')?.value.trim() || '';
     if (!nombre || isNaN(precio) || isNaN(duracion)) {
         mostrarToast('Completa los campos obligatorios', 'error');
         return;
     }
-    const body = { nombre, categoria, precioBase: precio, duracionMinutos: duracion, descripcion: desc, estado };
+    const body = { nombre, categoria, precioBase: precio, duracionMinutos: duracion, descripcion: desc, estado, imagen };
     const url = servicioEdit ? `${API.servicios}/${servicioEdit}` : API.servicios;
     const method = servicioEdit ? 'PUT' : 'POST';
     try {
@@ -516,18 +570,24 @@ async function guardarServicio() {
 
 // Confirma y elimina un servicio
 async function confirmarEliminarServicio(id, nombre) {
-    document.getElementById('nombreEliminar').textContent = `¿Eliminar el servicio "${nombre}"?`;
-    document.getElementById('btnConfirmarEliminar').onclick = async () => {
-        try {
-            await fetch(`${API.servicios}/${id}`, { method: 'DELETE' });
-            bootstrap.Modal.getInstance(document.getElementById('modalEliminar'))?.hide();
-            mostrarToast('Servicio eliminado', 'success');
-            await cargarServicios();
-        } catch (e) {
-            mostrarToast('Error de conexión', 'error');
+    mostrarModalAccion({
+        titulo: '¿Confirmar eliminación?',
+        mensaje: `¿Eliminar el servicio "${nombre}"?`,
+        icono: 'bi-trash3',
+        colorIcono: 'red',
+        textoBtn: 'Eliminar',
+        claseBtn: 'btn-danger',
+        onConfirmar: async () => {
+            try {
+                await fetch(`${API.servicios}/${id}`, { method: 'DELETE' });
+                bootstrap.Modal.getInstance(document.getElementById('modalEliminar'))?.hide();
+                mostrarToast('Servicio eliminado', 'success');
+                await cargarServicios();
+            } catch (e) {
+                mostrarToast('Error de conexión', 'error');
+            }
         }
-    };
-    new bootstrap.Modal(document.getElementById('modalEliminar')).show();
+    });
 }
 
 // Carga todas las citas y actualiza la tabla y KPI's
@@ -659,7 +719,43 @@ function calcularGastoCliente(idCliente) {
     return gastoCompras + gastoCitas;
 }
 
-// Renderiza la tabla de clientes con paginación y acciones (ver compras, eliminar)
+// Obtiene el rol base con el que fue creada la cuenta (el rol más alto en la jerarquía: gerente > administrador > cliente)
+function obtenerRolCreado(usuario) {
+    if (!usuario) return 'cliente';
+    if (usuario.rolBase) return String(usuario.rolBase).toLowerCase();
+    const roles = Array.isArray(usuario.roles)
+        ? usuario.roles.map(r => (typeof r === 'string' ? r : (r.nombre || '')).toLowerCase())
+        : (usuario.nombresRoles || []).map(r => String(r).toLowerCase());
+    if (roles.includes('gerente') || usuario.rol === 'gerente') return 'gerente';
+    if (roles.includes('administrador') || usuario.rol === 'administrador') return 'administrador';
+    return 'cliente';
+}
+
+// Determina si el usuario logueado tiene permisos para inhabilitar o habilitar la cuenta de un cliente
+function puedeModificarEstadoCliente(cliente) {
+    const sesion = obtenerSesion();
+    if (!sesion || !cliente) return false;
+
+    // Un usuario nunca puede inhabilitar su propia cuenta
+    if (Number(sesion.id) === Number(cliente.id)) return false;
+
+    const rolCreadoSesion = obtenerRolCreado(sesion);
+    const rolCreadoCliente = obtenerRolCreado(cliente);
+
+    // Un usuario con cuenta creada como gerente no podrá inhabilitar a otro gerente, solo a administrador o cliente
+    if (rolCreadoSesion === 'gerente') {
+        return rolCreadoCliente !== 'gerente';
+    }
+
+    // Un usuario con cuenta creada como administrador no podrá inhabilitar a un gerente o administrador, solo clientes
+    if (rolCreadoSesion === 'administrador') {
+        return rolCreadoCliente === 'cliente';
+    }
+
+    return false;
+}
+
+// Renderiza la tabla de clientes con paginación y acciones (ver compras, inhabilitar/habilitar)
 function renderClientes(clientes) {
     const tbody = document.getElementById('tablaClientes');
     if (!tbody) return;
@@ -679,6 +775,20 @@ function renderClientes(clientes) {
         const numCitas = citasCliente.length;
         const ultimaCita = citasCliente.length > 0 ? citasCliente.sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)))[0].fecha : '—';
         const gastoTotal = calcularGastoCliente(c.id);
+
+        const puedeModificar = puedeModificarEstadoCliente(c);
+        const esInactivo = (c.estado || 'Activo') === 'Inactivo';
+        const badgeClase = esInactivo ? 'status-inactive' : 'status-active';
+        const textoEstado = esInactivo ? 'Inactivo' : 'Activo';
+
+        const btnEstado = puedeModificar ? `
+            <button class="btn btn-sm ${esInactivo ? 'btn-outline-success' : 'btn-outline-danger'}" 
+                    title="${esInactivo ? 'Habilitar usuario' : 'Inhabilitar usuario'}" 
+                    onclick="confirmarCambiarEstadoCliente(${c.id}, '${(c.nombres + ' ' + c.apellidos).replace(/'/g, "\\'")}', '${c.estado || 'Activo'}')">
+                <i class="bi ${esInactivo ? 'bi-person-check' : 'bi-person-x'}"></i>
+            </button>
+        ` : '';
+
         return `<tr>
             <td class="text-muted fw-semibold">#C-${String(inicio + i + 1).padStart(3, '0')}</td>
             <td>
@@ -689,10 +799,10 @@ function renderClientes(clientes) {
             <td>${numCitas}</td>
             <td>S/ ${gastoTotal.toFixed(2)}</td>
             <td><small>${ultimaCita}</small></td>
-            <td><span class="status-badge status-active">Activo</span></td>
+            <td><span class="status-badge ${badgeClase}">${textoEstado}</span></td>
             <td>
-                <button class="btn btn-sm btn-outline-primary me-1" onclick="verComprasCliente(${c.id}, '${(c.nombres + ' ' + c.apellidos).replace(/'/g, "\\'")}')"><i class="bi bi-bag"></i></button>
-                <button class="btn btn-sm btn-outline-danger" onclick="confirmarEliminarCliente(${c.id}, '${(c.nombres + ' ' + c.apellidos).replace(/'/g, "\\'")}')"><i class="bi bi-trash"></i></button>
+                <button class="btn btn-sm btn-outline-primary me-1" title="Ver compras" onclick="verComprasCliente(${c.id}, '${(c.nombres + ' ' + c.apellidos).replace(/'/g, "\\'")}')"><i class="bi bi-bag"></i></button>
+                ${btnEstado}
             </td>
         </tr>`;
     }).join('');
@@ -744,50 +854,41 @@ function filtrarClientesTabla() {
     renderClientes(filtrados);
 }
 
-// Solicita confirmación para eliminar un cliente y maneja casos con historial
-function confirmarEliminarCliente(id, nombre) {
-    document.getElementById('nombreEliminar').textContent = `¿Eliminar al cliente "${nombre}"? Esta acción no se puede deshacer.`;
-    document.getElementById('btnConfirmarEliminar').onclick = async () => {
-        try {
-            const resp = await fetch(`${API.usuarios}/${id}`, { method: 'DELETE' });
-            if (resp.status === 409) {
-                const data = await resp.json();
-                bootstrap.Modal.getInstance(document.getElementById('modalEliminar'))?.hide();
-                confirmarEliminarClienteForzado(id, nombre, data.citas, data.compras);
-                return;
-            }
-            if (!resp.ok) {
-                mostrarToast('No se pudo eliminar el cliente', 'error');
-                return;
-            }
-            bootstrap.Modal.getInstance(document.getElementById('modalEliminar'))?.hide();
-            mostrarToast('Cliente eliminado', 'success');
-            await cargarClientes();
-        } catch (e) {
-            mostrarToast('Error de conexión', 'error');
-        }
-    };
-    new bootstrap.Modal(document.getElementById('modalEliminar')).show();
-}
+// Solicita confirmación para inhabilitar o habilitar un cliente y actualiza su estado
+function confirmarCambiarEstadoCliente(id, nombre, estadoActual) {
+    const esInactivo = estadoActual === 'Inactivo';
+    const nuevoEstado = esInactivo ? 'Activo' : 'Inactivo';
+    const accion = esInactivo ? 'Habilitar' : 'Inhabilitar';
 
-// Confirmación alternativa que informa sobre historial y fuerza eliminación si procede
-function confirmarEliminarClienteForzado(id, nombre, numCitas, numCompras) {
-    document.getElementById('nombreEliminar').innerHTML = `El cliente "${nombre}" tiene <strong>${numCitas}</strong> cita(s) y <strong>${numCompras}</strong> compra(s) registradas.<br> Si continúas, se eliminará todo su historial junto con su cuenta. Esta acción no se puede deshacer.`;
-    document.getElementById('btnConfirmarEliminar').onclick = async () => {
-        try {
-            const resp = await fetch(`${API.usuarios}/${id}?forzar=true`, { method: 'DELETE' });
-            if (!resp.ok) {
-                mostrarToast('No se pudo eliminar el cliente', 'error');
-                return;
+    mostrarModalAccion({
+        titulo: `¿${accion} usuario?`,
+        mensaje: esInactivo
+            ? `¿Deseas habilitar al usuario "${nombre}" para que pueda acceder nuevamente al sistema?`
+            : `¿Deseas inhabilitar al usuario "${nombre}"? No podrá acceder a su cuenta mientras permanezca inhabilitado.`,
+        icono: esInactivo ? 'bi-person-check' : 'bi-person-x',
+        colorIcono: esInactivo ? 'green' : 'red',
+        textoBtn: accion,
+        claseBtn: esInactivo ? 'btn-success' : 'btn-danger',
+        onConfirmar: async () => {
+            try {
+                const resp = await fetch(`${API.usuarios}/${id}/estado`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ estado: nuevoEstado })
+                });
+                if (!resp.ok) {
+                    const err = await resp.json().catch(() => ({}));
+                    mostrarToast(err.error || `No se pudo ${accion.toLowerCase()} al usuario`, 'error');
+                    return;
+                }
+                bootstrap.Modal.getInstance(document.getElementById('modalEliminar'))?.hide();
+                mostrarToast(`Usuario "${nombre}" marcado como ${nuevoEstado}`, 'success');
+                await cargarClientes();
+            } catch (e) {
+                mostrarToast('Error de conexión', 'error');
             }
-            bootstrap.Modal.getInstance(document.getElementById('modalEliminar'))?.hide();
-            mostrarToast('Cliente y su historial fueron eliminados', 'success');
-            await cargarClientes();
-        } catch (e) {
-            mostrarToast('Error de conexión', 'error');
         }
-    };
-    new bootstrap.Modal(document.getElementById('modalEliminar')).show();
+    });
 }
 
 // Muestra el modal con el historial de compras de un cliente
@@ -902,8 +1003,11 @@ async function guardarEdicionDatos() {
         const iniciales = (nombres[0] + (apellidos?.[0] || '')).toUpperCase();
         const avatar = document.getElementById('adminNombreAvatar') || document.getElementById('gerenteNombreAvatar');
         const menu = document.getElementById('adminNombreMenu') || document.getElementById('gerenteNombreMenu');
+        const breadcrumb = document.getElementById('topbarBreadcrumb');
+        const nombreCompleto = `${nombres} ${apellidos}`.trim();
         if (avatar) avatar.textContent = iniciales;
-        if (menu) menu.textContent = nombres + ' ' + apellidos;
+        if (menu) menu.textContent = nombreCompleto;
+        if (breadcrumb) breadcrumb.textContent = `Administrador ${nombreCompleto}`;
         bootstrap.Modal.getInstance(document.getElementById('modalEditarDatos'))?.hide();
         mostrarToast('Datos actualizados correctamente', 'success');
     } catch (e) {

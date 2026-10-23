@@ -188,58 +188,10 @@
                     <h2 class="titulo-seccion mt-2">Productos <span class="texto-celeste">Destacados</span></h2>
                     <p class="subtitulo-seccion">Repuestos, herramientas y lubricantes de las mejores marcas</p>
                 </div>
-                <!-- Productos destacados: Muestra ejemplos del catálogo para motivar al usuario a visitar la sección completa de productos -->
-                <div class="row g-4">
-                    <div class="col-6 col-md-4 col-lg-3">
-                        <div class="card-producto h-100">
-                            <div class="card-producto-img">
-                                <i class="bi bi-droplet-half"></i><span class="badge-producto">Popular</span>
-                            </div>
-                            <div class="card-producto-body">
-                                <span class="card-producto-cat">Aceites</span><h6>Aceite Motor 5W-30</h6>
-                                <div class="d-flex align-items-center justify-content-between mt-2">
-                                    <span class="card-producto-precio">S/ 28.00</span><a th:href="@{/productos}" class="btn btn-sm btn-outline-primary">Ver</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-4 col-lg-3">
-                        <div class="card-producto h-100">
-                            <div class="card-producto-img">
-                                <i class="bi bi-wrench-adjustable"></i><span class="badge-producto badge-nuevo">Nuevo</span>
-                            </div>
-                            <div class="card-producto-body">
-                                <span class="card-producto-cat">Herramientas</span>
-                                <h6>Juego de Llaves 12 pzas</h6>
-                                <div class="d-flex align-items-center justify-content-between mt-2">
-                                    <span class="card-producto-precio">S/ 85.00</span><a th:href="@{/productos}" class="btn btn-sm btn-outline-primary">Ver</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-4 col-lg-3">
-                        <div class="card-producto h-100">
-                            <div class="card-producto-img"><i class="bi bi-disc"></i></div>
-                            <div class="card-producto-body">
-                                <span class="card-producto-cat">Repuestos</span>
-                                <h6>Pastillas de Freno</h6>
-                                <div class="d-flex align-items-center justify-content-between mt-2">
-                                    <span class="card-producto-precio">S/ 65.00</span><a th:href="@{/productos}" class="btn btn-sm btn-outline-primary">Ver</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-4 col-lg-3">
-                        <div class="card-producto h-100">
-                            <div class="card-producto-img"><i class="bi bi-nut"></i></div>
-                            <div class="card-producto-body">
-                                <span class="card-producto-cat">Pernos</span>
-                                <h6>Set Pernos M8 x50</h6>
-                                <div class="d-flex align-items-center justify-content-between mt-2">
-                                    <span class="card-producto-precio">S/ 18.50</span><a th:href="@{/productos}" class="btn btn-sm btn-outline-primary">Ver</a>
-                                </div>
-                            </div>
-                        </div>
+                <!-- Productos destacados: Renderizados dinámicamente desde la BD vía inicio.js -->
+                <div class="row g-4" id="gridProductosDestacados">
+                    <div class="col-12 text-center py-4 text-muted">
+                        <div class="spinner-border spinner-border-sm text-primary me-2"></div>Cargando productos destacados...
                     </div>
                 </div>
                 <div class="text-center mt-5">

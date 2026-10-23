@@ -33,6 +33,12 @@ public class ProductoApiController {
         return ResponseEntity.ok(productoService.listar());
     }
 
+    // Método para listar solo los productos activos para el catálogo público
+    @GetMapping("/activos")
+    public ResponseEntity<List<Producto>> listarActivos() {
+        return ResponseEntity.ok(productoService.listarActivos());
+    }
+
     @GetMapping("/buscar")
     public ResponseEntity<List<Producto>> buscar(
             @RequestParam(required = false) String nombre,

@@ -13,7 +13,7 @@
     <!-- global.css: Estilos compartidos entre todos los roles; incluye variables CSS (--azul-oscuro, --celeste), navbar, y utilidades de sesión visual -->
     <link rel="stylesheet" th:href="@{/css/global.css}">
     <!-- administrador.css: Estilos exclusivos del panel admin; define sidebar, topbar, admin-card, kpi-card, status-badge, product-admin-card, service-admin-card y admin-table -->
-    <link rel="stylesheet" th:href="@{/css/roles/administrador.css}">
+    <link rel="stylesheet" th:href="@{/css/roles/administrador.css(v='2.3')}">
     <!-- Favicon del sitio -->
     <link rel="icon" th:href="@{/img/icono/icon.png}" type="image/png">
 </head>
@@ -22,12 +22,11 @@
     <div id="sidebarOverlay" onclick="cerrarSidebarMobile()"></div>
     <!-- Sidebar de navegación lateral tipo SPA: Cada enlace llama a mostrarSeccion() en administrador.js para mostrar/ocultar secciones sin recargar la página; los href="#" usan return false para evitar que el navegador agregue "#" a la URL -->
     <nav id="sidebar">
-        <!-- Encabezado del sidebar: Muestra el logo y el rol del panel para identificación visual inmediata del contexto de sesión -->
+        <!-- Encabezado del sidebar: Muestra el logo y el nombre de la empresa centrado con respecto al logo -->
         <div class="sidebar-brand">
             <div class="brand-icon"><i class="bi bi-tools"></i></div>
             <div class="brand-texts">
                 <span class="brand-name">RICAR AUTOBOUTIQUE</span>
-                <span class="brand-sac">PANEL ADMIN</span>
             </div>
         </div>
         <!-- Menú de navegación interna: Agrupa los enlaces por sección funcional (Principal, Catálogo, Gestión); la clase active se gestiona dinámicamente desde mostrarSeccion() en administrador.js -->
@@ -66,7 +65,7 @@
     <header id="topbar">
         <button class="btn-toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
         <div>
-            <div class="topbar-breadcrumb">RICAR AUTOBOUTIQUE S.A.C. / Administrador</div>
+            <div class="topbar-breadcrumb" id="topbarBreadcrumb">Administrador</div>
         </div>
         <!-- Dropdown de perfil: AdminNombreAvatar e adminNombreMenu se rellenan dinámicamente en el DOMContentLoaded de administrador.js con las iniciales y nombre completo desde sessionStorage -->
         <div class="topbar-right">
@@ -221,6 +220,8 @@
                         <div class="col-sm-2">
                             <select class="form-select" id="filterEstado" onchange="filtrarProductos()">
                                 <option value="">Todos</option>
+                                <option value="Activo">Activos</option>
+                                <option value="Inactivo">Inactivos</option>
                                 <option value="low">Stock bajo</option>
                             </select>
                         </div>
@@ -274,7 +275,7 @@
                 </div>
             </div>
         </section>
-        <!-- Sección de Clientes: Carga vía cargarClientes() consumiendo GET /api/usuarios (solo rol cliente) y GET /api/compras/todas; incluye búsqueda en tiempo real, paginación de 10 por página, gasto total real (compras Entregado + citas Completada) y botones de ver compras y eliminar con confirmación en 2 pasos -->
+        <!-- Sección de Clientes: Carga vía cargarClientes() consumiendo GET /api/usuarios (rol cliente) y GET /api/compras; incluye búsqueda en tiempo real, paginación de 10 por página, cálculo de gasto total, estado y botones de ver compras y habilitar/inhabilitar usuario con modal de confirmación dinámico -->
         <section id="sec-clientes" class="admin-section">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
                 <div>
@@ -297,7 +298,7 @@
                     </div>
                 </div>
             </div>
-            <!-- Tabla de clientes: Tbody#tablaClientes renderizado por renderClientes() con paginación de 10 registros; incluye columnas de citas, gasto total (calculado en calcularGastoCliente()), última visita, estado y botones de ver compras (verComprasCliente()) y eliminar (confirmarEliminarCliente() con lógica de 2 pasos para cascada) -->
+            <!-- Tabla de clientes: Tbody#tablaClientes renderizado por renderClientes() con paginación de 10 registros; incluye columnas de citas, gasto total, última visita, estado (Activo/Inactivo) y botones de ver compras y habilitar/inhabilitar usuario según permisos de jerarquía de rol de creación -->
             <div class="admin-card">
                 <div class="table-responsive">
                     <table class="table admin-table mb-0">
@@ -347,24 +348,31 @@
                                 <label class="form-label small fw-semibold">Categoría <span class="text-danger">*</span></label>
                                 <select id="prodCategoria" class="form-select"><option value="">Seleccionar...</option></select>
                             </div>
-                            <div class="col-sm-4">
+                            <div class="col-sm-3">
                                 <label class="form-label small fw-semibold">Precio (S/) <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text">S/</span>
                                     <input type="number" id="prodPrecio" class="form-control" placeholder="0.00" min="0.1" step="0.5">
                                 </div>
                             </div>
-                            <div class="col-sm-4">
+                            <div class="col-sm-3">
                                 <label class="form-label small fw-semibold">Stock <span class="text-danger">*</span></label>
                                 <input type="number" id="prodStock" class="form-control" placeholder="0" min="0">
                             </div>
-                            <div class="col-sm-4">
+                            <div class="col-sm-3">
                                 <label class="form-label small fw-semibold">Etiqueta</label>
                                 <select id="prodEtiqueta" class="form-select">
                                     <option value="">Ninguna</option>
                                     <option value="Nuevo">Nuevo</option>
                                     <option value="Oferta">Oferta</option>
                                     <option value="Popular">Popular</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-3">
+                                <label class="form-label small fw-semibold">Estado <span class="text-danger">*</span></label>
+                                <select id="prodEstado" class="form-select">
+                                    <option value="Activo">Activo</option>
+                                    <option value="Inactivo">Inactivo</option>
                                 </select>
                             </div>
                             <div class="col-12">
@@ -425,6 +433,10 @@
                                     <option value="Activo">Activo</option>
                                     <option value="Inactivo">Inactivo</option>
                                 </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">URL de imagen</label>
+                                <input type="text" id="servImagen" class="form-control" placeholder="https://... (opcional)">
                             </div>
                             <div class="col-12">
                                 <label class="form-label small fw-semibold">Descripción</label>
@@ -502,15 +514,15 @@
             </div>
         </div>
     </div>
-    <!-- Modal de confirmación de eliminación reutilizable: Usado por confirmarEliminarProducto(), confirmarEliminarServicio(), confirmarEliminarCategoria() y confirmarEliminarCliente(); nombreEliminar y btnConfirmarEliminar.onclick se reescriben dinámicamente antes de mostrar el modal según la entidad a eliminar; confirmarEliminarCliente() implementa lógica de 2 pasos: primera llamada sin ?forzar=true devuelve 409 con conteo de registros, segunda con ?forzar=true elimina en cascada citas y compras antes del usuario -->
+    <!-- Modal de confirmación dinámico: Reutilizado para eliminación de categorías, productos, servicios y para habilitar o inhabilitar usuarios según rol de creación -->
     <div class="modal fade" id="modalEliminar" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content">
                 <div class="modal-body text-center py-4 px-4">
-                    <div class="kpi-icon red mx-auto mb-3" style="width:56px;height:56px;font-size:1.5rem;">
-                        <i class="bi bi-trash3"></i>
+                    <div class="kpi-icon red mx-auto mb-3" style="width:56px;height:56px;font-size:1.5rem;" id="iconoModalEliminarContenedor">
+                        <i class="bi bi-trash3" id="iconoModalEliminar"></i>
                     </div>
-                    <h6 class="fw-bold mb-2">¿Confirmar eliminación?</h6>
+                    <h6 class="fw-bold mb-2" id="tituloModalEliminar">¿Confirmar eliminación?</h6>
                     <p class="text-muted small mb-0" id="nombreEliminar">Esta acción no se puede deshacer.</p>
                 </div>
                 <div class="modal-footer border-0 justify-content-center gap-2 pt-0">

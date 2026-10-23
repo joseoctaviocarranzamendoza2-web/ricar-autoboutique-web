@@ -319,7 +319,93 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('btnEliminarComentario')?.addEventListener('click', async function () {
         await eliminarComentario();
     });
+
+    // Carga dinámica de los 4 productos destacados desde la BD
+    await cargarProductosDestacados();
 });
+
+// Carga productos destacados desde la API priorizando populares/más vendidos y mostrando datos reales
+async function cargarProductosDestacados() {
+    const grid = document.getElementById('gridProductosDestacados');
+    if (!grid) return;
+    try {
+        const resp = await fetch('/api/productos/activos');
+        if (!resp.ok) throw new Error('Error al consultar productos activos');
+        const productos = await resp.json();
+        if (!productos || productos.length === 0) {
+            grid.innerHTML = '<div class="col-12 text-center text-muted py-4"><i class="bi bi-box-seam me-2"></i>No hay productos disponibles por el momento.</div>';
+            return;
+        }
+
+        // Prioriza productos con etiqueta 'Popular', 'Oferta', 'Nuevo' o los primeros registrados
+        const ordenados = [...productos].sort((a, b) => {
+            const peso = (p) => {
+                if (p.etiqueta === 'Popular') return 3;
+                if (p.etiqueta === 'Oferta') return 2;
+                if (p.etiqueta === 'Nuevo') return 1;
+                return 0;
+            };
+            return peso(b) - peso(a);
+        });
+
+        const destacados = ordenados.slice(0, 4);
+        renderizarProductosDestacados(destacados, grid);
+    } catch (err) {
+        console.error('Error al cargar productos destacados:', err);
+        grid.innerHTML = '<div class="col-12 text-center text-muted py-4"><i class="bi bi-exclamation-circle me-2"></i>No se pudieron cargar los productos destacados.</div>';
+    }
+}
+
+// Renderiza las 4 cards dinámicas con imagen (o icono por defecto), categoría, nombre, precio, etiqueta y botón Ver
+function renderizarProductosDestacados(productos, grid) {
+    const iconos = { 'herramienta': 'bi-wrench-adjustable', 'repuesto': 'bi-disc', 'aceite': 'bi-droplet-half', 'perno': 'bi-nut', 'filtro': 'bi-funnel' };
+    const badgeMap = {
+        'Popular': 'badge-producto',
+        'Nuevo': 'badge-producto badge-nuevo',
+        'Oferta': 'badge-producto badge-oferta'
+    };
+
+    grid.innerHTML = productos.map(p => {
+        const catNombre = p.categoria?.nombre || 'General';
+        const key = (catNombre + ' ' + p.nombre).toLowerCase();
+        const iconKey = Object.keys(iconos).find(k => key.includes(k));
+        const icono = iconKey ? iconos[iconKey] : 'bi-box-seam';
+
+        const badgeHtml = p.etiqueta && badgeMap[p.etiqueta]
+            ? `<span class="${badgeMap[p.etiqueta]}">${p.etiqueta}</span>`
+            : '';
+
+        const imgHtml = p.imagen
+            ? `<img src="${p.imagen}" alt="${p.nombre}">`
+            : `<i class="bi ${icono}"></i>`;
+
+        return `
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="card-producto h-100 d-flex flex-column">
+                <div class="card-producto-img">
+                    ${imgHtml}
+                    ${badgeHtml}
+                </div>
+                <div class="card-producto-body d-flex flex-column flex-grow-1">
+                    <span class="card-producto-cat">${catNombre}</span>
+                    <h6 class="card-producto-titulo" title="${p.nombre}">${p.nombre}</h6>
+                    <div class="d-flex align-items-center justify-content-between mt-auto pt-2">
+                        <span class="card-producto-precio">S/ ${p.precio.toFixed(2)}</span>
+                        <a href="/productos" class="btn btn-sm btn-outline-primary btn-ver-destacado"><i class="bi bi-eye me-1"></i>Ver</a>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+
+    // Asocia navegación fluida hacia la vista de productos
+    grid.querySelectorAll('.btn-ver-destacado').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            navegarConParametro('/productos');
+        });
+    });
+}
 
 // Listeners adicionales para navegación con parámetros desde banners y cards
 document.addEventListener('DOMContentLoaded', () => {
@@ -333,12 +419,6 @@ document.addEventListener('DOMContentLoaded', () => {
         a.addEventListener('click', function (e) {
             e.preventDefault();
             navegarConParametro('/contacto');
-        });
-    });
-    document.querySelectorAll('.card-producto .btn').forEach(a => {
-        a.addEventListener('click', function (e) {
-            e.preventDefault();
-            navegarConParametro('/productos');
         });
     });
     const verTodos = document.querySelector('.seccion-productos .text-center a.btn-primary');

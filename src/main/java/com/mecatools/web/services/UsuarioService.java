@@ -67,12 +67,51 @@ public class UsuarioService {
         if (usuario.getCiudad() == null || usuario.getCiudad().isBlank()) {
             usuario.setCiudad("Trujillo");
         }
+        if (usuario.getEstado() == null || usuario.getEstado().isBlank()) {
+            usuario.setEstado("Activo");
+        }
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
 
         // Asigna la correlación de roles en la tabla usuario_rol para cumplir con 3FN
         asignarRolesSegunJerarquia(usuario, rolPedido);
 
         return usuarioRepository.save(usuario);
+    }
+
+    // Método para cambiar el estado (Activo / Inactivo) de un usuario según la jerarquía de roles de creación:
+    // - Un usuario con cuenta creada como gerente no puede inhabilitar a otro gerente (solo administradores o clientes).
+    // - Un usuario con cuenta creada como administrador solo puede inhabilitar clientes (no administradores ni gerentes).
+    // - Ningún usuario puede inhabilitar su propia cuenta.
+    @Transactional
+    public Usuario cambiarEstado(Usuario usuarioAutenticado, Long idTarget, String nuevoEstado) {
+        if (usuarioAutenticado != null && usuarioAutenticado.getId().equals(idTarget)) {
+            throw new IllegalArgumentException("No puedes inhabilitar o cambiar el estado de tu propia cuenta");
+        }
+        Usuario target = usuarioRepository.findById(idTarget)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+
+        if (usuarioAutenticado != null) {
+            boolean authEsGerente = usuarioAutenticado.tieneRol("gerente");
+            boolean authEsAdmin = usuarioAutenticado.tieneRol("administrador");
+
+            boolean targetEsGerente = target.tieneRol("gerente");
+            boolean targetEsAdmin = target.tieneRol("administrador");
+
+            if (authEsGerente) {
+                if (targetEsGerente) {
+                    throw new SecurityException("Un usuario con cuenta creada como gerente no puede inhabilitar a otro gerente");
+                }
+            } else if (authEsAdmin) {
+                if (targetEsAdmin || targetEsGerente) {
+                    throw new SecurityException("Un usuario con cuenta creada como administrador no puede inhabilitar a un administrador o gerente");
+                }
+            } else {
+                throw new SecurityException("No tienes permisos para modificar el estado de usuarios");
+            }
+        }
+
+        target.setEstado(nuevoEstado);
+        return usuarioRepository.save(target);
     }
 
     // Correlaciona los roles de un usuario según la jerarquía establecida por los requerimientos

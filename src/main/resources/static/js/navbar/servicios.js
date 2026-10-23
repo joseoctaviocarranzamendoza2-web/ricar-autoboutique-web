@@ -90,12 +90,16 @@ function renderizarServicios(grid, servicios) {
         const duracion = s.duracionMinutos ? `${s.duracionMinutos} min` : 'Variable';
         const precio = `Desde S/ ${s.precioBase.toFixed(2)}`;
         const desc = s.descripcion || 'Servicio profesional con garantía de calidad.';
+        const bgStyle = s.imagen ? `style="background-image: url('${s.imagen}');"` : '';
+        const hasImgClass = s.imagen ? 'has-image' : '';
         return `
         <div class="col-md-6 col-lg-4">
             <div class="card-serv h-100">
-                <div class="card-serv-header">
-                    <div class="card-serv-icono"><i class="bi ${icono}"></i></div>
-                    <div class="card-serv-precio">${precio}</div>
+                <div class="card-serv-header ${hasImgClass}" ${bgStyle}>
+                    <div class="card-serv-header-top">
+                        <div class="card-serv-icono"><i class="bi ${icono}"></i></div>
+                        <div class="card-serv-precio">${precio}</div>
+                    </div>
                 </div>
                 <div class="card-serv-body">
                     <h5>${s.nombre}</h5>
@@ -111,13 +115,14 @@ function renderizarServicios(grid, servicios) {
     const cardPersonalizado = `
     <div class="col-md-6 col-lg-4">
         <div class="card-serv card-serv-custom h-100">
-            <div class="card-serv-custom-header">
-                <div class="custom-badge-top"><i class="bi bi-stars me-1"></i>Personalizado</div>
-                <div class="card-serv-icono-custom"><i class="bi bi-sliders"></i></div>
-                <h5 class="text-white mt-3 mb-1">Servicio a Medida</h5>
-                <p class="text-white-75 mb-0" style="font-size:0.85rem;">Describe tu problema y nosotros encontramos la solución perfecta para tu vehículo.</p>
-            </div>
             <div class="card-serv-custom-body">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-bold" style="font-size:0.75rem;">
+                        <i class="bi bi-stars me-1"></i>Personalizado
+                    </span>
+                    <div class="card-serv-icono-custom-sm"><i class="bi bi-sliders"></i></div>
+                </div>
+                <h5 class="fw-bold mb-2">Servicio a Medida</h5>
                 <p class="text-muted small mb-3">
                     ¿No encontraste lo que buscas? Cuéntanos qué necesita tu vehículo y nuestro
                     equipo te contactará con una cotización personalizada y sin compromiso.
@@ -128,7 +133,7 @@ function renderizarServicios(grid, servicios) {
                     <li><i class="bi bi-check2-circle"></i>Técnico asignado exclusivo</li>
                     <li><i class="bi bi-check2-circle"></i>Garantía en todo trabajo realizado</li>
                 </ul>
-                <button class="btn btn-custom-serv w-100 btn-personalizado"><i class="bi bi-pencil-square me-2"></i>Detallar mi solicitud</button>
+                <button class="btn btn-custom-serv w-100 btn-personalizado mt-auto"><i class="bi bi-pencil-square me-2"></i>Detallar mi solicitud</button>
             </div>
         </div>
     </div>`;

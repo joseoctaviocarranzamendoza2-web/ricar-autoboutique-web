@@ -51,7 +51,9 @@ public class UsuarioApiController {
                     "id", guardado.getId(),
                     "nombres", guardado.getNombres(),
                     "rol", guardado.getRol(),
+                    "rolBase", guardado.getRolBase(),
                     "roles", guardado.getNombresRoles(),
+                    "estado", guardado.getEstado(),
                     "mensaje", "Usuario registrado correctamente"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -72,7 +74,9 @@ public class UsuarioApiController {
                 "nombres", u.getNombres(),
                 "apellidos", u.getApellidos(),
                 "rolActual", u.getRol(),
-                "roles", u.getNombresRoles()
+                "rolBase", u.getRolBase(),
+                "roles", u.getNombresRoles(),
+                "estado", u.getEstado()
         ));
     }
 
@@ -91,9 +95,54 @@ public class UsuarioApiController {
         }
     }
 
+    // Endpoint para habilitar o inhabilitar un usuario (cambio de estado Activo/Inactivo)
+    @PatchMapping("/{id}/estado")
+    public ResponseEntity<?> cambiarEstado(@PathVariable Long id, @RequestBody Map<String, String> body, Authentication auth) {
+        if (auth == null || !auth.isAuthenticated() || !(auth.getPrincipal() instanceof UsuarioDetails details)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "No autenticado"));
+        }
+        String nuevoEstado = body != null ? body.get("estado") : null;
+        if (nuevoEstado == null || (!nuevoEstado.equalsIgnoreCase("Activo") && !nuevoEstado.equalsIgnoreCase("Inactivo"))) {
+            return ResponseEntity.badRequest().body(Map.of("error", "El estado debe ser Activo o Inactivo"));
+        }
+        try {
+            Usuario actualizado = usuarioService.cambiarEstado(details.getUsuario(), id, nuevoEstado);
+            return ResponseEntity.ok(Map.of(
+                    "mensaje", "Estado del usuario actualizado a " + actualizado.getEstado(),
+                    "id", actualizado.getId(),
+                    "estado", actualizado.getEstado()
+            ));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     // Método para eliminar un cliente por su ID. Devuelve una respuesta HTTP con el estado OK si se elimina correctamente, o un estado Not Found si no se encuentra el cliente, o un estado Bad Request si hay errores en los datos recibidos, o un estado Conflict si el cliente tiene registros asociados.
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> eliminar(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean forzar) {
+    public ResponseEntity<?> eliminar(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean forzar, Authentication auth) {
+        if (auth != null && auth.getPrincipal() instanceof UsuarioDetails details) {
+            Usuario authUser = details.getUsuario();
+            if (authUser.getId().equals(id)) {
+                return ResponseEntity.badRequest().body(Map.of("error", "No puedes eliminar tu propia cuenta"));
+            }
+            Usuario target = usuarioService.obtenerPorId(id).orElse(null);
+            if (target != null) {
+                boolean authEsGerente = authUser.tieneRol("gerente");
+                boolean authEsAdmin = authUser.tieneRol("administrador");
+                boolean targetEsGerente = target.tieneRol("gerente");
+                boolean targetEsAdmin = target.tieneRol("administrador");
+                if (authEsGerente && targetEsGerente) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Un usuario con cuenta creada como gerente no puede eliminar a otro gerente"));
+                }
+                if (authEsAdmin && !authEsGerente && (targetEsAdmin || targetEsGerente)) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Un usuario con cuenta creada como administrador solo puede eliminar clientes"));
+                }
+            }
+        }
         try {
             usuarioService.eliminarCliente(id, forzar);
             return ResponseEntity.ok(Map.of("mensaje", "Cliente eliminado correctamente"));

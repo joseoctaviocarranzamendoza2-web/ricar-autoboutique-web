@@ -47,6 +47,7 @@ public class ServicioService {
         s.setDuracionMinutos(datos.getDuracionMinutos());
         s.setDescripcion(datos.getDescripcion());
         s.setEstado(datos.getEstado());
+        s.setImagen(datos.getImagen());
         return servicioRepository.save(s);
     }
 

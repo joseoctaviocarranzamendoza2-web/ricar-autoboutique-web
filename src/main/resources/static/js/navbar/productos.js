@@ -45,9 +45,10 @@ async function cargarProductosDesdeDB() {
     if (!grid) return;
     grid.innerHTML = `<div class="col-12 text-center py-5 text-muted"><div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem;"></div><p class="fw-semibold">Cargando productos...</p></div>`;
     try {
-        const resp = await fetch('/api/productos');
+        const resp = await fetch('/api/productos/activos');
         if (!resp.ok) throw new Error('Error al cargar productos');
-        _productosDB = await resp.json();
+        const lista = await resp.json();
+        _productosDB = lista.filter(p => !p.estado || p.estado === 'Activo');
         if (_productosDB.length === 0) {
             grid.innerHTML = `<div class="col-12 text-center py-5 text-muted"><i class="bi bi-box-seam display-4 d-block mb-3"></i><p class="fw-semibold">No hay productos disponibles aún.</p><p class="small">El administrador debe cargar el catálogo de productos.</p></div>`;
             document.getElementById('contadorProductos').innerHTML = 'Mostrando <strong>0</strong> productos';
@@ -420,7 +421,7 @@ async function procesarPagoYCompra() {
         if (!resp.ok) throw new Error('Error del servidor');
         const data = await resp.json();
         // Actualiza caché de productos tras compra y limpia carrito local
-        fetch('/api/productos').then(r => r.json()).then(p => { _productosDB = p; }).catch(() => { });
+        fetch('/api/productos/activos').then(r => r.json()).then(p => { _productosDB = p.filter(prod => !prod.estado || prod.estado === 'Activo'); }).catch(() => { });
         carrito = [];
         actualizarBadgeCarrito();
         bootstrap.Modal.getInstance(document.getElementById('modalMetodoPago'))?.hide();

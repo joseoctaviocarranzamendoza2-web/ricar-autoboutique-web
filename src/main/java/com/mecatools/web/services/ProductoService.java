@@ -29,6 +29,11 @@ public class ProductoService {
         return productoRepository.findAll();
     }
 
+    // Método para listar todos los productos activos en la base de datos.
+    public List<Producto> listarActivos() {
+        return productoRepository.findActivos();
+    }
+
     // Método para listar todos los productos asociados a una categoría específica. Devuelve una lista de productos filtrados por el ID de la categoría proporcionada.
     public List<Producto> listarPorCategoria(Long idCategoria) {
         return productoRepository.findByCategoria_Id(idCategoria);
@@ -49,6 +54,9 @@ public class ProductoService {
     public Producto crear(Producto producto) {
         Categoria categoria = validarCategoria(producto);
         producto.setCategoria(categoria);
+        if (producto.getEstado() == null || producto.getEstado().isBlank()) {
+            producto.setEstado("Activo");
+        }
         return productoRepository.save(producto);
     }
 
@@ -61,6 +69,9 @@ public class ProductoService {
         producto.setDescripcion(datos.getDescripcion());
         producto.setEtiqueta(datos.getEtiqueta());
         producto.setImagen(datos.getImagen());
+        if (datos.getEstado() != null && !datos.getEstado().isBlank()) {
+            producto.setEstado(datos.getEstado());
+        }
         if (datos.getCategoria() != null && datos.getCategoria().getId() != null) {
             producto.setCategoria(validarCategoria(datos));
         }

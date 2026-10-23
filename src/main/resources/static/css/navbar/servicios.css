@@ -165,20 +165,52 @@
     border-color: var(--celeste);
 }
 
-/* Cabecera con degradado y padding */
+/* Cabecera con degradado o imagen de fondo (proporción 1:1, misma distancia vertical que horizontal) */
 .card-serv-header {
     background: linear-gradient(135deg, var(--azul-oscuro) 0%, #1a5276 100%);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+    width: 100%;
+    height: 220px;
     padding: 1.4rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    overflow: hidden;
+}
+
+/* Capa oscura semitransparente para garantizar legibilidad de icono y precio sobre cualquier imagen */
+.card-serv-header.has-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(10, 25, 47, 0.45) 0%, rgba(10, 25, 47, 0.08) 40%, rgba(10, 25, 47, 0.65) 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Fila superior para icono y precio con elevación sobre el overlay */
+.card-serv-header-top {
+    position: relative;
+    z-index: 2;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    width: 100%;
 }
 
-/* Contenedor icono con fondo sutil */
+/* Contenedor icono con fondo sutil translúcido */
 .card-serv-icono {
     width: 52px;
     height: 52px;
-    background: rgba(86, 174, 232, 0.2);
+    background: rgba(10, 25, 47, 0.55);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(86, 174, 232, 0.4);
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -187,14 +219,15 @@
     color: var(--celeste);
 }
 
-/* Etiqueta precio con fondo tenue */
+/* Etiqueta precio con fondo tenue y legible sobre fotos */
 .card-serv-precio {
     font-size: 0.9rem;
     font-weight: 800;
-    color: var(--celeste);
-    background: rgba(86, 174, 232, 0.15);
-    border: 1px solid rgba(86, 174, 232, 0.35);
-    padding: 0.3em 0.9em;
+    color: #fff;
+    background: rgba(10, 25, 47, 0.65);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(86, 174, 232, 0.45);
+    padding: 0.4em 1em;
     border-radius: 50px;
 }
 
@@ -212,12 +245,14 @@
     margin-bottom: 0.6rem;
 }
 
-/* Descripción del servicio */
+/* Descripción del servicio con texto justificado */
 .card-serv-body p {
     font-size: 0.85rem;
     color: #6c7d8e;
     line-height: 1.7;
     margin-bottom: 1rem;
+    text-align: justify;
+    text-justify: inter-word;
 }
 
 /* Lista de features sin bullets */
@@ -301,62 +336,31 @@
     transform: translateY(-6px);
 }
 
-/* Header centrado con degradado */
-.card-serv-custom-header {
-    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--celeste) 100%);
-    padding: 2rem 1.5rem 1.6rem;
-    text-align: center;
-    position: relative;
-}
-
-/* Badge superior en header personalizado */
-.custom-badge-top {
-    display: inline-flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.2);
-    color: #fff;
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 0.3em 0.9em;
-    border-radius: 50px;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    margin-bottom: 1rem;
-}
-
-/* Icono grande circular para header */
-.card-serv-icono-custom {
-    width: 64px;
-    height: 64px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 2px solid rgba(255, 255, 255, 0.4);
-    border-radius: 50%;
+/* Icono compacto para el servicio personalizado */
+.card-serv-icono-custom-sm {
+    width: 38px;
+    height: 38px;
+    background: rgba(86, 174, 232, 0.12);
+    border: 1px solid rgba(86, 174, 232, 0.3);
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.8rem;
-    color: #fff;
-    margin: 0 auto;
+    font-size: 1.15rem;
+    color: var(--celeste);
 }
 
-/* Título del header personalizado */
-.card-serv-custom-header h5 {
-    font-weight: 800;
-    font-size: 1.05rem;
-}
-
-/* Utilidad para texto blanco con opacidad */
-.text-white-75 {
-    color: rgba(255, 255, 255, 0.75) !important;
-}
-
-/* Cuerpo del custom con padding */
+/* Cuerpo del custom con padding y descripción justificada */
 .card-serv-custom-body {
-    padding: 1.4rem 1.5rem;
+    padding: 1.6rem 1.5rem;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
+}
+
+.card-serv-custom-body p {
+    text-align: justify;
+    text-justify: inter-word;
 }
 
 /* CTA grande con degradado */
@@ -673,9 +677,11 @@
         padding: 0.7rem 0.75rem;
         gap: 0;
     }
+
     .modal-paso span {
         font-size: 0.62rem;
     }
+
     .modal-paso-linea {
         min-width: 16px;
     }

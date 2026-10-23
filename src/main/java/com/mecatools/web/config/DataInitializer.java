@@ -37,6 +37,10 @@ public class DataInitializer implements CommandLineRunner {
             boolean esGerente = rolStr.contains("gerente") || email.contains("gerente");
             boolean esAdmin = rolStr.contains("admin") || email.contains("admin");
 
+            if (u.getEstado() == null || u.getEstado().isBlank()) {
+                u.setEstado("Activo");
+            }
+
             if (esGerente) {
                 u.getRoles().add(rolCliente);
                 u.getRoles().add(rolAdmin);
@@ -52,6 +56,8 @@ public class DataInitializer implements CommandLineRunner {
                 if (u.getRoles().isEmpty()) {
                     u.getRoles().add(rolCliente);
                     u.setRol("cliente");
+                    usuarioRepository.save(u);
+                } else {
                     usuarioRepository.save(u);
                 }
             }

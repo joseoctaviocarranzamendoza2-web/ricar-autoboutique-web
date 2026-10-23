@@ -13,7 +13,7 @@
     <!-- global.css: Estilos compartidos entre todos los roles; incluye variables de color y utilidades generales -->
     <link rel="stylesheet" th:href="@{/css/global.css}">
     <!-- gerente.css: Define estilos exclusivos del panel gerente, incluidos sidebar, topbar, tarjetas, tablas y layout SPA -->
-    <link rel="stylesheet" th:href="@{/css/roles/gerente.css}">
+    <link rel="stylesheet" th:href="@{/css/roles/gerente.css(v='2.3')}">
     <!-- Favicon del sitio -->
     <link rel="icon" th:href="@{/img/icono/icon.png}" type="image/png">
 </head>
@@ -26,7 +26,6 @@
             <div class="brand-icon"><i class="bi bi-tools"></i></div>
             <div class="brand-texts">
                 <span class="brand-name">RICAR AUTOBOUTIQUE</span>
-                <span class="brand-sac">PANEL GERENTE</span>
             </div>
         </div>
         <div class="sidebar-nav">
@@ -56,7 +55,7 @@
     <header id="topbar">
         <button class="btn-toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
         <div>
-            <div class="topbar-breadcrumb">RICAR AUTOBOUTIQUE S.A.C. / Gerente</div>
+            <div class="topbar-breadcrumb" id="topbarBreadcrumb">Gerente</div>
         </div>
         <!-- Breadcrumb fijo para indicar el contexto del panel y ayudar al gerente a confirmar el rol activo mientras navega entre secciones -->
         <div class="topbar-right">
@@ -92,7 +91,6 @@
                         <div>
                             <div class="kpi-value">S/ 0</div>
                             <div class="kpi-label">Ventas del mes</div>
-                            <small class="text-muted">Calculando...</small>
                         </div>
                     </div>
                 </div>
@@ -101,8 +99,7 @@
                         <div class="kpi-icon green"><i class="bi bi-calendar-check"></i></div>
                         <div>
                             <div class="kpi-value">0</div>
-                            <div class="kpi-label">Citas este mes</div>
-                            <small class="text-muted">Calculando...</small>
+                            <div class="kpi-label">Citas de este mes</div>
                         </div>
                     </div>
                 </div>
@@ -112,7 +109,6 @@
                         <div>
                             <div class="kpi-value">0</div>
                             <div class="kpi-label">Productos activos</div>
-                            <small class="text-muted">Calculando...</small>
                         </div>
                     </div>
                 </div>
@@ -122,102 +118,80 @@
                         <div>
                             <div class="kpi-value">0</div>
                             <div class="kpi-label">Clientes registrados</div>
-                            <small class="text-muted">Calculando...</small>
                         </div>
                     </div>
                 </div>
             </div>
             <!-- KPIs en el dashboard: Métricas clave de ventas, citas, inventario y clientes que se actualizan desde el JS del panel -->
             <div class="row g-3 mb-4">
-                <div class="col-lg-8">
+                <div class="col-lg-8 d-flex">
                     <!-- Lienzo del gráfico poblado por Chart.js con datos del dashboard del gerente; gerente.js inicializa ambos gráficos con métricas de ventas y compara por período -->
-                    <div class="admin-card">
-                        <div class="admin-card-header">
-                            <h6 class="admin-card-title"><i class="bi bi-graph-up me-2"></i>Ventas Mensuales 2026</h6>
+                    <div class="admin-card w-100 h-100 d-flex flex-column">
+                        <div class="admin-card-header d-flex justify-content-between align-items-center">
+                            <h6 class="admin-card-title mb-0"><i class="bi bi-graph-up me-2"></i>Ventas Mensuales <span id="lblAnioVentas">2026</span></h6>
+                            <div class="d-flex align-items-center gap-1">
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="btnAnioPrev" onclick="cambiarAnioVentas(-1)" title="Año anterior"><i class="bi bi-chevron-left"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="btnAnioNext" onclick="cambiarAnioVentas(1)" title="Año siguiente"><i class="bi bi-chevron-right"></i></button>
+                            </div>
                         </div>
-                        <div class="admin-card-body">
+                        <div class="admin-card-body flex-grow-1 d-flex flex-column justify-content-center">
                             <!-- Gráfico de ventas cargado con Chart.js y datos de procesos internos del panel gerente -->
                             <canvas id="chartVentas" style="max-height: 300px;"></canvas>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4">
-                    <div class="admin-card">
+                <div class="col-lg-4 d-flex">
+                    <div class="admin-card w-100 h-100 d-flex flex-column">
                         <div class="admin-card-header">
-                            <h6 class="admin-card-title"><i class="bi bi-pie-chart me-2"></i>Por Categoría</h6>
+                            <h6 class="admin-card-title mb-0"><i class="bi bi-pie-chart me-2"></i>Por Categoría</h6>
                         </div>
-                        <div class="admin-card-body">
-                            <canvas id="chartCategorias" style="max-height: 300px;"></canvas>
+                        <div class="admin-card-body flex-grow-1 d-flex flex-column justify-content-between">
+                            <div class="chart-doughnut-wrapper position-relative" style="height: 185px;">
+                                <canvas id="chartCategorias"></canvas>
+                            </div>
+                            <div id="legendCategorias"></div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="row g-3">
-                <div class="col-lg-6">
-                    <div class="admin-card">
+                <div class="col-lg-6 d-flex">
+                    <div class="admin-card w-100 h-100 d-flex flex-column">
                         <div class="admin-card-header">
-                            <h6 class="admin-card-title"><i class="bi bi-calendar-event me-2"></i>Próximas Citas</h6>
+                            <h6 class="admin-card-title mb-0"><i class="bi bi-calendar-event me-2"></i>Próximas Citas</h6>
                         </div>
-                        <!-- Tabla de próximas citas cargada por gerente.js con los próximos clientes y estados; la fila de 'Cargando...' es el contenido inicial hasta que el fetch termine -->
-                        <div class="table-responsive">
-                            <table class="table admin-table mb-0 small">
+                        <!-- Tabla de próximas citas cargada por gerente.js con columnas distribuidas y alineadas -->
+                        <div class="table-responsive flex-grow-1 d-flex flex-column">
+                            <table class="table admin-table mb-0 small" style="table-layout: fixed; width: 100%;">
                                 <thead>
                                     <tr>
-                                        <th>CLIENTE</th>
-                                        <th>SERVICIO</th>
-                                        <th>FECHA</th>
-                                        <th>ESTADO</th>
+                                        <th class="text-center" style="width: 22%; padding-left: 1.25rem;">CLIENTE</th>
+                                        <th class="text-center" style="width: 35%;">SERVICIO</th>
+                                        <th class="text-center" style="width: 23%;">FECHA</th>
+                                        <th class="text-center" style="width: 20%; padding-right: 1.25rem;">ESTADO</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td colspan="4" class="text-center text-muted py-3">Cargando...</td>
+                                        <td colspan="4" class="text-center text-muted py-4 align-middle">Cargando...</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-6">
-                    <div class="admin-card">
+                <div class="col-lg-6 d-flex">
+                    <div class="admin-card w-100 h-100 d-flex flex-column">
                         <div class="admin-card-header">
-                            <h6 class="admin-card-title"><i class="bi bi-fire me-2"></i>Productos Más Vendidos</h6>
+                            <h6 class="admin-card-title mb-0"><i class="bi bi-fire me-2"></i>Productos Más Vendidos</h6>
                         </div>
-                        <div class="admin-card-body" id="productosMasVendidos">
-                            <p class="text-muted small text-center py-2">Cargando...</p>
+                        <div class="admin-card-body flex-grow-1 d-flex flex-column justify-content-center" id="productosMasVendidos">
+                            <p class="text-muted small text-center py-4 mb-0">Cargando...</p>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="row g-3 mt-3">
-                <div class="col-12">
-                    <div class="admin-card">
-                        <div class="admin-card-header">
-                            <h6 class="admin-card-title"><i class="bi bi-people me-2"></i>Clientes Recientes</h6>
-                        </div>
-                        <!-- Tabla de clientes recientes y paginación administrada por gerente.js; tbody#tablaClientesGerente se actualiza dinámicamente mientras paginación aparece en #paginacionClientesGerente -->
-                        <div class="table-responsive">
-                            <table class="table admin-table mb-0 small">
-                                <thead>
-                                    <tr>
-                                        <th>CLIENTE</th>
-                                        <th>CONTACTO</th>
-                                        <th>CITAS</th>
-                                        <th>COMPRAS</th>
-                                        <th>GASTO TOTAL</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tablaClientesGerente">
-                                    <tr>
-                                        <td colspan="5" class="text-center text-muted py-3">Cargando...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="admin-card-body border-top py-2 d-flex justify-content-end gap-2" id="paginacionClientesGerente"></div>
-                    </div>
-                </div>
-            </div>
+
         </section>
         <!-- Esta sección permite al gerente revisar el historial de ventas, aplicar filtros de búsqueda y exportar resultados para análisis contable -->
         <section id="sec-ventas" class="admin-section">
@@ -226,55 +200,68 @@
                     <h5 class="fw-bold mb-0">Registro de Ventas</h5>
                     <small class="text-muted">Historial de transacciones</small>
                 </div>
-                    <!-- Botón que exporta la tabla de ventas a Excel usando la librería xlsx; la lógica se encuentra en gerente.js y respeta los filtros activos -->
-                <button class="btn btn-primary fw-semibold" id="btnExportarVentas"><i class="bi bi-download me-2"></i>Exportar Excel</button>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-exportar-excel fw-semibold" id="btnExportarVentas"><i class="bi bi-file-earmark-excel-fill me-1"></i>Exportar Excel</button>
+                    <button type="button" class="btn btn-exportar-pdf fw-semibold" id="btnExportarVentasPdf"><i class="bi bi-file-earmark-pdf-fill me-1"></i>Exportar PDF</button>
+                </div>
             </div>
             <div class="admin-card mb-3">
                 <div class="admin-card-body py-3">
                     <!-- Filtros de ventas para búsqueda y rango de fechas; en el archivo gerente.js se espera manejar la lógica de filtrado y actualización de la tabla sin recargar la página, usando estas entradas para buscar texto y fechas -->
                     <div class="row g-2 align-items-center">
                         <div class="col-sm-5">
-                            <input type="text" class="form-control" placeholder="Buscar cliente o producto…">
+                            <input type="text" class="form-control" id="filtroVentasBuscar" placeholder="Buscar cliente...">
                         </div>
                         <div class="col-sm-2">
-                            <input type="date" class="form-control">
+                            <input type="date" class="form-control" id="filtroVentasDesde" title="Fecha inicial">
                         </div>
                         <div class="col-sm-2">
-                            <input type="date" class="form-control">
+                            <input type="date" class="form-control" id="filtroVentasHasta" title="Fecha final">
                         </div>
                         <div class="col-sm-3">
-                            <button class="btn btn-primary w-100"><i class="bi bi-funnel me-1"></i>Filtrar</button>
+                            <button class="btn btn-filtrar-ventas w-100" id="btnFiltrarVentas"><i class="bi bi-funnel-fill me-1"></i>Filtrar</button>
                         </div>
                     </div>
                 </div>
             </div>
+            <!-- Apartados para alternar entre Ventas de Productos y Ventas por Servicio -->
+            <div class="ventas-tabs-nav mb-3">
+                <button type="button" class="tab-ventas-btn active" id="btnTabVentasProductos" onclick="cambiarTipoVentas('productos')">
+                    <i class="bi bi-box-seam me-1"></i>Ventas de Productos
+                </button>
+                <button type="button" class="tab-ventas-btn" id="btnTabVentasServicios" onclick="cambiarTipoVentas('servicios')">
+                    <i class="bi bi-tools me-1"></i>Ventas por Servicio
+                </button>
+            </div>
             <div class="admin-card">
                 <div class="table-responsive">
-                    <table class="table admin-table mb-0">
-                        <thead>
+                    <table class="table admin-table mb-0" style="table-layout: fixed; width: 100%;">
+                        <thead id="theadVentas">
                             <tr>
-                                <th>#VENTA</th>
-                                <th>CLIENTE</th>
-                                <th>PRODUCTOS / SERVICIO</th>
-                                <th>FECHA</th>
-                                <th>TOTAL</th>
-                                <th>ESTADO</th>
-                                <th>PAGO</th>
+                                <th class="text-center" style="width: 9%; padding-left: 1.25rem;">#VENTA</th>
+                                <th class="text-center" style="width: 16%;">CLIENTE</th>
+                                <th class="text-center" style="width: 29%;">PRODUCTOS</th>
+                                <th class="text-center" style="width: 13%;">FECHA</th>
+                                <th class="text-center" style="width: 10%;">TOTAL</th>
+                                <th class="text-center" style="width: 11%;">ESTADO</th>
+                                <th class="text-center" style="width: 12%; padding-right: 1.25rem;">PAGO</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="tbodyVentas">
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-4">Cargando ventas...</td>
+                                <td colspan="7" class="text-center text-muted py-4 align-middle">Cargando ventas...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-                <div class="admin-card-body border-top pt-3">
-                    <!-- Total del período calculado dinámicamente por gerente.js según las ventas cargadas en la tabla anterior -->
-                    <p class="mb-0">
-                        <strong>Total período:</strong>
-                        <span class="text-primary fw-bold">S/ 0.00</span>
+                <div class="admin-card-body border-top py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <!-- Total calculado dinámicamente por gerente.js según las ventas cargadas en la tabla anterior -->
+                    <p class="mb-0 lbl-total-ventas" id="lblTotalVentas">
+                        <strong>Total de la venta semanal:</strong>
+                        <span class="lbl-total-monto">S/ 0.00</span>
                     </p>
+                    <!-- Controles de paginación numérica generados dinámicamente por renderPaginacionVentas() en gerente.js -->
+                    <div id="paginacionVentas" class="d-flex align-items-center gap-1"></div>
                 </div>
             </div>
         </section>
@@ -289,7 +276,7 @@
             <div class="row g-3 mb-4">
                 <div class="col-md-4">
                     <div class="admin-card">
-                        <div class="admin-card-header">
+                        <div class="admin-card-header card-header-periodo">
                             <!-- Bootstrap Icons (bi-calendar) con utilidad me-2 (margin-end 0.5rem): Icono que representa período semanal, usado en tarjeta de reportes de esta semana -->
                             <h6 class="admin-card-title"><i class="bi bi-calendar me-2"></i>Esta Semana</h6>
                         </div>
@@ -315,7 +302,7 @@
                 </div>
                 <div class="col-md-4">
                     <div class="admin-card">
-                        <div class="admin-card-header">
+                        <div class="admin-card-header card-header-periodo">
                             <!-- Bootstrap Icons (bi-calendar-month) con utilidad me-2 (margin-end 0.5rem): Icono que representa período mensual, usado en tarjeta de reportes de este mes -->
                             <h6 class="admin-card-title"><i class="bi bi-calendar-month me-2"></i>Este Mes</h6>
                         </div>
@@ -341,7 +328,7 @@
                 </div>
                 <div class="col-md-4">
                     <div class="admin-card">
-                        <div class="admin-card-header">
+                        <div class="admin-card-header card-header-periodo">
                             <!-- Bootstrap Icons (bi-calendar-range) con utilidad me-2 (margin-end 0.5rem): Icono que representa rango de fechas/período anual, usado en tarjeta de reportes de este año -->
                             <h6 class="admin-card-title"><i class="bi bi-calendar-range me-2"></i>Este Año</h6>
                         </div>
@@ -367,25 +354,27 @@
                 </div>
             </div>
             <div class="admin-card">
-                <div class="admin-card-header">
-                    <h6 class="admin-card-title"><i class="bi bi-graph-up me-2"></i>Ventas por Servicio</h6>
-                    <!-- Botón de exportación para reporte de servicios; permite descargar datos de la tabla inferior cuando estén disponibles -->
-                    <button class="btn btn-sm btn-outline-primary" id="btnExportarServicios"><i class="bi bi-download me-1"></i>Exportar</button>
+                <div class="admin-card-header d-flex justify-content-between align-items-center">
+                    <h6 class="admin-card-title mb-0"><i class="bi bi-graph-up me-2"></i>Ventas por Servicio</h6>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-exportar-excel fw-semibold" id="btnExportarServicios"><i class="bi bi-file-earmark-excel-fill me-1"></i>Exportar Excel</button>
+                        <button type="button" class="btn btn-exportar-pdf fw-semibold" id="btnExportarServiciosPdf"><i class="bi bi-file-earmark-pdf-fill me-1"></i>Exportar PDF</button>
+                    </div>
                 </div>
                 <div class="table-responsive">
-                    <table class="table admin-table mb-0">
+                    <table class="table admin-table mb-0" style="table-layout: fixed; width: 100%;">
                         <thead>
                             <tr>
-                                <th>SERVICIO</th>
-                                <th>CITAS</th>
-                                <th>INGRESOS</th>
-                                <th>% DEL TOTAL</th>
-                                <th>TENDENCIA</th>
+                                <th class="text-center" style="width: 34%; padding-left: 1.25rem;">SERVICIO</th>
+                                <th class="text-center" style="width: 14%;">CITAS</th>
+                                <th class="text-center" style="width: 18%;">INGRESOS</th>
+                                <th class="text-center" style="width: 16%;">% DEL TOTAL</th>
+                                <th class="text-center" style="width: 18%; padding-right: 1.25rem;">TENDENCIA</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-4">Cargando...</td>
+                                <td colspan="5" class="text-center text-muted py-4 align-middle">Cargando...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -431,13 +420,13 @@
         </div>
     </div>
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
-        <div id="toastExito" class="toast align-items-center text-bg-success border-0" role="alert">
+        <div id="toastExito" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
-                <div class="toast-body">
-                    <i class="bi bi-check2-circle me-2"></i>
+                <div class="toast-body d-flex align-items-center">
+                    <i class="bi bi-check-circle-fill me-2 fs-5" id="toastIcono"></i>
                     <span id="toastMensaje">Guardado correctamente</span>
                 </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
             </div>
         </div>
     </div>
@@ -445,8 +434,13 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Chart.js: Biblioteca de gráficos para las visualizaciones de ventas y categorías del panel gerente -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- xlsx: Biblioteca cliente para exportar tablas a Excel desde el panel de ventas y reportes -->
+    <!-- ExcelJS: Biblioteca profesional para exportación de Excel con formatos, bordes, anchos de columna y estilos -->
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+    <!-- xlsx: Biblioteca cliente de soporte para exportar tablas a Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- jsPDF & autoTable: Generación profesional de reportes en PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <!-- global.js: Utilidades compartidas entre roles; debe cargarse antes de gerente.js -->
     <script th:src="@{/js/global.js}"></script>
     <!-- gerente.js: Lógica principal del panel gerente; gestiona la SPA interna, carga y filtra ventas, reportes, clientes y citas, y controla modales y exportaciones -->

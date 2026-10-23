@@ -103,6 +103,7 @@ public class ConfigSecurity {
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/roles-disponibles").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/**").hasAnyAuthority("administrador", "gerente")
                         .requestMatchers(HttpMethod.PUT, "/api/usuarios/**").hasAnyAuthority("administrador", "cliente")
+                        .requestMatchers(HttpMethod.PATCH, "/api/usuarios/**").hasAnyAuthority("administrador", "gerente")
                         .requestMatchers(HttpMethod.DELETE, "/api/usuarios/**").hasAuthority("administrador")
                         .requestMatchers(HttpMethod.POST, "/api/productos/**", "/api/servicios/**", "/api/categorias/**")
                         .hasAnyAuthority("administrador", "gerente")
@@ -234,7 +235,9 @@ public class ConfigSecurity {
                 body.put("telefono", u.getTelefono() != null ? u.getTelefono() : "");
                 body.put("ciudad", u.getCiudad() != null ? u.getCiudad() : "Trujillo");
                 body.put("rol", u.getRol());
+                body.put("rolBase", u.getRolBase());
                 body.put("roles", u.getNombresRoles());
+                body.put("estado", u.getEstado());
                 body.put("token", token);
                 body.put("tokenType", "Bearer");
                 body.put("expiresIn", JwtTokenService.TOKEN_LIFETIME.toSeconds());
@@ -252,7 +255,11 @@ public class ConfigSecurity {
                     AuthenticationException exception) throws java.io.IOException {
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
-                escribirErrorJson(response, HttpStatus.UNAUTHORIZED, "Credenciales incorrectas");
+                String mensaje = "Credenciales incorrectas";
+                if (exception instanceof org.springframework.security.authentication.DisabledException) {
+                    mensaje = "Tu cuenta se encuentra inhabilitada. Contacta con soporte o administración.";
+                }
+                escribirErrorJson(response, HttpStatus.UNAUTHORIZED, mensaje);
             }
         };
     }

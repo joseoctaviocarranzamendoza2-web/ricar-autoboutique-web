@@ -62,10 +62,10 @@ public class UsuarioDetails implements UserDetails {
         return true;
     }
 
-    // Indica si el usuario está habilitado para iniciar sesión; siempre true en este caso
+    // Indica si el usuario está habilitado para iniciar sesión según su estado en el sistema
     @Override
     public boolean isEnabled() {
-        return true;
+        return usuario.isActivo();
     }
 
 }

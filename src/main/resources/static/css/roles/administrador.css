@@ -19,7 +19,8 @@
 }
 
 /* Reset de márgenes globales para evitar saltos entre navegadores */
-html, body {
+html,
+body {
     margin: 0;
     padding: 0;
 }
@@ -76,29 +77,23 @@ body {
     flex-shrink: 0;
 }
 
-/* Textos de marca: Nombre y subtítulo, se ocultan al colapsar el sidebar */
+/* Textos de marca: Se ocultan al colapsar el sidebar */
 .brand-texts {
+    display: flex;
+    align-items: center;
     transition: opacity 0.2s;
 }
 
-/* Nombre de la marca: Título compacto mostrado junto al icono en el sidebar */
+/* Nombre de la marca: Centrado con respecto al icono del logo */
 .brand-texts .brand-name {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: var(--color-blanco);
-    line-height: 1;
-    display: block;
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
     margin: 0;
-}
-
-/* Subtítulo de marca: Texto pequeño secundario (tag) bajo el nombre */
-.brand-texts .brand-sac {
-    font-size: 0.6rem;
-    color: var(--color-celeste);
-    font-weight: 600;
-    letter-spacing: 1px;
-    display: block;
-    margin: 0;
+    letter-spacing: 0.3px;
 }
 
 /* Ajuste al colapsar: Oculta textos de marca para ahorrar espacio */
@@ -107,16 +102,18 @@ body {
     pointer-events: none;
 }
 
-/* Área de navegación: Lista vertical con scroll personalizado */
+/* Área de navegación: Lista vertical con scroll personalizado, sin desbordamiento horizontal */
 .sidebar-nav {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden !important;
     padding: 12px 8px;
 }
 
-/* Estilos del scrollbar del sidebar para apariencia más ligera */
+/* Estilos del scrollbar del sidebar para apariencia más ligera y eliminación del scroll horizontal */
 .sidebar-nav::-webkit-scrollbar {
     width: 4px;
+    height: 0px !important;
 }
 
 /* Pulgar del scrollbar: Color tenue y borde redondeado para una apariencia discreta */
@@ -134,13 +131,18 @@ body {
     color: rgba(255, 255, 255, 0.35);
     padding: 14px 12px 4px;
     white-space: nowrap;
-    transition: opacity 0.2s;
     margin: 0;
 }
 
-/* Oculta labels de sección cuando el sidebar está colapsado */
+/* Oculta labels de sección cuando el sidebar está colapsado: display none total para evitar desbordes */
 #sidebar.collapsed .nav-section-label {
+    display: none !important;
     opacity: 0;
+    height: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    pointer-events: none;
 }
 
 /* Enlace de navegación: Fila clicable con icono, texto y hover */
@@ -197,7 +199,12 @@ body {
 }
 
 /* Comportamiento cuando el sidebar se colapsa: Esconder texto y ajustar overflow */
+#sidebar.collapsed .sidebar-link {
+    overflow: hidden;
+}
+
 #sidebar.collapsed .sidebar-link .link-text {
+    display: none !important;
     opacity: 0;
     width: 0;
     overflow: hidden;
@@ -215,8 +222,9 @@ body {
     transition: opacity 0.2s;
 }
 
-/* Ocultar badges al colapsar para evitar layout roto */
+/* Ocultar badges al colapsar para evitar layout roto y barras de desplazamiento */
 #sidebar.collapsed .sidebar-badge {
+    display: none !important;
     opacity: 0;
 }
 
@@ -224,6 +232,7 @@ body {
 .sidebar-footer {
     padding: 12px 8px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
 }
 
 /* Barra superior: Contiene breadcrumb, acciones y avatar; se desplaza según el sidebar */
@@ -718,6 +727,45 @@ body {
     box-shadow: 0 6px 20px rgba(13, 110, 253, 0.08);
 }
 
+/* Descripción del servicio y categoría con texto justificado */
+.service-admin-card p,
+.category-card p.category-description {
+    text-align: justify;
+    text-justify: inter-word;
+    line-height: 1.55;
+}
+
+/* Foto/miniatura del servicio en card admin: Aquí se controla su altura */
+.service-admin-thumb {
+    width: 100%;
+    height: 200px;
+    background: #0d1b2a;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.service-admin-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Espacio por defecto cuando el servicio no tiene foto, manteniendo la misma altura y alineación */
+.service-admin-thumb-empty {
+    background: rgba(86, 174, 232, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed #cbd5e1;
+}
+
+.service-admin-thumb-empty i {
+    font-size: 3.5rem;
+    color: var(--color-azul-principal);
+    opacity: 0.85;
+}
+
 /* Icono del servicio: Caja cuadrada con color de acento */
 .service-icon {
     width: 44px;
@@ -820,7 +868,8 @@ body {
 }
 
 /* Controles de formulario: Inputs y selects con borde suave y padding */
-.form-control, .form-select {
+.form-control,
+.form-select {
     border-color: #e2e8f0;
     border-radius: 8px;
     padding: 8px 12px;
@@ -830,7 +879,8 @@ body {
 }
 
 /* Focus en formularios: Resalta borde y añade halo suave */
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
     border-color: var(--color-azul-principal);
     box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
 }
@@ -866,28 +916,35 @@ textarea.form-control {
         transform: translateX(-100%);
         transition: transform 0.3s ease;
     }
+
     #sidebar.mobile-open {
         width: var(--ancho-sidebar);
         transform: translateX(0);
     }
+
     #sidebar.mobile-open .brand-texts {
         opacity: 1 !important;
         pointer-events: auto !important;
     }
+
     #sidebar.mobile-open .sidebar-link .link-text {
         opacity: 1 !important;
         width: auto !important;
         overflow: visible !important;
     }
+
     #sidebar.mobile-open .sidebar-badge {
         opacity: 1 !important;
     }
+
     #topbar {
         left: 0 !important;
     }
+
     #mainContent {
         margin-left: 0 !important;
     }
+
     #sidebarOverlay.show {
         display: block;
     }

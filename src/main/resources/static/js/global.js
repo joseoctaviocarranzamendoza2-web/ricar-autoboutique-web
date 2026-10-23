@@ -497,9 +497,14 @@ async function manejarLogin() {
         formData.append('password', passwordInput.value);
         const resp = await fetch('/login', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: formData });
         if (!resp.ok) {
-            marcarInvalido(emailInput, 'Correo o contraseña incorrectos');
-            marcarInvalido(passwordInput, 'Correo o contraseña incorrectos');
-            divError?.classList.remove('d-none');
+            const errData = await resp.json().catch(() => ({}));
+            const msg = errData.message || 'Correo o contraseña incorrectos';
+            marcarInvalido(emailInput, msg);
+            marcarInvalido(passwordInput, msg);
+            if (divError) {
+                divError.textContent = msg;
+                divError.classList.remove('d-none');
+            }
             return;
         }
         const usuario = await resp.json();

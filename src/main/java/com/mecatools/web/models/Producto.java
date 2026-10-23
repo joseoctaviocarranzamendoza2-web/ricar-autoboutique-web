@@ -55,6 +55,18 @@ public class Producto {
     @Column
     private String imagen;
 
+    // Estado del producto: Activo o Inactivo
+    @Column
+    private String estado = "Activo";
+
+    public String getEstado() {
+        return (estado == null || estado.isBlank()) ? "Activo" : estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = (estado == null || estado.isBlank()) ? "Activo" : estado;
+    }
+
     // Relación ManyToOne con la categoría del producto
     @NotNull(message = "La categoría es obligatoria")
     @ManyToOne

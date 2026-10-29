@@ -13,7 +13,7 @@
     <!-- global.css: Estilos compartidos entre todos los roles; incluye variables de color y utilidades generales -->
     <link rel="stylesheet" th:href="@{/css/global.css}">
     <!-- gerente.css: Define estilos exclusivos del panel gerente, incluidos sidebar, topbar, tarjetas, tablas y layout SPA -->
-    <link rel="stylesheet" th:href="@{/css/roles/gerente.css(v='2.3')}">
+    <link rel="stylesheet" th:href="@{/css/roles/gerente.css(v='3.2')}">
     <!-- Favicon del sitio -->
     <link rel="icon" th:href="@{/img/icono/icon.png}" type="image/png">
 </head>
@@ -59,7 +59,10 @@
         </div>
         <!-- Breadcrumb fijo para indicar el contexto del panel y ayudar al gerente a confirmar el rol activo mientras navega entre secciones -->
         <div class="topbar-right">
-            <button class="topbar-icon-btn" title="Notificaciones"><i class="bi bi-bell"></i><span class="topbar-notif-dot"></span></button>
+            <!-- Campana de notificaciones: Alterna entre activa (bi-bell) y silenciada (bi-bell-slash) al hacer click -->
+            <button id="btnCampana" class="topbar-icon-btn" title="Notificaciones" onclick="toggleCampana()">
+                <i id="iconoCampana" class="bi bi-bell"></i>
+            </button>
             <div class="dropdown">
                 <!-- Desplegable Bootstrap para acciones de cuenta del gerente, nombre inyectado por Thymeleaf con valor predeterminado seguro; esto permite editar perfil o cerrar sesión desde el header sin salir del panel -->
                 <div class="admin-avatar dropdown-toggle" data-bs-toggle="dropdown" id="gerenteNombreAvatar" title="Perfil">G</div>
@@ -68,13 +71,14 @@
                         <h6 class="dropdown-header" id="gerenteNombreMenu" th:text="${param.nombre != null ? param.nombre : 'gerente'}">gerente</h6>
                     </li>
                     <li>
-                        <hr class="dropdown-divider">
+                        <a class="dropdown-item-custom" href="#" onclick="abrirModalEditarDatos(); return false;">
+                            <i class="bi bi-pencil-square dropdown-item-icon"></i>Editar datos
+                        </a>
                     </li>
                     <li>
-                        <a class="dropdown-item small text-primary" href="#" onclick="abrirModalEditarDatos(); return false;"><i class="bi bi-pencil-square me-2"></i>Editar datos</a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item small text-primary" href="/rol" onclick="irACambiarRol(); return false;"><i class="bi bi-arrow-repeat me-2"></i>Cambiar rol</a>
+                        <a class="dropdown-item-custom" href="/rol" onclick="irACambiarRol(); return false;">
+                            <i class="bi bi-arrow-repeat dropdown-item-icon"></i>Cambiar rol
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -90,13 +94,13 @@
                         <div class="kpi-icon blue"><i class="bi bi-credit-card"></i></div>
                         <div>
                             <div class="kpi-value">S/ 0</div>
-                            <div class="kpi-label">Ventas del mes</div>
+                            <div class="kpi-label">Ventas de este mes</div>
                         </div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="kpi-card">
-                        <div class="kpi-icon green"><i class="bi bi-calendar-check"></i></div>
+                        <div class="kpi-icon blue"><i class="bi bi-calendar-check"></i></div>
                         <div>
                             <div class="kpi-value">0</div>
                             <div class="kpi-label">Citas de este mes</div>
@@ -105,7 +109,7 @@
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="kpi-card">
-                        <div class="kpi-icon orange"><i class="bi bi-box-seam"></i></div>
+                        <div class="kpi-icon blue"><i class="bi bi-box-seam"></i></div>
                         <div>
                             <div class="kpi-value">0</div>
                             <div class="kpi-label">Productos activos</div>
@@ -130,8 +134,8 @@
                         <div class="admin-card-header d-flex justify-content-between align-items-center">
                             <h6 class="admin-card-title mb-0"><i class="bi bi-graph-up me-2"></i>Ventas Mensuales <span id="lblAnioVentas">2026</span></h6>
                             <div class="d-flex align-items-center gap-1">
-                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="btnAnioPrev" onclick="cambiarAnioVentas(-1)" title="Año anterior"><i class="bi bi-chevron-left"></i></button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="btnAnioNext" onclick="cambiarAnioVentas(1)" title="Año siguiente"><i class="bi bi-chevron-right"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="btnAnioPrev" onclick="cambiarAnioVentas(-1); this.blur();" title="Año anterior"><i class="bi bi-chevron-left"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="btnAnioNext" onclick="cambiarAnioVentas(1); this.blur();" title="Año siguiente"><i class="bi bi-chevron-right"></i></button>
                             </div>
                         </div>
                         <div class="admin-card-body flex-grow-1 d-flex flex-column justify-content-center">
@@ -219,7 +223,7 @@
                             <input type="date" class="form-control" id="filtroVentasHasta" title="Fecha final">
                         </div>
                         <div class="col-sm-3">
-                            <button class="btn btn-filtrar-ventas w-100" id="btnFiltrarVentas"><i class="bi bi-funnel-fill me-1"></i>Filtrar</button>
+                            <button class="btn btn-filtrar-ventas w-100" id="btnFiltrarVentas"><i class="bi bi-funnel-fill me-1"></i>FILTRAR</button>
                         </div>
                     </div>
                 </div>

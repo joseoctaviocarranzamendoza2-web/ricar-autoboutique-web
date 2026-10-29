@@ -173,7 +173,7 @@ function renderDashboard() {
                 <small class="text-muted text-nowrap">${cant} uds.</small>
             </div>
             <div class="progress" style="height:8px;">
-                <div class="progress-bar" style="width:${Math.round((cant / maxVentas) * 100)}%"></div>
+                <div class="progress-bar progress-bar-marca" style="width:${Math.round((cant / maxVentas) * 100)}%"></div>
             </div>
         </div>`).join('');
         } else {
@@ -227,6 +227,7 @@ function iniciarFiltrosVentas() {
 
     btnFiltrar?.addEventListener('click', () => {
         ejecutarFiltroVentas(true);
+        btnFiltrar.blur();
     });
 
     const btnExportarPdf = document.getElementById('btnExportarVentasPdf');
@@ -236,6 +237,7 @@ function iniciarFiltrosVentas() {
         btnExportar.dataset.bound = 'true';
         btnExportar.addEventListener('click', (e) => {
             e.preventDefault();
+            btnExportar.blur();
             exportarVentasExcel();
         });
     }
@@ -243,6 +245,7 @@ function iniciarFiltrosVentas() {
         btnExportarServicios.dataset.bound = 'true';
         btnExportarServicios.addEventListener('click', (e) => {
             e.preventDefault();
+            btnExportarServicios.blur();
             exportarServiciosExcel();
         });
     }
@@ -250,6 +253,7 @@ function iniciarFiltrosVentas() {
         btnExportarPdf.dataset.bound = 'true';
         btnExportarPdf.addEventListener('click', (e) => {
             e.preventDefault();
+            btnExportarPdf.blur();
             exportarVentasPdf();
         });
     }
@@ -257,6 +261,7 @@ function iniciarFiltrosVentas() {
         btnExportarServiciosPdf.dataset.bound = 'true';
         btnExportarServiciosPdf.addEventListener('click', (e) => {
             e.preventDefault();
+            btnExportarServiciosPdf.blur();
             exportarServiciosPdf();
         });
     }
@@ -1145,6 +1150,7 @@ function renderCharts() {
         }
         const stepEscala = Math.round(maxEscala / 10);
 
+        const mesesCompletos = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         if (window._chartVentas) window._chartVentas.destroy();
         window._chartVentas = new Chart(ctxVentas, {
             type: 'bar',
@@ -1163,7 +1169,19 @@ function renderCharts() {
                 responsive: true,
                 maintainAspectRatio: true,
                 plugins: {
-                    legend: { display: false }
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            // Muestra el nombre completo del mes en el tooltip
+                            title: function(items) {
+                                const idx = items[0]?.dataIndex;
+                                return typeof idx === 'number' ? mesesCompletos[idx] : '';
+                            },
+                            label: function(item) {
+                                return ` Ventas (S/): ${item.parsed.y.toFixed(0)}`;
+                            }
+                        }
+                    }
                 },
                 scales: {
                     y: {
@@ -1334,4 +1352,14 @@ function mostrarToast(mensaje, tipo = 'success') {
     }
     if (toastMsg) toastMsg.textContent = mensaje;
     new bootstrap.Toast(toast, { delay: 3500 }).show();
+}
+
+// Alterna el estado de la campana entre activa (bi-bell) y silenciada (bi-bell-slash)
+function toggleCampana() {
+    const btn = document.getElementById('btnCampana');
+    const icono = document.getElementById('iconoCampana');
+    if (!btn || !icono) return;
+    const silenciada = btn.classList.toggle('bell-muted');
+    icono.className = silenciada ? 'bi bi-bell-slash' : 'bi bi-bell';
+    btn.title = silenciada ? 'Notificaciones silenciadas' : 'Notificaciones activas';
 }

@@ -342,15 +342,42 @@ body {
 /* Dropdown de perfil en topbar: Elimina el fondo azul predeterminado de Bootstrap al hacer clic */
 .topbar-right .dropdown-menu {
     border-radius: 12px;
-    padding: 6px;
-    min-width: 180px;
+    padding: 0 0 6px 0;
+    min-width: 195px;
     --bs-dropdown-link-active-bg: transparent;
     --bs-dropdown-link-active-color: inherit;
+    border: 1px solid #bce1f8;
+    box-shadow: 0 10px 25px rgba(10, 61, 107, 0.12);
+    overflow: hidden;
+}
+
+.topbar-right .dropdown-header {
+    background-color: #56aee8;
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 700;
+    padding: 11px 16px;
+    margin: 0 0 4px 0;
+    border: none;
+    border-bottom: none;
+    text-transform: none;
+    letter-spacing: 0.2px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.topbar-right .dropdown-divider {
+    display: none;
 }
 
 .topbar-right .dropdown-menu .dropdown-item {
     border-radius: 8px;
     padding: 8px 12px;
+    margin: 2px 6px;
+    width: calc(100% - 12px);
     font-weight: 500;
     transition: background-color 0.15s ease, color 0.15s ease;
 }

@@ -339,44 +339,96 @@ body {
     cursor: pointer;
 }
 
-/* Dropdown de perfil en topbar: Elimina el fondo azul predeterminado de Bootstrap al hacer clic */
+/* Estado silenciado de campana en topbar */
+.topbar-icon-btn.bell-muted {
+    color: #94a3b8;
+    background: #f1f5f9;
+}
+.topbar-icon-btn.bell-muted:hover {
+    background: #e2e8f0;
+    color: #64748b;
+}
+.topbar-icon-btn.bell-muted .topbar-notif-dot {
+    display: none;
+}
+
+/* Dropdown del topbar: Estilos personalizados para botones y cabecera de perfil */
 .topbar-right .dropdown-menu {
     border-radius: 12px;
-    padding: 6px;
-    min-width: 180px;
+    padding: 0 0 6px 0;
+    min-width: 195px;
     --bs-dropdown-link-active-bg: transparent;
     --bs-dropdown-link-active-color: inherit;
+    border: 1px solid #bce1f8;
+    box-shadow: 0 10px 25px rgba(10, 61, 107, 0.12);
+    overflow: hidden;
 }
 
-.topbar-right .dropdown-menu .dropdown-item {
+.topbar-right .dropdown-header {
+    background-color: #56aee8;
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 700;
+    padding: 11px 16px;
+    margin: 0 0 6px 0;
+    border: none;
+    border-bottom: none;
+    text-transform: none;
+    letter-spacing: 0.2px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.topbar-right .dropdown-divider {
+    display: none;
+}
+
+.topbar-right .dropdown-item-custom {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    margin: 3px 6px;
+    width: calc(100% - 12px);
     border-radius: 8px;
-    padding: 8px 12px;
+    font-size: 0.875rem;
     font-weight: 500;
+    color: var(--color-oscuro);
+    text-decoration: none;
+    cursor: pointer;
     transition: background-color 0.15s ease, color 0.15s ease;
+    border: none;
+    background: none;
+    text-align: left;
 }
 
-.topbar-right .dropdown-menu .dropdown-item:hover {
-    background-color: var(--color-gris-claro);
-}
-
-.topbar-right .dropdown-menu .dropdown-item:active,
-.topbar-right .dropdown-menu .dropdown-item:focus {
-    background-color: var(--color-gris-claro);
-    color: inherit;
-}
-
-.topbar-right .dropdown-menu .dropdown-item.text-primary:hover,
-.topbar-right .dropdown-menu .dropdown-item.text-primary:focus,
-.topbar-right .dropdown-menu .dropdown-item.text-primary:active {
+.topbar-right .dropdown-item-custom:hover,
+.topbar-right .dropdown-item-custom:focus,
+.topbar-right .dropdown-item-custom:active {
     background-color: var(--color-azul-claro);
-    color: var(--color-azul-principal) !important;
+    color: var(--color-azul-oscuro) !important;
 }
 
-.topbar-right .dropdown-menu .dropdown-item.text-danger:hover,
-.topbar-right .dropdown-menu .dropdown-item.text-danger:focus,
-.topbar-right .dropdown-menu .dropdown-item.text-danger:active {
-    background-color: rgba(239, 68, 68, 0.08);
-    color: #ef4444 !important;
+.topbar-right .dropdown-item-custom:hover .dropdown-item-icon,
+.topbar-right .dropdown-item-custom:focus .dropdown-item-icon,
+.topbar-right .dropdown-item-custom:active .dropdown-item-icon {
+    color: var(--color-azul-oscuro) !important;
+}
+
+.dropdown-item-icon {
+    font-size: 0.95rem;
+    color: var(--color-celeste);
+    flex-shrink: 0;
+    transition: color 0.15s ease;
+}
+
+.topbar-right .dropdown-divider-custom {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 4px 8px;
 }
 
 /* Contenedor principal ajustable por el sidebar, con padding interior */
@@ -529,6 +581,20 @@ body {
 }
 
 /* Estilos base para tablas en la sección gerente */
+/* Barra de progreso de productos más vendidos: color celeste corporativo idéntico a perfil e icono de marca */
+#productosMasVendidos .progress {
+    background-color: #f1f5f9;
+    border-radius: 6px;
+    height: 8px;
+    overflow: hidden;
+}
+
+#productosMasVendidos .progress-bar,
+.progress-bar-marca {
+    background-color: var(--color-celeste) !important;
+    border-radius: 6px;
+}
+
 .admin-table {
     font-size: 0.855rem;
 }
@@ -918,11 +984,61 @@ body {
    DISEÑO UI PERSONALIZADO: MÓDULO DE VENTAS (GERENTE)
    ======================================================== */
 
-/* Botón Exportar Excel con color verde sólido institucional y dimensiones idénticas en todas las secciones */
-.btn-exportar-excel {
-    background-color: #16a34a;
+/* Botones de navegación de año en Ventas Mensuales: mantiene el mismo gris en hover, click (active) y focus */
+#btnAnioPrev,
+#btnAnioNext {
+    --bs-btn-color: var(--color-gris-texto);
+    --bs-btn-border-color: #cbd5e1;
+    --bs-btn-hover-color: #ffffff;
+    --bs-btn-hover-bg: var(--color-gris-texto);
+    --bs-btn-hover-border-color: var(--color-gris-texto);
+    --bs-btn-focus-shadow-rgb: 74, 85, 104;
+    --bs-btn-active-color: #ffffff;
+    --bs-btn-active-bg: var(--color-gris-texto);
+    --bs-btn-active-border-color: var(--color-gris-texto);
+    color: var(--color-gris-texto) !important;
+    border: 1px solid #cbd5e1 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+#btnAnioPrev:hover,
+#btnAnioNext:hover,
+#btnAnioPrev:active,
+#btnAnioNext:active,
+#btnAnioPrev:focus,
+#btnAnioNext:focus,
+#btnAnioPrev:focus-visible,
+#btnAnioNext:focus-visible {
+    background-color: var(--color-gris-texto) !important;
+    border-color: var(--color-gris-texto) !important;
     color: #ffffff !important;
-    border: none;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+#btnAnioPrev i,
+#btnAnioNext i {
+    color: inherit !important;
+}
+
+/* Botón Exportar Excel con color verde sólido institucional sin sombra; mantiene su color verde en hover y click */
+.btn-exportar-excel {
+    --bs-btn-color: #ffffff;
+    --bs-btn-bg: #16a34a;
+    --bs-btn-border-color: #16a34a;
+    --bs-btn-hover-color: #ffffff;
+    --bs-btn-hover-bg: #15803d;
+    --bs-btn-hover-border-color: #15803d;
+    --bs-btn-focus-shadow-rgb: 22, 163, 74;
+    --bs-btn-active-color: #ffffff;
+    --bs-btn-active-bg: #15803d;
+    --bs-btn-active-border-color: #15803d;
+    background-color: #16a34a !important;
+    color: #ffffff !important;
+    border: none !important;
     border-radius: 9px;
     padding: 0.55rem 1.25rem !important;
     height: 38px !important;
@@ -931,38 +1047,59 @@ body {
     font-size: 0.88rem !important;
     line-height: 1.2;
     letter-spacing: 0.2px;
-    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.22);
+    box-shadow: none !important;
+    outline: none !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.2s ease;
 }
+
 .btn-exportar-excel:hover {
-    background-color: #15803d;
+    background-color: #15803d !important;
     color: #ffffff !important;
     transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(22, 163, 74, 0.3);
+    box-shadow: none !important;
+    outline: none !important;
 }
-.btn-exportar-excel:active {
-    background-color: #166534;
+
+.btn-exportar-excel:active,
+.btn-exportar-excel:focus,
+.btn-exportar-excel:focus-visible {
+    background-color: #15803d !important;
+    color: #ffffff !important;
     transform: translateY(0);
-    box-shadow: 0 1px 4px rgba(22, 163, 74, 0.2);
+    box-shadow: none !important;
+    outline: none !important;
 }
+
 .btn-exportar-excel i {
     font-size: 1rem;
+    color: #ffffff !important;
 }
+
 .admin-card-header .btn.btn-exportar-excel {
     height: 38px !important;
     min-height: 38px !important;
 }
 
-/* Botón Exportar PDF con fondo negro e identidad corporativa */
+/* Botón Exportar PDF con fondo negro sin sombra; mantiene su color negro en hover y click */
 .btn-exportar-pdf {
-    background-color: #111827;
+    --bs-btn-color: #ffffff;
+    --bs-btn-bg: #111827;
+    --bs-btn-border-color: #111827;
+    --bs-btn-hover-color: #ffffff;
+    --bs-btn-hover-bg: #1f2937;
+    --bs-btn-hover-border-color: #1f2937;
+    --bs-btn-focus-shadow-rgb: 17, 24, 39;
+    --bs-btn-active-color: #ffffff;
+    --bs-btn-active-bg: #1f2937;
+    --bs-btn-active-border-color: #1f2937;
+    background-color: #111827 !important;
     color: #ffffff !important;
-    border: none;
+    border: none !important;
     border-radius: 9px;
     padding: 0.55rem 1.25rem !important;
     height: 38px !important;
@@ -971,66 +1108,101 @@ body {
     font-size: 0.88rem !important;
     line-height: 1.2;
     letter-spacing: 0.2px;
-    box-shadow: 0 2px 6px rgba(17, 24, 39, 0.22);
+    box-shadow: none !important;
+    outline: none !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.2s ease;
 }
+
 .btn-exportar-pdf:hover {
-    background-color: #1f2937;
+    background-color: #1f2937 !important;
     color: #ffffff !important;
     transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(17, 24, 39, 0.3);
+    box-shadow: none !important;
+    outline: none !important;
 }
-.btn-exportar-pdf:active {
-    background-color: #030712;
+
+.btn-exportar-pdf:active,
+.btn-exportar-pdf:focus,
+.btn-exportar-pdf:focus-visible {
+    background-color: #1f2937 !important;
+    color: #ffffff !important;
     transform: translateY(0);
-    box-shadow: 0 1px 4px rgba(17, 24, 39, 0.2);
+    box-shadow: none !important;
+    outline: none !important;
 }
+
 .btn-exportar-pdf i {
     font-size: 1rem;
-    color: #ffffff;
+    color: #ffffff !important;
 }
+
 .admin-card-header .btn.btn-exportar-pdf {
     height: 38px !important;
     min-height: 38px !important;
 }
 
-/* Botón Filtrar con color sólido azul corporativo */
+/* Botón Filtrar con color gris idéntico a cabecera de tabla; mantiene el mismo gris oscuro en hover y click */
 .btn-filtrar-ventas {
-    background-color: var(--color-azul-oscuro);
-    color: #ffffff !important;
-    border: none;
+    --bs-btn-color: var(--color-gris-texto);
+    --bs-btn-bg: var(--color-gris-claro);
+    --bs-btn-border-color: #dce5f0;
+    --bs-btn-hover-color: var(--color-gris-texto);
+    --bs-btn-hover-bg: #e2e8f0;
+    --bs-btn-hover-border-color: #cbd5e1;
+    --bs-btn-focus-shadow-rgb: 203, 213, 225;
+    --bs-btn-active-color: var(--color-gris-texto);
+    --bs-btn-active-bg: #e2e8f0;
+    --bs-btn-active-border-color: #cbd5e1;
+    background-color: var(--color-gris-claro) !important;
+    color: var(--color-gris-texto) !important;
+    border: 1px solid #dce5f0 !important;
     border-radius: 9px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    letter-spacing: 0.2px;
+    font-weight: 600 !important;
+    font-size: 0.82rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.4px !important;
     padding: 0.55rem 1rem;
-    box-shadow: 0 2px 6px rgba(10, 61, 107, 0.2);
+    height: 38px !important;
+    min-height: 38px !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.4rem;
+    gap: 0.45rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
-.btn-filtrar-ventas:hover {
-    background-color: #072c4e;
-    color: #ffffff !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(10, 61, 107, 0.28);
+
+.btn-filtrar-ventas:hover,
+.btn-filtrar-ventas:active,
+.btn-filtrar-ventas:focus,
+.btn-filtrar-ventas:focus-visible {
+    background-color: #e2e8f0 !important;
+    border-color: #cbd5e1 !important;
+    color: var(--color-gris-texto) !important;
+    transform: none !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
-.btn-filtrar-ventas:active {
-    background-color: #051f38;
-    transform: translateY(0);
-    box-shadow: 0 1px 4px rgba(10, 61, 107, 0.18);
-}
+
 .btn-filtrar-ventas i {
-    color: #ffffff;
-    font-size: 0.95rem;
+    color: var(--color-gris-texto) !important;
+    font-size: 0.85rem;
+    transition: color 0.2s ease;
+}
+
+.btn-filtrar-ventas:hover i,
+.btn-filtrar-ventas:active i,
+.btn-filtrar-ventas:focus i,
+.btn-filtrar-ventas:focus-visible i {
+    color: var(--color-gris-texto) !important;
 }
 
 /* Entradas de búsqueda y fechas en filtros de ventas */

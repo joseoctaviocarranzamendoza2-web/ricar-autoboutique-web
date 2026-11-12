@@ -122,7 +122,7 @@
 /* Zona visual del producto (alto y proporciones equilibradas) */
 .card-producto-img {
     background: #f8fafc;
-    height: 190px;
+    height: 300px;
     display: flex;
     align-items: center;
     justify-content: center;

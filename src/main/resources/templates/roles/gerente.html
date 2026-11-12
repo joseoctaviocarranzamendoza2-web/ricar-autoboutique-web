@@ -13,7 +13,7 @@
     <!-- global.css: Estilos compartidos entre todos los roles; incluye variables de color y utilidades generales -->
     <link rel="stylesheet" th:href="@{/css/global.css}">
     <!-- gerente.css: Define estilos exclusivos del panel gerente, incluidos sidebar, topbar, tarjetas, tablas y layout SPA -->
-    <link rel="stylesheet" th:href="@{/css/roles/gerente.css(v='3.2')}">
+    <link rel="stylesheet" th:href="@{/css/roles/gerente.css(v='3.9')}">
     <!-- Favicon del sitio -->
     <link rel="icon" th:href="@{/img/icono/icon.png}" type="image/png">
 </head>
@@ -261,7 +261,7 @@
                 <div class="admin-card-body border-top py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
                     <!-- Total calculado dinámicamente por gerente.js según las ventas cargadas en la tabla anterior -->
                     <p class="mb-0 lbl-total-ventas" id="lblTotalVentas">
-                        <strong>Total de la venta semanal:</strong>
+                        <strong>Total de productos en este mes:</strong>
                         <span class="lbl-total-monto">S/ 0.00</span>
                     </p>
                     <!-- Controles de paginación numérica generados dinámicamente por renderPaginacionVentas() en gerente.js -->
@@ -415,10 +415,14 @@
                         </div>
                     </div>
                     <div id="editDatosError" class="alert alert-danger py-2 text-center mt-3 d-none"></div>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary fw-semibold px-4" onclick="guardarEdicionDatos()"><i class="bi bi-check2 me-1"></i>Guardar cambios</button>
+                    <div class="row g-3 mt-1">
+                        <div class="col-6">
+                            <button type="button" class="btn btn-modal-cancelar w-100" data-bs-dismiss="modal">Cancelar</button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-modal-guardar w-100 fw-semibold" onclick="guardarEdicionDatos()"><i class="bi bi-check2 me-1"></i>Guardar cambios</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -448,7 +452,7 @@
     <!-- global.js: Utilidades compartidas entre roles; debe cargarse antes de gerente.js -->
     <script th:src="@{/js/global.js}"></script>
     <!-- gerente.js: Lógica principal del panel gerente; gestiona la SPA interna, carga y filtra ventas, reportes, clientes y citas, y controla modales y exportaciones -->
-    <script th:src="@{/js/roles/gerente.js}"></script>
+    <script th:src="@{/js/roles/gerente.js(v='1.2')}"></script>
     <!-- Activa la sección correspondiente según la URL solicitada al servidor -->
     <script th:inline="javascript">
         const seccionActiva = null;

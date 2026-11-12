@@ -21,19 +21,22 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 // Entidad JPA que representa una cita agendada
 public class Cita {
 
+    // Grupo de validación aplicado únicamente al crear una nueva cita
+    public interface OnCreate {}
+
     // Identificador auto generado
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Fecha de la cita que debe ser futura
+    // Fecha de la cita que debe ser futura al momento de registrarse
     @NotNull(message = "La fecha no puede estar vacía")
-    @Future(message = "La fecha debe ser una fecha futura")
+    @Future(message = "La fecha debe ser una fecha futura", groups = OnCreate.class)
     @Column(nullable = false)
     private LocalDate fecha;
 
     // Evita que el usuario reserve una cita para la fecha actual cuando ya se ha pasado el horario.
-    @AssertTrue(message = "La fecha debe ser posterior al día actual")
+    @AssertTrue(message = "La fecha debe ser posterior al día actual", groups = OnCreate.class)
     public boolean isFechaPosteriorAlDiaActual() {
         return fecha != null && fecha.isAfter(LocalDate.now());
     }

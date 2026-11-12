@@ -13,7 +13,7 @@
     <!-- global.css: Estilos compartidos entre todos los roles; incluye variables CSS (--azul-oscuro, --celeste), navbar, y utilidades de sesión visual -->
     <link rel="stylesheet" th:href="@{/css/global.css}">
     <!-- administrador.css: Estilos exclusivos del panel admin; define sidebar, topbar, admin-card, kpi-card, status-badge, product-admin-card, service-admin-card y admin-table -->
-    <link rel="stylesheet" th:href="@{/css/roles/administrador.css(v='2.3')}">
+    <link rel="stylesheet" th:href="@{/css/roles/administrador.css(v='5.5')}">
     <!-- Favicon del sitio -->
     <link rel="icon" th:href="@{/img/icono/icon.png}" type="image/png">
 </head>
@@ -69,16 +69,27 @@
         </div>
         <!-- Dropdown de perfil: AdminNombreAvatar e adminNombreMenu se rellenan dinámicamente en el DOMContentLoaded de administrador.js con las iniciales y nombre completo desde sessionStorage -->
         <div class="topbar-right">
-            <button class="topbar-icon-btn" title="Notificaciones">
-                <i class="bi bi-bell"></i><span class="topbar-notif-dot"></span>
+            <!-- Campana de notificaciones: Alterna entre activa (bi-bell) y silenciada (bi-bell-slash) al hacer click -->
+            <button id="btnCampana" class="topbar-icon-btn" title="Notificaciones" onclick="toggleCampana()">
+                <i id="iconoCampana" class="bi bi-bell"></i>
             </button>
             <div class="dropdown">
-                <div class="admin-avatar dropdown-toggle" data-bs-toggle="dropdown" id="adminNombreAvatar">AD</div>
+                <div class="admin-avatar dropdown-toggle" data-bs-toggle="dropdown" id="adminNombreAvatar" title="Perfil">AD</div>
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
-                    <li><h6 class="dropdown-header" id="adminNombreMenu">Administrador</h6></li>
+                    <li>
+                        <h6 class="dropdown-header" id="adminNombreMenu">Administrador</h6>
+                    </li>
                     <!-- abrirModalEditarDatos() abre el modal de edición de perfil precargando datos de sessionStorage y enviando PUT /api/usuarios/{id} al guardar -->
-                    <li><a class="dropdown-item small text-primary" href="#" onclick="abrirModalEditarDatos(); return false;"><i class="bi bi-pencil-square me-2"></i>Editar datos</a></li>
-                    <li><a class="dropdown-item small text-primary" href="/rol" onclick="irACambiarRol(); return false;"><i class="bi bi-arrow-repeat me-2"></i>Cambiar rol</a></li>
+                    <li>
+                        <a class="dropdown-item-custom" href="#" onclick="abrirModalEditarDatos(); return false;">
+                            <i class="bi bi-pencil-square dropdown-item-icon"></i>Editar datos
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item-custom" href="/rol" onclick="irACambiarRol(); return false;">
+                            <i class="bi bi-arrow-repeat dropdown-item-icon"></i>Cambiar rol
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -88,14 +99,13 @@
         <!-- Sección de Citas y Reservas: Carga al inicio vía cargarCitas() consumiendo GET /api/citas; incluye KPIs de estados, filtros combinados de texto/estado/fecha y tabla con acciones de cambio de estado -->
         <section id="sec-citas" class="admin-section active">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-                <div>
-                    <span class="section-tag mb-2 d-inline-block">RESERVAS</span>
-                    <h5 class="fw-bold mb-0">Citas</h5>
+                <div class="d-flex flex-column align-items-start gap-2">
+                    <span class="section-tag">RESERVAS - CITAS</span>
                     <!-- infoCitas muestra el conteo de pendientes actualizado en tiempo real por actualizarKPIsCitas() cada vez que cambia el estado de una cita -->
-                    <small class="text-muted" id="infoCitas">Cargando citas...</small>
+                    <small class="section-subtitle" id="infoCitas">Cargando citas...</small>
                 </div>
             </div>
-            <!-- KPIs de citas: 4 tarjetas con contadores por estado (Pendiente, Confirmada, Completada, Cancelada) actualizadas por actualizarKPIsCitas() en administrador.js; usan Bootstrap grid responsivo col-6/col-md-3 -->
+            <!-- KPIs de citas: 4 tarjetas (Pendientes global; Confirmada, Completada y Cancelada de la semana actual) actualizadas por actualizarKPIsCitas() en administrador.js; usan Bootstrap grid responsivo col-6/col-md-3 -->
             <div class="row g-3 mb-4">
                 <div class="col-6 col-md-3">
                     <div class="kpi-card">
@@ -111,7 +121,7 @@
                         <div class="kpi-icon green"><i class="bi bi-check2-circle"></i></div>
                         <div>
                             <div class="kpi-value" id="kpiConfirmadas">0</div>
-                            <div class="kpi-label">Confirmadas</div>
+                            <div class="kpi-label">Confirmadas esta semana</div>
                         </div>
                     </div>
                 </div>
@@ -120,7 +130,7 @@
                         <div class="kpi-icon blue"><i class="bi bi-calendar-check"></i></div>
                         <div>
                             <div class="kpi-value" id="kpiCompletadas">0</div>
-                            <div class="kpi-label">Completadas</div>
+                            <div class="kpi-label">Completadas esta semana</div>
                         </div>
                     </div>
                 </div>
@@ -129,13 +139,13 @@
                         <div class="kpi-icon red"><i class="bi bi-calendar-x"></i></div>
                         <div>
                             <div class="kpi-value" id="kpiCanceladas">0</div>
-                            <div class="kpi-label">Canceladas</div>
+                            <div class="kpi-label">Canceladas esta semana</div>
                         </div>
                     </div>
                 </div>
             </div>
             <!-- Barra de filtros de citas: FiltroCitas (texto), filtroEstadoCita (select) y filtroFechaCita (date) disparan filtrarCitasTabla() en administrador.js que filtra el array _todasCitas en memoria sin nuevas peticiones al servidor -->
-            <div class="admin-card mb-3">
+            <div class="admin-card mb-3 filtros-barra-card">
                 <div class="admin-card-body py-3">
                     <div class="row g-2 align-items-center">
                         <div class="col-sm-4">
@@ -154,7 +164,7 @@
                             <input type="date" class="form-control" id="filtroFechaCita" onchange="filtrarCitasTabla()">
                         </div>
                         <div class="col-sm-3">
-                            <button class="btn btn-sm btn-outline-secondary w-100" onclick="limpiarFiltrosCitas()"><i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar filtros</button>
+                            <button type="button" class="btn btn-sm btn-limpiar-filtros w-100" onclick="limpiarFiltrosCitas(); this.blur();"><i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar filtros</button>
                         </div>
                     </div>
                 </div>
@@ -183,33 +193,30 @@
                         </tbody>
                     </table>
                 </div>
-                <!-- infoPaginacionCitas muestra el conteo de resultados filtrados vs totales, actualizado por filtrarCitasTabla() y limpiarFiltrosCitas() en administrador.js -->
-                <div class="admin-card-body border-top py-2 d-flex justify-content-between align-items-center">
+                <!-- infoPaginacionCitas muestra el conteo de resultados filtrados vs totales, y paginacionCitas renderiza las páginas numeradas de 10 en 10 -->
+                <div class="admin-card-body border-top py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
                     <small class="text-muted" id="infoPaginacionCitas">Mostrando todas las citas</small>
+                    <div id="paginacionCitas" class="d-flex align-items-center gap-1"></div>
                 </div>
             </div>
         </section>
         <!-- Sección de Productos: Carga vía cargarProductos() consumiendo GET /api/productos; incluye filtros de búsqueda/categoría/stock, toggle de vista grid/list y grid de tarjetas con acciones CRUD -->
         <section id="sec-productos" class="admin-section">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-                <div>
-                    <span class="section-tag mb-2 d-inline-block">CATÁLOGO</span>
-                    <h5 class="fw-bold mb-0">Productos</h5>
+                <div class="d-flex flex-column align-items-start gap-2">
+                    <span class="section-tag">CATÁLOGO - PRODUCTOS</span>
                     <!-- infoProductos muestra el total de productos y cuántos tienen stock bajo (<=5), actualizado por renderProductos() en administrador.js -->
-                    <small class="text-muted" id="infoProductos">Cargando productos...</small>
+                    <small class="section-subtitle" id="infoProductos">Cargando productos...</small>
                 </div>
                 <!-- abrirNuevoProducto() verifica que existan categorías antes de abrir el modal; previene crear productos huérfanos sin categoría asignada -->
-                <button class="btn btn-primary fw-semibold" onclick="abrirNuevoProducto()"><i class="bi bi-plus-lg me-2"></i>Nuevo Producto</button>
+                <button class="btn btn-admin-nuevo fw-semibold" onclick="this.blur(); abrirNuevoProducto()"><i class="bi bi-plus-lg me-2"></i>Nuevo Producto</button>
             </div>
             <!-- Barra de filtros de productos: SearchProducto (texto), filterCategoria (select dinámico cargado por actualizarSelectCategorias()), filterEstado (todos/stock bajo) y toggles de vista grid/list controlados por setVista() en administrador.js -->
-            <div class="admin-card mb-4">
+            <div class="admin-card mb-4 filtros-barra-card">
                 <div class="admin-card-body py-3">
                     <div class="row g-2 align-items-center">
                         <div class="col-sm-4">
-                            <div class="input-group">
-                                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
-                                <input type="text" class="form-control border-start-0" placeholder="Buscar producto..." id="searchProducto" oninput="filtrarProductos()">
-                            </div>
+                            <input type="text" class="form-control" placeholder="Buscar producto..." id="searchProducto" oninput="filtrarProductos()">
                         </div>
                         <div class="col-sm-3">
                             <select class="form-select" id="filterCategoria" onchange="filtrarProductos()">
@@ -226,8 +233,8 @@
                         </div>
                         <!-- Botones de toggle de vista: BtnGrid y btnList aplican/quitan la clase active visualmente; setVista() en administrador.js modifica las clases Bootstrap del grid (row-cols-1 vs row-cols-2/3/4) para cambiar entre lista y cuadrícula -->
                         <div class="col-sm-3 d-flex gap-2">
-                            <button class="btn btn-sm btn-outline-secondary flex-fill active" onclick="setVista('grid')" id="btnGrid"><i class="bi bi-grid"></i></button>
-                            <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="setVista('list')" id="btnList"><i class="bi bi-list-ul"></i></button>
+                            <button class="btn btn-sm btn-toggle-vista flex-fill active" onclick="setVista('grid'); this.blur();" id="btnGrid" title="Vista en cuadrícula"><i class="bi bi-grid"></i></button>
+                            <button class="btn btn-sm btn-toggle-vista flex-fill" onclick="setVista('list'); this.blur();" id="btnList" title="Vista en lista"><i class="bi bi-list-ul"></i></button>
                         </div>
                     </div>
                 </div>
@@ -242,12 +249,11 @@
         <!-- Sección de Servicios: Carga vía cargarServicios() consumiendo GET /api/servicios; renderiza tarjetas con precio base, duración, estado (Activo/Inactivo) y botones CRUD; incluye tarjeta especial "Agregar Servicio" al final del grid -->
         <section id="sec-servicios" class="admin-section">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-                <div>
-                    <span class="section-tag mb-2 d-inline-block">CATÁLOGO</span>
-                    <h5 class="fw-bold mb-0">Servicios</h5>
-                    <small class="text-muted">Administra los tipos de servicio y sus tarifas</small>
+                <div class="d-flex flex-column align-items-start gap-2">
+                    <span class="section-tag">CATÁLOGO - SERVICIOS</span>
+                    <small class="section-subtitle">Administra los tipos de servicio y sus tarifas</small>
                 </div>
-                <button class="btn btn-primary fw-semibold" onclick="abrirNuevoServicio()"><i class="bi bi-plus-lg me-2"></i>Nuevo Servicio</button>
+                <button class="btn btn-admin-nuevo fw-semibold" onclick="this.blur(); abrirNuevoServicio()"><i class="bi bi-plus-lg me-2"></i>Nuevo Servicio</button>
             </div>
             <!-- gridServicios: Renderizado por renderServicios() en administrador.js; incluye icono auto-detectado por keyword del nombre del servicio, badge de estado y botones de editar/eliminar -->
             <div class="row g-3" id="gridServicios">
@@ -259,13 +265,12 @@
         <!-- Sección de Categorías: Carga vía cargarCategorias() consumiendo GET /api/categorias; cada tarjeta muestra ícono auto-detectado, conteo de productos asociados, descripción y botones de edición/eliminación con control de nombre duplicado (409 Conflict) -->
         <section id="sec-categorias" class="admin-section">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <span class="section-tag mb-2 d-inline-block">CATÁLOGO</span>
-                    <h5 class="fw-bold mb-0">Categorías</h5>
+                <div class="d-flex flex-column align-items-start gap-2">
+                    <span class="section-tag">CATÁLOGO - CATEGORÍAS</span>
                     <!-- infoCategorias muestra el conteo de categorías activas, actualizado por renderCategorias() en administrador.js cada vez que se crea, edita o elimina una categoría -->
-                    <small class="text-muted" id="infoCategorias">Cargando...</small>
+                    <small class="section-subtitle" id="infoCategorias">Cargando...</small>
                 </div>
-                <button class="btn btn-primary fw-semibold" onclick="abrirNuevaCategoria()"><i class="bi bi-plus-lg me-2"></i>Nueva Categoría</button>
+                <button class="btn btn-admin-nuevo fw-semibold" onclick="this.blur(); abrirNuevaCategoria()"><i class="bi bi-plus-lg me-2"></i>Nueva Categoría</button>
             </div>
             <!-- gridCategorias: Renderizado por renderCategorias() en administrador.js; cada tarjeta usa un color rotativo y un ícono por keyword del nombre; el conteo de productos se obtiene de cat.productos.length del JSON anidado de la API -->
             <div class="row g-3" id="gridCategorias">
@@ -277,22 +282,33 @@
         <!-- Sección de Clientes: Carga vía cargarClientes() consumiendo GET /api/usuarios (rol cliente) y GET /api/compras; incluye búsqueda en tiempo real, paginación de 10 por página, cálculo de gasto total, estado y botones de ver compras y habilitar/inhabilitar usuario con modal de confirmación dinámico -->
         <section id="sec-clientes" class="admin-section">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-                <div>
-                    <span class="section-tag mb-2 d-inline-block">GESTIÓN</span>
-                    <h5 class="fw-bold mb-0">Clientes</h5>
+                <div class="d-flex flex-column align-items-start gap-2">
+                    <span class="section-tag">GESTIÓN - CLIENTES</span>
                     <!-- infoClientes muestra el total de clientes registrados con rol "cliente", actualizado por renderClientes() en administrador.js -->
-                    <small class="text-muted" id="infoClientes">Cargando clientes...</small>
+                    <small class="section-subtitle" id="infoClientes">Cargando clientes...</small>
+                </div>
+                <!-- 3 botones para filtrar clientes según el estado de su última compra realizada -->
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <button type="button" class="btn btn-filtro-compra btn-filtro-por-entregar" id="btnFiltroPorEntregar" onclick="toggleFiltroCompras('Por entregar'); this.blur();">
+                        <i class="bi bi-clock-history me-1"></i>Por entregar
+                    </button>
+                    <button type="button" class="btn btn-filtro-compra btn-filtro-entregado" id="btnFiltroEntregado" onclick="toggleFiltroCompras('Entregado'); this.blur();">
+                        <i class="bi bi-check2-circle me-1"></i>Entregado
+                    </button>
+                    <button type="button" class="btn btn-filtro-compra btn-filtro-sin-pagar" id="btnFiltroSinPagar" onclick="toggleFiltroCompras('Sin pagar'); this.blur();">
+                        <i class="bi bi-x-circle me-1"></i>Sin pagar
+                    </button>
                 </div>
             </div>
-            <!-- Buscador de clientes: Filtra en tiempo real sobre el array _todosClientes en memoria por nombre, apellido, teléfono o email sin llamadas adicionales al servidor; resetea la paginación a página 1 en cada búsqueda -->
+            <!-- Buscador de clientes y paginación: Filtra en tiempo real sobre _todosClientes por nombre, teléfono o email; paginacionClientes se ubica a la derecha a la misma altura del buscador -->
             <div class="admin-card mb-3">
                 <div class="admin-card-body py-3">
-                    <div class="row g-2 align-items-center">
+                    <div class="row g-2 align-items-center justify-content-between">
                         <div class="col-sm-5">
-                            <div class="input-group">
-                                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
-                                <input type="text" class="form-control border-start-0" placeholder="Buscar cliente..." id="searchCliente" oninput="filtrarClientesTabla()">
-                            </div>
+                            <input type="text" class="form-control" placeholder="Buscar cliente..." id="searchCliente" oninput="filtrarClientesTabla()">
+                        </div>
+                        <div class="col-sm-auto ms-auto">
+                            <div id="paginacionClientes" class="d-flex align-items-center justify-content-end gap-1 flex-wrap"></div>
                         </div>
                     </div>
                 </div>
@@ -322,7 +338,6 @@
                         </tbody>
                     </table>
                 </div>
-                <!-- paginacionClientes: Div creado dinámicamente por renderPaginacionClientes() en administrador.js; muestra hasta 5 botones de página con Bootstrap btn-primary/btn-outline-primary según la página activa -->
             </div>
         </section>
     </main>
@@ -385,9 +400,9 @@
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary fw-semibold px-4" onclick="guardarProducto()"><i class="bi bi-check2 me-1"></i>Guardar</button>
+                <div class="modal-footer border-0 modal-producto-footer">
+                    <button type="button" class="btn btn-modal-cancelar px-4" data-bs-dismiss="modal" onclick="this.blur();">Cancelar</button>
+                    <button type="button" class="btn btn-modal-guardar fw-semibold px-4" onclick="this.blur(); guardarProducto()"><i class="bi bi-check2 me-1"></i>Guardar</button>
                 </div>
             </div>
         </div>
@@ -444,9 +459,9 @@
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary fw-semibold px-4" onclick="guardarServicio()"><i class="bi bi-check2 me-1"></i>Guardar</button>
+                <div class="modal-footer border-0 modal-producto-footer">
+                    <button type="button" class="btn btn-modal-cancelar px-4" data-bs-dismiss="modal" onclick="this.blur();">Cancelar</button>
+                    <button type="button" class="btn btn-modal-guardar fw-semibold px-4" onclick="this.blur(); guardarServicio()"><i class="bi bi-check2 me-1"></i>Guardar</button>
                 </div>
             </div>
         </div>
@@ -471,16 +486,16 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary fw-semibold px-4" onclick="guardarCategoria()"><i class="bi bi-check2 me-1"></i>Guardar</button>
+                <div class="modal-footer border-0 modal-producto-footer">
+                    <button type="button" class="btn btn-modal-cancelar px-4" data-bs-dismiss="modal" onclick="this.blur();">Cancelar</button>
+                    <button type="button" class="btn btn-modal-guardar fw-semibold px-4" onclick="this.blur(); guardarCategoria()"><i class="bi bi-check2 me-1"></i>Guardar</button>
                 </div>
             </div>
         </div>
     </div>
     <!-- Modal de historial de compras de un cliente: Abierto por verComprasCliente() en administrador.js; tabla renderizada por renderTablaComprasCliente() con cada compra incluyendo un select de estado que dispara cambiarEstadoCompra() con PUT /api/compras/{id}/estado; actualiza el badge de estado en vivo sin cerrar el modal -->
     <div class="modal fade" id="modalComprasCliente" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-compras-dialog">
             <div class="modal-content">
                 <div class="modal-header" style="background:var(--azul-oscuro);">
                     <h5 class="modal-title text-white fw-bold"><i class="bi bi-bag-check me-2"></i>Compras de <span id="nombreClienteCompras"></span></h5>
@@ -507,15 +522,16 @@
                         </table>
                     </div>
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <div class="modal-footer border-0 modal-compras-footer d-flex justify-content-between align-items-center w-100">
+                    <div id="paginacionComprasModal" class="d-flex align-items-center gap-1"></div>
+                    <button type="button" class="btn btn-modal-cancelar px-4 ms-auto" data-bs-dismiss="modal" onclick="this.blur();">Cerrar</button>
                 </div>
             </div>
         </div>
     </div>
     <!-- Modal de confirmación dinámico: Reutilizado para eliminación de categorías, productos, servicios y para habilitar o inhabilitar usuarios según rol de creación -->
     <div class="modal fade" id="modalEliminar" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-dialog modal-dialog-centered modal-confirmacion">
             <div class="modal-content">
                 <div class="modal-body text-center py-4 px-4">
                     <div class="kpi-icon red mx-auto mb-3" style="width:56px;height:56px;font-size:1.5rem;" id="iconoModalEliminarContenedor">
@@ -524,8 +540,8 @@
                     <h6 class="fw-bold mb-2" id="tituloModalEliminar">¿Confirmar eliminación?</h6>
                     <p class="text-muted small mb-0" id="nombreEliminar">Esta acción no se puede deshacer.</p>
                 </div>
-                <div class="modal-footer border-0 justify-content-center gap-2 pt-0">
-                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
+                <div class="modal-footer border-0 justify-content-center gap-2">
+                    <button type="button" class="btn btn-modal-accion-cancelar px-4" data-bs-dismiss="modal" onclick="this.blur();">Cancelar</button>
                     <button type="button" class="btn btn-danger px-4 fw-semibold" id="btnConfirmarEliminar">Eliminar</button>
                 </div>
             </div>
@@ -560,23 +576,27 @@
                     </div>
                     <!-- editDatosError: Muestra mensajes de validación inline (nombre/apellido vacíos, teléfono inválido) o errores HTTP del servidor sin cerrar el modal -->
                     <div id="editDatosError" class="alert alert-danger py-2 text-center mt-3 d-none"></div>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary fw-semibold px-4" onclick="guardarEdicionDatos()"><i class="bi bi-check2 me-1"></i>Guardar cambios</button>
+                    <div class="row g-3 mt-1">
+                        <div class="col-6">
+                            <button type="button" class="btn btn-modal-cancelar w-100" data-bs-dismiss="modal" onclick="this.blur();">Cancelar</button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-modal-guardar w-100 fw-semibold" onclick="this.blur(); guardarEdicionDatos()"><i class="bi bi-check2 me-1"></i>Guardar cambios</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     <!-- Toast de notificación reutilizable: MostrarToast() en administrador.js cambia la clase entre text-bg-success y text-bg-danger según el tipo; se muestra 3 segundos tras cada operación CRUD exitosa o fallida -->
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
-        <div id="toastExito" class="toast align-items-center text-bg-success border-0" role="alert">
+        <div id="toastExito" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
-                <div class="toast-body">
-                    <i class="bi bi-check2-circle me-2"></i>
+                <div class="toast-body d-flex align-items-center">
+                    <i class="bi bi-check-circle-fill me-2 fs-5" id="toastIcono"></i>
                     <span id="toastMensaje">Guardado correctamente</span>
                 </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
             </div>
         </div>
     </div>
@@ -585,7 +605,7 @@
     <!-- global.js: Define obtenerSesion(), guardarSesion(), cerrarSesion(), actualizarNavbar(), abrirModal(), limpiarBackdropsSobrantes() y otras utilidades compartidas entre todos los roles; debe cargarse antes de administrador.js -->
     <script th:src="@{/js/global.js}"></script>
     <!-- administrador.js: Lógica principal del panel; valida el rol "administrador" en sessionStorage al cargar, realiza todas las llamadas a la API REST (/api/categorias, /api/productos, /api/servicios, /api/citas, /api/usuarios, /api/compras) y gestiona el estado de la SPA -->
-    <script th:src="@{/js/roles/administrador.js}"></script>
+    <script th:src="@{/js/roles/administrador.js(v='3.2')}"></script>
     <!-- Activa la sección correspondiente según la URL solicitada al servidor -->
     <script th:inline="javascript">
         const seccionActiva = null;

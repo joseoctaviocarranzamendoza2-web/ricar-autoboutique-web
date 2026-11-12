@@ -476,12 +476,12 @@ body {
     display: flex;
     align-items: center;
     gap: 16px;
-    transition: box-shadow 0.2s;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Hover KPI: Sombra sutil para énfasis */
-.kpi-card:hover {
-    box-shadow: 0 6px 20px rgba(13, 110, 253, 0.08);
+#sec-dashboard .kpi-card:hover {
+    border-color: var(--color-celeste) !important;
+    box-shadow: 0 0 0 0.5px var(--color-celeste) !important;
 }
 
 /* Contenedor de icono KPI con variantes de color */
@@ -547,6 +547,13 @@ body {
     border: 1px solid #e2e8f0;
     border-radius: 14px;
     overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#sec-dashboard .admin-card:hover,
+#sec-ventas .admin-card:hover {
+    border-color: var(--color-celeste) !important;
+    box-shadow: 0 0 0 0.5px var(--color-celeste) !important;
 }
 
 /* Padding interno estándar para tarjetas */
@@ -677,10 +684,10 @@ body {
     transition: all 0.22s;
 }
 
-/* Hover product card: Realza borde y sombra */
+/* Hover product card: Realza borde con azul oscuro del sidebar (#0a3d6b) y sombra a tono */
 .product-admin-card:hover {
-    border-color: var(--color-azul-principal);
-    box-shadow: 0 8px 24px rgba(13, 110, 253, 0.1);
+    border-color: var(--color-azul-oscuro);
+    box-shadow: 0 8px 24px rgba(10, 61, 107, 0.14);
     transform: translateY(-3px);
 }
 
@@ -881,10 +888,14 @@ body {
     height: 38px;
 }
 
-/* Focus en formularios: Resalta con color principal y halo */
-.form-control:focus, .form-select:focus {
-    border-color: var(--color-azul-principal);
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+/* Focus en formularios: Resalta con borde celeste sin sombreado */
+.form-control:focus,
+.form-select:focus,
+.modal-body .form-control:focus,
+.modal-body .form-select:focus {
+    border-color: var(--color-celeste) !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
 
 /* Overlay para sidebar en móviles: Fondo semitransparente */
@@ -1215,9 +1226,9 @@ body {
     transition: all 0.2s ease;
 }
 #sec-ventas .form-control:focus {
-    border-color: var(--color-azul-oscuro);
-    box-shadow: 0 0 0 3px rgba(10, 61, 107, 0.12);
-    outline: none;
+    border-color: var(--color-celeste) !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
 
 /* Contenedor tipo pastilla segmentada para alternar ventas */
@@ -1326,22 +1337,28 @@ body {
     font-variant-numeric: tabular-nums;
 }
 
-/* Cabeceras de cards de períodos en Reportes (Esta Semana, Este Mes, Este Año) */
+/* Cabeceras de cards de períodos en Reportes (Esta Semana, Este Mes, Este Año) y tabla de Ventas por Servicio */
 #sec-reportes .row.g-3 .admin-card {
     border: 1px solid #dbe5f0;
     border-radius: 14px;
-    box-shadow: 0 2px 8px rgba(10, 61, 107, 0.04);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-#sec-reportes .row.g-3 .admin-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(10, 61, 107, 0.08);
+#sec-reportes > .admin-card {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#sec-reportes .row.g-3 .admin-card:hover,
+#sec-reportes > .admin-card:hover {
+    transform: none !important;
+    border-color: var(--color-celeste) !important;
+    box-shadow: 0 0 0 0.5px var(--color-celeste) !important;
 }
 
 #sec-reportes .row.g-3 .admin-card-header,
 .card-header-periodo {
-    background-color: var(--color-azul-oscuro) !important;
+    background-color: var(--color-celeste) !important;
     border-bottom: none !important;
     display: flex !important;
     align-items: center !important;
@@ -1369,9 +1386,71 @@ body {
 
 #sec-reportes .row.g-3 .admin-card-header .admin-card-title i,
 .card-header-periodo .admin-card-title i {
-    color: var(--color-celeste) !important;
+    color: var(--color-azul-oscuro) !important;
     font-size: 1.1rem !important;
     display: inline-flex;
     align-items: center;
+}
+
+/* Modal Editar Datos: Botones alineados matemáticamente con los campos y control estricto de 2 estados */
+.btn-modal-cancelar,
+.btn-modal-guardar {
+    height: 42px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.92rem !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+/* Botón Cancelar: Estado 1 - Normal */
+.btn-modal-cancelar {
+    background-color: #ffffff !important;
+    border: 1.5px solid #d1d5db !important;
+    color: #374151 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+}
+
+/* Botón Cancelar: Estado 2 - Hover y Clic idénticos (mantiene su tono gris oscuro sin aclararse a gris claro) */
+.btn-modal-cancelar:hover,
+.btn-modal-cancelar:active,
+.btn-modal-cancelar:focus,
+.btn-modal-cancelar:focus-visible {
+    background-color: #4a5568 !important;
+    border-color: #4a5568 !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+}
+
+/* Botón Guardar Cambios: Estado 1 - Normal */
+.btn-modal-guardar {
+    background-color: var(--color-azul-principal, #0d6efd) !important;
+    border: 1.5px solid var(--color-azul-principal, #0d6efd) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+}
+
+/* Botón Guardar Cambios: Estado 2 - Hover y Clic idénticos (mantiene su azul sin mostrar celeste claro ni sombra) */
+.btn-modal-guardar:hover,
+.btn-modal-guardar:active,
+.btn-modal-guardar:focus,
+.btn-modal-guardar:focus-visible {
+    background-color: #0052a3 !important;
+    border-color: #0052a3 !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
 }
 

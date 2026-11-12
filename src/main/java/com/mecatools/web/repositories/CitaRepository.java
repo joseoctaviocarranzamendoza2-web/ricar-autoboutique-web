@@ -13,7 +13,7 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     // Obtiene todas las citas de un usuario específico por su id
     List<Cita> findByUsuario_Id(Long idUsuario);
 
-    // Comprueba si ya existe una cita en una fecha y hora concretas
-    boolean existsByFechaAndHora(LocalDate fecha, String hora);
+    // Obtiene todas las citas activas de una fecha excluyendo un estado (ej. Cancelada)
+    List<Cita> findByFechaAndEstadoNot(LocalDate fecha, String estadoExcluido);
 
 }

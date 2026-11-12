@@ -4,14 +4,22 @@ const API = { categorias: '/api/categorias', productos: '/api/productos', servic
 // Estado local en memoria: arrays cache y variables de edición
 let categorias = [];
 let productos = [];
+let vistaProductos = 'grid';
 let productoEdit = null;
 let categoriaEdit = null;
 let servicioEdit = null;
 let _todasCitas = [];
+let _citasFiltradas = [];
+let _paginaCitasActual = 1;
+const CITAS_POR_PAGINA = 10;
 let _todosClientes = [];
 let _todasCompras = [];
 let _paginaClientesActual = 1;
 const CLIENTES_POR_PAGINA = 10;
+let _filtroEstadoCompra = null;
+const COMPRAS_MODAL_POR_PAGINA = 5;
+let _comprasModalActuales = [];
+let _paginaComprasModalActual = 1;
 
 // Inicialización al cargar la vista de administrador: valida sesión y carga datos
 document.addEventListener('DOMContentLoaded', async () => {
@@ -28,11 +36,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (avatar) avatar.textContent = iniciales;
     if (menu) menu.textContent = nombreCompleto;
     if (breadcrumb) breadcrumb.textContent = `Administrador ${nombreCompleto}`;
+    ajustarAnchoCabecerasVista();
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(ajustarAnchoCabecerasVista);
+    }
+    iniciarSelectPersonalizado('filtroEstadoCita');
+    iniciarSelectPersonalizado('filterCategoria');
+    iniciarSelectPersonalizado('filterEstado');
+    iniciarSelectPersonalizado('prodCategoria');
+    iniciarSelectPersonalizado('prodEtiqueta');
+    iniciarSelectPersonalizado('prodEstado');
+    iniciarSelectPersonalizado('servEstado');
     await cargarCategorias();
     await cargarProductos();
     await cargarCitas();
     await cargarClientes();
 });
+
+// Iguala el ancho horizontal de los tags de título y subtítulo al tamaño del subtítulo de Servicios
+function ajustarAnchoCabecerasVista() {
+    const subServicios = document.querySelector('#sec-servicios .section-subtitle');
+    if (!subServicios) return;
+    const medidor = subServicios.cloneNode(true);
+    medidor.removeAttribute('id');
+    medidor.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;left:-9999px;top:-9999px;width:max-content;max-width:none;white-space:nowrap;';
+    document.body.appendChild(medidor);
+    const ancho = Math.ceil(medidor.getBoundingClientRect().width);
+    medidor.remove();
+    if (ancho > 0) {
+        document.documentElement.style.setProperty('--ancho-cabecera-vista', `${ancho}px`);
+    }
+}
 
 // Mapa entre nombre de sección y su URL real en el backend
 const MAPA_SECCION_URL = {
@@ -92,11 +126,16 @@ function cerrarSesionAdmin() {
     cerrarSesion();
 }
 
+// Ordena elementos mostrando primero el registro más reciente (lógica LIFO / mayor a menor según ID)
+function ordenarPorIdDesc(lista) {
+    return [...(lista || [])].sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
+}
+
 // Carga categorías desde la API y actualiza la vista correspondiente
 async function cargarCategorias() {
     try {
         const resp = await fetch(API.categorias);
-        categorias = await resp.json();
+        categorias = ordenarPorIdDesc(await resp.json());
         renderCategorias();
         actualizarSelectCategorias();
     } catch (e) {
@@ -108,7 +147,7 @@ async function cargarCategorias() {
 async function cargarProductos() {
     try {
         const resp = await fetch(API.productos);
-        productos = await resp.json();
+        productos = ordenarPorIdDesc(await resp.json());
         renderProductos(productos);
         if (categorias.length > 0) {
             renderCategorias();
@@ -145,25 +184,32 @@ function renderCategorias() {
                 <div class="text-primary fw-bold fs-5 mb-0">${total}</div>
                 <span class="fw-bold text-uppercase" style="color: var(--color-celeste, #0284c7); font-size: 0.75rem; letter-spacing: 0.5px;">productos</span>
                 <p class="category-description text-muted small mt-2 mb-2 flex-grow-1" style="text-align: justify; text-justify: inter-word;">${cat.descripcion || ''}</p>
-                <div class="d-flex justify-content-center gap-2 mt-auto pt-2 card-actions">
-                    <button class="btn btn-sm btn-outline-primary" onclick="abrirEditarCategoria(${cat.id})"><i class="bi bi-pencil"></i></button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarCategoria(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}')"> <i class="bi bi-trash"></i></button>
+                <div class="d-flex gap-2 mt-auto pt-2 card-actions w-100">
+                    <button class="btn btn-sm btn-outline-primary btn-editar-cat flex-fill" onclick="abrirEditarCategoria(${cat.id})"><i class="bi bi-pencil me-1"></i>Editar</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarCategoria(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}')"><i class="bi bi-trash"></i></button>
                 </div>
             </div>
         </div>`;
     }).join('');
 }
 
+// Rellena un <select> preservando su selección previa si sigue disponible y reconstruye su desplegable personalizado
+function actualizarOpcionesSelect(selectId, opcionesHtml) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    const valorPrevio = select.value;
+    select.innerHTML = opcionesHtml;
+    if (valorPrevio && Array.from(select.options).some(o => o.value === valorPrevio)) {
+        select.value = valorPrevio;
+    }
+    reconstruirOpcionesSelectPersonalizado(selectId);
+}
+
 // Actualiza selects relacionados con categorías (producto y filtro)
 function actualizarSelectCategorias() {
-    const selectProd = document.getElementById('prodCategoria');
-    if (selectProd) {
-        selectProd.innerHTML = '<option value="">Seleccionar...</option>' + categorias.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
-    }
-    const selectFiltro = document.getElementById('filterCategoria');
-    if (selectFiltro) {
-        selectFiltro.innerHTML = '<option value="">Todas las categorías</option>' + categorias.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
-    }
+    const listaCatHtml = categorias.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+    actualizarOpcionesSelect('prodCategoria', '<option value="">Seleccionar...</option>' + listaCatHtml);
+    actualizarOpcionesSelect('filterCategoria', '<option value="">Todas las categorías</option>' + listaCatHtml);
 }
 
 // Abre modal para crear una nueva categoría
@@ -216,24 +262,47 @@ async function guardarCategoria() {
     }
 }
 
+// Escapa caracteres HTML especiales antes de insertar texto en plantillas HTML
+function escaparHtml(texto) {
+    return String(texto ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // Muestra modal genérico de confirmación/acción adaptando icono, color, título y botones
-function mostrarModalAccion({ titulo, mensaje, icono = 'bi-trash3', colorIcono = 'red', textoBtn = 'Eliminar', claseBtn = 'btn-danger', onConfirmar }) {
+function mostrarModalAccion({ titulo, mensaje, icono = 'bi-trash3', colorIcono = 'red', textoBtn = 'Eliminar', claseBtn = 'btn-danger', textoBtnCancelar = 'Cancelar', onConfirmar }) {
+    const modalEl = document.getElementById('modalEliminar');
     const iconoCont = document.getElementById('iconoModalEliminarContenedor');
     const iconoEl = document.getElementById('iconoModalEliminar');
     const tituloEl = document.getElementById('tituloModalEliminar');
     const mensajeEl = document.getElementById('nombreEliminar');
     const btn = document.getElementById('btnConfirmarEliminar');
+    const btnCancelar = modalEl?.querySelector('[data-bs-dismiss="modal"]');
 
     if (iconoCont) iconoCont.className = `kpi-icon ${colorIcono} mx-auto mb-3`;
     if (iconoEl) iconoEl.className = `bi ${icono}`;
     if (tituloEl) tituloEl.textContent = titulo;
     if (mensajeEl) mensajeEl.innerHTML = mensaje;
+    if (btnCancelar) {
+        btnCancelar.textContent = textoBtnCancelar;
+        btnCancelar.blur();
+    }
     if (btn) {
+        btn.disabled = false;
         btn.textContent = textoBtn;
         btn.className = `btn ${claseBtn} px-4 fw-semibold`;
-        btn.onclick = onConfirmar;
+        btn.blur();
+        btn.onclick = () => {
+            btn.blur();
+            if (typeof onConfirmar === 'function') onConfirmar();
+        };
     }
-    new bootstrap.Modal(document.getElementById('modalEliminar')).show();
+    if (modalEl) {
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
 }
 
 // Solicita confirmación y elimina una categoría por id
@@ -273,34 +342,79 @@ function renderProductos(productos) {
         grid.innerHTML = `<div class="col-12 text-center py-5 text-muted"><i class="bi bi-box-seam display-4 d-block mb-3"></i>No hay productos. Crea el primero.</div>`;
         return;
     }
-    grid.innerHTML = productos.map(p => {
-        const stockClass = p.stock <= 5 ? 'text-danger' : 'text-muted';
-        const badgeClass = p.stock <= 5 ? 'bg-danger' : 'bg-primary';
-        const badgeTxt = p.stock <= 5 ? 'Stock bajo' : (p.etiqueta || '');
-        const isInactive = p.estado === 'Inactivo';
-        return `<div class="col-6 col-md-4 col-xl-3 prod-item" data-estado="${p.estado || 'Activo'}">
-            <div class="product-admin-card h-100 ${isInactive ? 'opacity-75' : ''}">
-                <div class="product-img-box">
-                    ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" style="width:100%;height:100%;object-fit:cover;">` : `<i class="bi bi-box-seam product-icon"></i>`}
-                    ${isInactive ? `<span class="badge bg-secondary position-absolute top-0 start-0 m-2" style="font-size:0.7rem;"><i class="bi bi-eye-slash me-1"></i>Inactivo</span>` : ''}
-                    ${badgeTxt ? `<span class="badge ${badgeClass} badge-new">${badgeTxt}</span>` : ''}
+
+    if (vistaProductos === 'list') {
+        grid.innerHTML = `
+            <div class="col-12">
+                <div class="admin-card product-list-card shadow-sm">
+                    ${productos.map(p => {
+                        const stockClass = p.stock <= 5 ? 'text-danger' : 'text-muted';
+                        const badgeClass = p.stock <= 5 ? 'bg-danger' : 'bg-primary';
+                        const badgeTxt = p.stock <= 5 ? 'Stock bajo' : (p.etiqueta || '');
+                        const isInactive = p.estado === 'Inactivo';
+                        const nombreSafe = (p.nombre || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                        return `<div class="product-list-row prod-item ${isInactive ? 'opacity-75' : ''}" data-estado="${p.estado || 'Activo'}">
+                            <div class="product-list-img-box">
+                                ${p.imagen ? `<img src="${p.imagen}" alt="${nombreSafe}">` : `<i class="bi bi-box-seam product-icon-list"></i>`}
+                            </div>
+                            <div class="product-list-info flex-grow-1 min-w-0">
+                                <div class="product-category mb-1">${p.categoria?.nombre || 'Sin categoría'}</div>
+                                <div class="d-flex justify-content-between align-items-center gap-3 my-1">
+                                    <div class="product-name product-name-list mb-0" title="${nombreSafe}">${p.nombre}</div>
+                                    <div class="product-list-meta-actions d-flex align-items-center gap-2 flex-shrink-0">
+                                        ${badgeTxt ? `<span class="badge ${badgeClass} prod-list-badge">${badgeTxt}</span>` : ''}
+                                        ${!isInactive 
+                                            ? '<span class="badge bg-success-subtle text-success small border border-success-subtle prod-list-status">Activo</span>' 
+                                            : '<span class="badge bg-secondary-subtle text-secondary small border border-secondary-subtle prod-list-status"><i class="bi bi-eye-slash me-1"></i>Inactivo</span>'}
+                                        <button class="btn btn-sm btn-outline-primary btn-editar-prod" title="Editar" onclick="abrirEditarProducto(${p.id})"><i class="bi bi-pencil"></i></button>
+                                        <button class="btn btn-sm btn-outline-danger" title="Eliminar" onclick="confirmarEliminarProducto(${p.id},'${nombreSafe}')"><i class="bi bi-trash"></i></button>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 mt-1">
+                                    <span class="product-price">S/ ${p.precio.toFixed(2)}</span>
+                                    <small class="${stockClass}">Stock: <strong>${p.stock}</strong> unidades</small>
+                                </div>
+                            </div>
+                        </div>`;
+                    }).join('')}
                 </div>
-                <div class="product-admin-body">
-                    <p class="product-category">${p.categoria?.nombre || 'Sin categoría'}</p>
-                    <div class="product-name mb-1">${p.nombre}</div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="product-price">S/ ${p.precio.toFixed(2)}</span>
-                        ${!isInactive ? '<span class="badge bg-success-subtle text-success small" style="font-size:0.7rem;">Activo</span>' : ''}
+            </div>`;
+    } else {
+        grid.innerHTML = productos.map(p => {
+            const stockClass = p.stock <= 5 ? 'text-danger' : 'text-muted';
+            const badgeClass = p.stock <= 5 ? 'bg-danger' : 'bg-primary';
+            const badgeTxt = p.stock <= 5 ? 'Stock bajo' : (p.etiqueta || '');
+            const isInactive = p.estado === 'Inactivo';
+            const nombreSafe = (p.nombre || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            return `<div class="col-6 col-md-4 col-xl-3 prod-item" data-estado="${p.estado || 'Activo'}">
+                <div class="product-admin-card h-100 ${isInactive ? 'opacity-75' : ''}">
+                    <div class="product-img-box">
+                        ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" style="width:100%;height:100%;object-fit:cover;">` : `<i class="bi bi-box-seam product-icon"></i>`}
+                        ${isInactive ? `<span class="badge bg-secondary position-absolute top-0 start-0 m-2" style="font-size:0.7rem;"><i class="bi bi-eye-slash me-1"></i>Inactivo</span>` : ''}
+                        ${badgeTxt ? `<span class="badge ${badgeClass} badge-new">${badgeTxt}</span>` : ''}
                     </div>
-                    <small class="${stockClass}">Stock: <strong>${p.stock}</strong> unidades</small>
+                    <div class="product-admin-body">
+                        <p class="product-category">${p.categoria?.nombre || 'Sin categoría'}</p>
+                        <div class="product-name mb-1">${p.nombre}</div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="product-price">S/ ${p.precio.toFixed(2)}</span>
+                            ${!isInactive ? '<span class="badge bg-success-subtle text-success small" style="font-size:0.7rem;">Activo</span>' : ''}
+                        </div>
+                        <small class="${stockClass}">Stock: <strong>${p.stock}</strong> unidades</small>
+                    </div>
+                    <div class="product-admin-actions">
+                        <button class="btn btn-sm btn-outline-primary btn-editar-prod flex-fill" onclick="abrirEditarProducto(${p.id})"><i class="bi bi-pencil me-1"></i>Editar</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="confirmarEliminarProducto(${p.id},'${nombreSafe}')"><i class="bi bi-trash"></i></button>
+                    </div>
                 </div>
-                <div class="product-admin-actions">
-                    <button class="btn btn-sm btn-outline-primary flex-fill" onclick="abrirEditarProducto(${p.id})"><i class="bi bi-pencil me-1"></i>Editar</button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="confirmarEliminarProducto(${p.id},'${p.nombre.replace(/'/g, "\\'")}')"><i class="bi bi-trash"></i></button>
-                </div>
-            </div>
-        </div>`;
-    }).join('');
+            </div>`;
+        }).join('');
+    }
+}
+
+// Sincroniza visualmente los desplegables personalizados del modal de producto
+function sincronizarSelectsProducto() {
+    ['prodCategoria', 'prodEtiqueta', 'prodEstado'].forEach(sincronizarSelectPersonalizado);
 }
 
 // Prepara y abre el modal para crear un nuevo producto
@@ -315,6 +429,7 @@ function abrirNuevoProducto() {
     document.getElementById('prodCategoria').value = '';
     const estadoEl = document.getElementById('prodEstado');
     if (estadoEl) estadoEl.value = 'Activo';
+    sincronizarSelectsProducto();
     new bootstrap.Modal(document.getElementById('modalProducto')).show();
 }
 
@@ -338,6 +453,7 @@ async function abrirEditarProducto(id) {
         } else {
             document.getElementById('prodCategoria').value = '';
         }
+        sincronizarSelectsProducto();
         new bootstrap.Modal(document.getElementById('modalProducto')).show();
     } catch (e) {
         mostrarToast('Error al cargar el producto', 'error');
@@ -423,32 +539,43 @@ function filtrarProductos() {
             || (estadoFiltro === 'Inactivo' && itemEstado === 'Inactivo');
         item.style.display = (matchBusq && matchCat && matchEstado) ? '' : 'none';
     });
+    actualizarBordesExtremosLista();
+}
+
+// Asegura que el primer y último producto visible en formato lista conserven esquinas redondeadas
+function actualizarBordesExtremosLista() {
+    if (vistaProductos !== 'list') return;
+    const filas = Array.from(document.querySelectorAll('.product-list-card .product-list-row'));
+    filas.forEach(f => f.classList.remove('is-first-item', 'is-last-item'));
+    const visibles = filas.filter(f => f.style.display !== 'none');
+    if (visibles.length > 0) {
+        visibles[0].classList.add('is-first-item');
+        visibles[visibles.length - 1].classList.add('is-last-item');
+    }
 }
 
 // Cambia el modo de vista de productos (grid / list)
 function setVista(tipo) {
-    const grid = document.getElementById('productGrid');
+    vistaProductos = tipo;
     const btnGrid = document.getElementById('btnGrid');
     const btnList = document.getElementById('btnList');
-    if (!grid) return;
     if (tipo === 'list') {
-        grid.classList.remove('row-cols-2', 'row-cols-md-3', 'row-cols-xl-4');
-        grid.classList.add('row-cols-1');
         btnList?.classList.add('active');
         btnGrid?.classList.remove('active');
     } else {
-        grid.classList.remove('row-cols-1');
-        grid.classList.add('row-cols-2', 'row-cols-md-3', 'row-cols-xl-4');
         btnGrid?.classList.add('active');
         btnList?.classList.remove('active');
     }
+    renderProductos(productos);
+    filtrarProductos();
 }
 
 // Carga servicios desde la API y renderiza
 async function cargarServicios() {
     try {
         const resp = await fetch(API.servicios);
-        const servicios = await resp.json();
+        const data = await resp.json();
+        const servicios = ordenarPorIdDesc(data);
         renderServicios(servicios);
     } catch (e) {
         console.error('Error cargando servicios:', e);
@@ -485,7 +612,7 @@ function renderServicios(servicios) {
                     <div><small class="text-muted d-block">Duración</small><strong>${s.duracionMinutos} min</strong></div>
                 </div>
                 <div class="d-flex gap-2 card-actions">
-                    <button class="btn btn-sm btn-outline-primary flex-fill" onclick="abrirEditarServicio(${s.id})"><i class="bi bi-pencil me-1"></i>Editar</button>
+                    <button class="btn btn-sm btn-outline-primary btn-editar-serv flex-fill" onclick="abrirEditarServicio(${s.id})"><i class="bi bi-pencil me-1"></i>Editar</button>
                     <button class="btn btn-sm btn-outline-danger" onclick="confirmarEliminarServicio(${s.id},'${s.nombre.replace(/'/g, "\\'")}')"><i class="bi bi-trash"></i></button>
                 </div>
             </div>
@@ -506,7 +633,9 @@ function abrirNuevoServicio() {
     servicioEdit = null;
     document.getElementById('modalServicioTitulo').textContent = 'Nuevo Servicio';
     document.getElementById('formServicio').reset();
+    document.getElementById('servEstado').value = 'Activo';
     document.getElementById('servImagen').value = '';
+    sincronizarSelectPersonalizado('servEstado');
     new bootstrap.Modal(document.getElementById('modalServicio')).show();
 }
 
@@ -528,8 +657,9 @@ async function abrirEditarServicio(id) {
         document.getElementById('servPrecio').value = servicio.precioBase ?? '';
         document.getElementById('servDuracion').value = servicio.duracionMinutos ?? '';
         document.getElementById('servDescripcion').value = servicio.descripcion || '';
-        document.getElementById('servEstado').value = servicio.estado || '';
+        document.getElementById('servEstado').value = servicio.estado || 'Activo';
         document.getElementById('servImagen').value = servicio.imagen || '';
+        sincronizarSelectPersonalizado('servEstado');
         new bootstrap.Modal(document.getElementById('modalServicio')).show();
     } catch (e) {
         console.error(e);
@@ -590,24 +720,51 @@ async function confirmarEliminarServicio(id, nombre) {
     });
 }
 
+// Ordena las citas mostrando primero la reserva más reciente (LIFO visual por ID descendente)
+function ordenarCitasDesc(lista) {
+    return ordenarPorIdDesc(lista);
+}
+
 // Carga todas las citas y actualiza la tabla y KPI's
 async function cargarCitas() {
     try {
         const resp = await fetch(API.citas);
-        _todasCitas = await resp.json();
-        renderCitas(_todasCitas);
+        _todasCitas = ordenarCitasDesc(await resp.json());
         actualizarKPIsCitas(_todasCitas);
+        filtrarCitasTabla(false);
     } catch (e) {
         console.error('Error cargando citas:', e);
     }
 }
 
-// Calcula y actualiza KPIs de citas (pendientes, confirmadas, completadas, canceladas)
+// Comprueba si una fecha (YYYY-MM-DD) pertenece a la semana actual del calendario (Lunes a Domingo)
+function fechaEstaSemana(fechaISO) {
+    if (!fechaISO) return false;
+    const partes = String(fechaISO).substring(0, 10).split('-').map(Number);
+    if (partes.length !== 3 || partes.some(Number.isNaN)) return false;
+    const fecha = new Date(partes[0], partes[1] - 1, partes[2], 0, 0, 0, 0);
+    const hoy = new Date();
+    const hoyMid = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 0, 0, 0, 0);
+    const dia = hoyMid.getDay(); // 0: Dom, 1: Lun, ..., 6: Sab
+    const diffLunes = dia === 0 ? -6 : 1 - dia;
+    const inicioSemana = new Date(hoyMid);
+    inicioSemana.setDate(hoyMid.getDate() + diffLunes);
+    const finSemana = new Date(inicioSemana);
+    finSemana.setDate(inicioSemana.getDate() + 6);
+    finSemana.setHours(23, 59, 59, 999);
+    return fecha >= inicioSemana && fecha <= finSemana;
+}
+
+// Calcula y actualiza KPIs de citas: pendientes globales y confirmadas/completadas/canceladas de la semana actual
 function actualizarKPIsCitas(citas) {
-    const pendientes = citas.filter(c => c.estado === 'Pendiente').length;
-    const confirmadas = citas.filter(c => c.estado === 'Confirmada').length;
-    const completadas = citas.filter(c => c.estado === 'Completada').length;
-    const canceladas = citas.filter(c => c.estado === 'Cancelada').length;
+    const lista = citas || [];
+    const citasSemana = lista.filter(c => fechaEstaSemana(c.fecha));
+    // Pendientes siempre muestra el total global para que el administrador pueda aprobar reservas de cualquier semana
+    const pendientes  = lista.filter(c => c.estado === 'Pendiente').length;
+    const confirmadas = citasSemana.filter(c => c.estado === 'Confirmada').length;
+    const completadas = citasSemana.filter(c => c.estado === 'Completada').length;
+    const canceladas  = citasSemana.filter(c => c.estado === 'Cancelada').length;
+    const totalPendientes = pendientes;
     const set = (id, val) => {
         const el = document.getElementById(id);
         if (el) el.textContent = val;
@@ -617,21 +774,30 @@ function actualizarKPIsCitas(citas) {
     set('kpiCompletadas', completadas);
     set('kpiCanceladas', canceladas);
     const badge = document.getElementById('badgePendientes');
-    if (badge) badge.textContent = pendientes > 0 ? pendientes : '';
+    if (badge) badge.textContent = totalPendientes > 0 ? totalPendientes : '';
     const info = document.getElementById('infoCitas');
-    if (info) info.textContent = `${pendientes} pendientes de confirmar`;
+    if (info) info.textContent = `${totalPendientes} pendientes de confirmar`;
 }
 
-// Renderiza la tabla de citas con acciones condicionales según estado
+// Renderiza la tabla de citas paginada (10 por página) con acciones condicionales según estado
 function renderCitas(citas) {
     const tbody = document.getElementById('tablaCitas');
     if (!tbody) return;
-    if (citas.length === 0) {
+    _citasFiltradas = citas || [];
+    if (_citasFiltradas.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No hay citas registradas</td></tr>`;
+        renderPaginacionCitas(0);
         return;
     }
+
+    const totalPaginas = Math.max(1, Math.ceil(_citasFiltradas.length / CITAS_POR_PAGINA));
+    if (_paginaCitasActual > totalPaginas) _paginaCitasActual = totalPaginas;
+    if (_paginaCitasActual < 1) _paginaCitasActual = 1;
+    const inicio = (_paginaCitasActual - 1) * CITAS_POR_PAGINA;
+    const paginaCitas = _citasFiltradas.slice(inicio, inicio + CITAS_POR_PAGINA);
+
     const estadoBadge = { 'Pendiente': 'status-pending', 'Confirmada': 'status-confirmed', 'Completada': 'status-completed', 'Cancelada': 'status-inactive' };
-    tbody.innerHTML = citas.map(c => `
+    tbody.innerHTML = paginaCitas.map(c => `
     <tr>
         <td class="text-muted fw-semibold">#S-${String(c.id).padStart(3, '0')}</td>
         <td>
@@ -644,45 +810,376 @@ function renderCitas(citas) {
         <td><span class="status-badge ${estadoBadge[c.estado] || ''}">${c.estado}</span></td>
         <td>
             <div class="d-flex gap-1">
-                ${c.estado === 'Pendiente' ? ` <button class="btn btn-xs btn-outline-success accion-btn" title="Confirmar" onclick="cambiarEstadoCita(${c.id},'Confirmada')"><i class="bi bi-check-circle"></i></button>` : ''}
-                ${c.estado === 'Confirmada' ? ` <button class="btn btn-xs btn-outline-success accion-btn" title="Marcar como completada" onclick="cambiarEstadoCita(${c.id},'Completada')"><i class="bi bi-check2-all"></i></button>` : ''}
-                ${c.estado !== 'Cancelada' && c.estado !== 'Completada' ? ` <button class="btn btn-xs btn-outline-danger accion-btn" title="Cancelar" onclick="cambiarEstadoCita(${c.id},'Cancelada')"><i class="bi bi-x"></i></button>` : ''}
+                ${c.estado === 'Pendiente' ? `<button class="btn btn-xs btn-outline-success accion-btn" title="Confirmar" onclick="cambiarEstadoCita(${c.id},'Confirmada')"><i class="bi bi-check-lg"></i></button>` : ''}
+                ${c.estado === 'Confirmada' ? `<button class="btn btn-xs btn-outline-success accion-btn" title="Marcar como completada" onclick="cambiarEstadoCita(${c.id},'Completada')"><i class="bi bi-check2-all"></i></button>` : ''}
+                ${c.estado !== 'Cancelada' && c.estado !== 'Completada' ? `<button class="btn btn-xs btn-outline-danger accion-btn" title="Cancelar" onclick="cambiarEstadoCita(${c.id},'Cancelada')"><i class="bi bi-x"></i></button>` : ''}
             </div>
         </td>
     </tr>`).join('');
+    renderPaginacionCitas(_citasFiltradas.length);
 }
 
-// Cambia el estado de una cita mediante API y recarga la lista
-async function cambiarEstadoCita(id, nuevoEstado) {
+// Renderiza botones de paginación numerados de 1 en 1 reutilizando el estilo unificado de citas
+function renderBotonesPaginacion(contenedorId, totalRegistros, porPagina, paginaActual, fnNavegacion) {
+    const cont = document.getElementById(contenedorId);
+    if (!cont) return;
+    if (!totalRegistros || totalRegistros === 0) {
+        cont.innerHTML = '';
+        return;
+    }
+    const totalPaginas = Math.max(1, Math.ceil(totalRegistros / porPagina));
+    let html = '';
+    for (let i = 1; i <= totalPaginas; i++) {
+        const activo = i === paginaActual ? 'active' : '';
+        html += `<button type="button" class="btn-paginacion-citas ${activo}" onclick="${fnNavegacion}(${i})">${i}</button>`;
+    }
+    cont.innerHTML = html;
+}
+
+// Renderiza los números de página crecientes de 1 en 1 a la derecha del resumen de citas
+function renderPaginacionCitas(totalRegistros) {
+    renderBotonesPaginacion('paginacionCitas', totalRegistros, CITAS_POR_PAGINA, _paginaCitasActual, 'irAPaginaCitas');
+}
+
+// Cambia a la página seleccionada en la tabla de citas
+function irAPaginaCitas(pagina) {
+    _paginaCitasActual = pagina;
+    renderCitas(_citasFiltradas);
+}
+
+// Determina si la fecha (y hora límite si corresponde al día actual) de una cita ya expiró
+function esCitaExpirada(cita) {
+    if (!cita || !cita.fecha) return false;
+    const partes = String(cita.fecha).substring(0, 10).split('-').map(Number);
+    if (partes.length !== 3 || partes.some(Number.isNaN)) return false;
+
+    const hoy = new Date();
+    const fechaCita = new Date(partes[0], partes[1] - 1, partes[2]);
+    const fechaHoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+
+    if (fechaCita < fechaHoy) return true;
+    if (fechaCita.getTime() === fechaHoy.getTime() && cita.hora) {
+        const coincidencias = String(cita.hora).match(/\b(\d{1,2}):(\d{2})\b/g);
+        if (coincidencias && coincidencias.length > 0) {
+            const [hh, mm] = coincidencias[coincidencias.length - 1].split(':').map(Number);
+            if (hh >= 0 && hh <= 23 && mm >= 0 && mm <= 59) {
+                const limite = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), hh, mm, 0, 0);
+                return hoy > limite;
+            }
+        }
+    }
+    return false;
+}
+
+// Calcula el instante exacto (+1 minuto tras finalizar la hora de la cita) para habilitar el estado Completada
+function obtenerLimiteFinalizacionCita(cita) {
+    if (!cita || !cita.fecha) return null;
+    const partes = String(cita.fecha).substring(0, 10).split('-').map(Number);
+    if (partes.length !== 3 || partes.some(Number.isNaN)) return null;
+
+    const [anio, mes, dia] = partes;
+    if (cita.hora) {
+        const coincidencias = String(cita.hora).match(/\b(\d{1,2}):(\d{2})\b/g);
+        if (coincidencias && coincidencias.length > 0) {
+            const [hh, mm] = coincidencias[coincidencias.length - 1].split(':').map(Number);
+            if (hh >= 0 && hh <= 23 && mm >= 0 && mm <= 59) {
+                return new Date(anio, mes - 1, dia, hh, mm + 1, 0, 0);
+            }
+        }
+    }
+    return new Date(anio, mes - 1, dia + 1, 0, 0, 0, 0);
+}
+
+// Indica si ya pasó el horario programado (+1 minuto) para poder completar la cita
+function haFinalizadoHorarioCita(cita) {
+    const limite = obtenerLimiteFinalizacionCita(cita);
+    return limite ? new Date() >= limite : false;
+}
+
+// Valida reglas de fecha/horario y solicita confirmación mediante modal antes de cambiar el estado de la cita
+function cambiarEstadoCita(id, nuevoEstado) {
+    const cita = _todasCitas.find(c => Number(c.id) === Number(id));
+    const expirada = esCitaExpirada(cita);
+    // Si la cita está pendiente y su fecha ya expiró, no se puede aceptar/confirmar; solo cancelar
+    if (expirada && nuevoEstado !== 'Cancelada' && (!cita || cita.estado === 'Pendiente' || nuevoEstado === 'Confirmada')) {
+        mostrarToast('La fecha solicitada ya expiró. Solo puedes cancelar esta cita.', 'warning');
+        return;
+    }
+    // Solo permite marcar como Completada una vez pasado el horario programado (+1 min)
+    if (nuevoEstado === 'Completada' && cita && !haFinalizadoHorarioCita(cita)) {
+        const limite = obtenerLimiteFinalizacionCita(cita);
+        const hhmm = limite ? `${String(limite.getHours()).padStart(2, '0')}:${String(limite.getMinutes()).padStart(2, '0')}` : '';
+        const fechaTexto = limite ? `${String(limite.getDate()).padStart(2, '0')}-${String(limite.getMonth() + 1).padStart(2, '0')}-${limite.getFullYear()}` : '';
+        const mensajeHorario = (hhmm && fechaTexto)
+            ? `Aún no culmina la fecha y hora de la cita.\nPodrás completarla a partir de las\n${hhmm} del ${fechaTexto}.`
+            : 'Aún no culmina la fecha y hora de la cita.';
+        mostrarToast(mensajeHorario, 'warning');
+        return;
+    }
+
+    const codigoCita = `<strong class="text-nowrap">#S-${String(id).padStart(3, '0')}</strong>`;
+    const clienteNombre = escaparHtml(`${cita?.usuario?.nombres || ''} ${cita?.usuario?.apellidos || ''}`.trim());
+    const clienteLinea = clienteNombre ? `de <strong>${clienteNombre}</strong>?<br>` : '?<br>';
+
+    const configPorEstado = {
+        Confirmada: {
+            titulo: '¿Confirmar cita?',
+            mensaje: `¿Seguro que deseas confirmar la cita ${codigoCita}<br>${clienteLinea}Esta acción no se podrá deshacer.`,
+            icono: 'bi-check2-circle',
+            colorIcono: 'green',
+            textoBtn: 'Sí, confirmar',
+            claseBtn: 'btn-success',
+            textoBtnCancelar: 'Cancelar'
+        },
+        Completada: {
+            titulo: '¿Completar cita?',
+            mensaje: `¿Seguro que deseas completar la cita ${codigoCita}<br>${clienteLinea}Esta acción no se podrá deshacer.`,
+            icono: 'bi-check2-all',
+            colorIcono: 'blue',
+            textoBtn: 'Sí, completar',
+            claseBtn: 'btn-primary',
+            textoBtnCancelar: 'Cancelar'
+        },
+        Cancelada: {
+            titulo: '¿Cancelar cita?',
+            mensaje: `¿Seguro que deseas cancelar la cita ${codigoCita}<br>${clienteLinea}Esta acción no se podrá deshacer.`,
+            icono: 'bi-calendar-x',
+            colorIcono: 'red',
+            textoBtn: 'Sí, cancelar',
+            claseBtn: 'btn-danger',
+            textoBtnCancelar: 'Volver'
+        }
+    };
+
+    const cfg = configPorEstado[nuevoEstado];
+    if (!cfg) {
+        ejecutarCambioEstadoCita(id, nuevoEstado, expirada);
+        return;
+    }
+
+    mostrarModalAccion({
+        ...cfg,
+        onConfirmar: () => ejecutarCambioEstadoCita(id, nuevoEstado, expirada)
+    });
+}
+
+// Envía la actualización confirmada de estado de la cita al backend y refresca la vista
+async function ejecutarCambioEstadoCita(id, nuevoEstado, expirada) {
+    const btn = document.getElementById('btnConfirmarEliminar');
+    if (btn) btn.disabled = true;
     try {
         const resp = await fetch(`${API.citas}/${id}/estado`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estado: nuevoEstado }) });
+        bootstrap.Modal.getInstance(document.getElementById('modalEliminar'))?.hide();
         if (!resp.ok) {
-            mostrarToast('Error al actualizar la cita', 'error');
+            const errData = await resp.json().catch(() => ({}));
+            mostrarToast(errData.error || 'Error al actualizar la cita', resp.status === 400 ? 'warning' : 'error');
             return;
         }
-        mostrarToast(`Cita marcada como ${nuevoEstado}`, 'success');
+        if (nuevoEstado === 'Cancelada') {
+            mostrarToast(expirada ? 'Cita cancelada por fecha expirada' : 'Cita cancelada correctamente', 'success');
+        } else {
+            mostrarToast(`Cita marcada como ${nuevoEstado}`, 'success');
+        }
         await cargarCitas();
     } catch (e) {
+        bootstrap.Modal.getInstance(document.getElementById('modalEliminar'))?.hide();
         mostrarToast('Error de conexión', 'error');
+    } finally {
+        if (btn) btn.disabled = false;
     }
 }
 
 // Filtra las citas mostradas en la tabla por búsqueda, estado y fecha
-function filtrarCitasTabla() {
+function filtrarCitasTabla(resetPagina = true) {
     const busqueda = (document.getElementById('filtroCitas')?.value || '').toLowerCase();
     const estadoFiltro = document.getElementById('filtroEstadoCita')?.value || '';
     const fechaFiltro = document.getElementById('filtroFechaCita')?.value || '';
-    const filtradas = _todasCitas.filter(c => {
+    const hayFiltro = Boolean(busqueda || estadoFiltro || fechaFiltro);
+    if (resetPagina) {
+        _paginaCitasActual = 1;
+    }
+    const filtradas = hayFiltro ? _todasCitas.filter(c => {
         const cliente = `${c.usuario?.nombres || ''} ${c.usuario?.apellidos || ''}`.toLowerCase();
         const servicio = (c.servicio?.nombre || '').toLowerCase();
         const matchBusq = !busqueda || cliente.includes(busqueda) || servicio.includes(busqueda);
         const matchEstado = !estadoFiltro || c.estado === estadoFiltro;
         const matchFecha = !fechaFiltro || String(c.fecha) === fechaFiltro;
         return matchBusq && matchEstado && matchFecha;
-    });
+    }) : _todasCitas;
     renderCitas(filtradas);
     const info = document.getElementById('infoPaginacionCitas');
-    if (info) info.textContent = `Mostrando ${filtradas.length} de ${_todasCitas.length} citas`;
+    if (info) {
+        info.textContent = hayFiltro ? `Mostrando ${filtradas.length} de ${_todasCitas.length} citas` : 'Mostrando todas las citas';
+    }
+}
+
+// Cierra todos los selects desplegados (tanto inline como portales en body)
+function cerrarTodosSelectsPersonalizados() {
+    document.querySelectorAll('.custom-select-wrapper.open').forEach(w => {
+        w.classList.remove('open');
+        w.querySelector('.custom-select-trigger')?.setAttribute('aria-expanded', 'false');
+    });
+    document.querySelectorAll('.custom-select-menu-portal.open').forEach(m => {
+        m.classList.remove('open');
+    });
+}
+
+// Elimina menús portales de un propietario dado (ej. al re-renderizar o cerrar modal)
+function limpiarPortalesSelect(owner) {
+    document.querySelectorAll(`.custom-select-menu-portal[data-portal-owner="${owner}"]`).forEach(m => m.remove());
+}
+
+// Resuelve el elemento <select> a partir de su ID o referencia directa
+function resolverElementoSelect(selectTarget) {
+    return typeof selectTarget === 'string' ? document.getElementById(selectTarget) : selectTarget;
+}
+
+// Posiciona un menú portal sobre la pantalla alineado con su botón disparador
+function posicionarMenuPortal(trigger, menu) {
+    const rect = trigger.getBoundingClientRect();
+    menu.style.left = `${rect.left}px`;
+    menu.style.width = `${rect.width}px`;
+    menu.classList.add('open');
+    const altoMenu = menu.offsetHeight || 120;
+    const cabeAbajo = rect.bottom + 2 + altoMenu <= window.innerHeight - 12;
+    const topPos = cabeAbajo ? rect.bottom + 2 : Math.max(8, rect.top - altoMenu - 2);
+    menu.style.top = `${topPos}px`;
+}
+
+// Sincroniza el estado visual de un select personalizado con el <select> nativo
+function sincronizarSelectPersonalizado(selectTarget) {
+    const select = resolverElementoSelect(selectTarget);
+    const refs = select?._customRefs;
+    const wrapper = refs?.wrapper || select?.closest('.custom-select-wrapper');
+    const menu = refs?.menu || wrapper?.querySelector('.custom-select-menu');
+    if (!select || !wrapper || !menu) return;
+    const texto = wrapper.querySelector('.custom-select-label');
+    const opcionActual = select.options[select.selectedIndex];
+    if (texto) texto.textContent = opcionActual ? opcionActual.textContent : '';
+    menu.querySelectorAll('.custom-select-option').forEach(li => {
+        const activa = li.dataset.value === select.value;
+        li.classList.toggle('selected', activa);
+        li.setAttribute('aria-selected', activa ? 'true' : 'false');
+    });
+}
+
+// Reconstruye la lista de opciones del menú personalizado cuando cambia dinámicamente el <select>
+function reconstruirOpcionesSelectPersonalizado(selectTarget) {
+    const select = resolverElementoSelect(selectTarget);
+    const refs = select?._customRefs;
+    const wrapper = refs?.wrapper || select?.closest('.custom-select-wrapper');
+    const menu = refs?.menu || wrapper?.querySelector('.custom-select-menu');
+    const trigger = refs?.trigger || wrapper?.querySelector('.custom-select-trigger');
+    if (!select || !wrapper || !menu || !trigger) return;
+
+    menu.innerHTML = '';
+    Array.from(select.options).forEach(opt => {
+        const li = document.createElement('li');
+        li.className = 'custom-select-option';
+        li.setAttribute('role', 'option');
+        li.dataset.value = opt.value;
+        li.textContent = opt.textContent;
+        li.addEventListener('click', e => {
+            e.stopPropagation();
+            if (select.value !== opt.value) {
+                select.value = opt.value;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            sincronizarSelectPersonalizado(select);
+            cerrarTodosSelectsPersonalizados();
+        });
+        menu.appendChild(li);
+    });
+    sincronizarSelectPersonalizado(select);
+}
+
+// Reemplaza visualmente un <select> por un desplegable con esquinas redondeadas manteniendo el <select> sincronizado
+function iniciarSelectPersonalizado(selectTarget, opciones = {}) {
+    const select = resolverElementoSelect(selectTarget);
+    if (!select || select.dataset.customInit === 'true') return;
+    select.dataset.customInit = 'true';
+
+    const usarPortal = Boolean(opciones.portal);
+    const wrapper = document.createElement('div');
+    wrapper.className = `custom-select-wrapper${opciones.wrapperClass ? ' ' + opciones.wrapperClass : ''}`;
+    select.parentNode.insertBefore(wrapper, select);
+    wrapper.appendChild(select);
+    select.classList.add('custom-select-native');
+    select.tabIndex = -1;
+    select.setAttribute('aria-hidden', 'true');
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'custom-select-trigger';
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.innerHTML = '<span class="custom-select-label"></span><i class="bi bi-chevron-down custom-select-arrow"></i>';
+
+    const menu = document.createElement('ul');
+    menu.className = `custom-select-menu${usarPortal ? ' custom-select-menu-portal' : ''}`;
+    menu.setAttribute('role', 'listbox');
+    if (usarPortal && opciones.portalOwner) {
+        menu.dataset.portalOwner = opciones.portalOwner;
+    }
+
+    select._customRefs = { wrapper, trigger, menu, portal: usarPortal };
+    wrapper.appendChild(trigger);
+    if (usarPortal) {
+        document.body.appendChild(menu);
+    } else {
+        wrapper.appendChild(menu);
+    }
+    reconstruirOpcionesSelectPersonalizado(select);
+
+    trigger.addEventListener('click', e => {
+        e.stopPropagation();
+        const abierto = wrapper.classList.contains('open');
+        cerrarTodosSelectsPersonalizados();
+        if (!abierto) {
+            wrapper.classList.add('open');
+            trigger.setAttribute('aria-expanded', 'true');
+            if (usarPortal) {
+                posicionarMenuPortal(trigger, menu);
+            }
+        }
+    });
+
+    trigger.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            cerrarTodosSelectsPersonalizados();
+        } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            const delta = e.key === 'ArrowDown' ? 1 : -1;
+            const nextIdx = Math.max(0, Math.min(select.options.length - 1, select.selectedIndex + delta));
+            if (nextIdx !== select.selectedIndex) {
+                select.selectedIndex = nextIdx;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                sincronizarSelectPersonalizado(select);
+            }
+        }
+    });
+
+    select.addEventListener('change', () => sincronizarSelectPersonalizado(select));
+
+    if (!document.body.dataset.customSelectListeners) {
+        document.body.dataset.customSelectListeners = 'true';
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.custom-select-wrapper') && !e.target.closest('.custom-select-menu')) {
+                cerrarTodosSelectsPersonalizados();
+            }
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                cerrarTodosSelectsPersonalizados();
+            }
+        });
+        window.addEventListener('resize', cerrarTodosSelectsPersonalizados);
+        document.addEventListener('scroll', e => {
+            if (!e.target?.closest?.('.custom-select-menu')) {
+                cerrarTodosSelectsPersonalizados();
+            }
+        }, true);
+    }
 }
 
 // Limpia los filtros de la tabla de citas y restaura la vista completa
@@ -693,20 +1190,22 @@ function limpiarFiltrosCitas() {
     if (f1) f1.value = '';
     if (f2) f2.value = '';
     if (f3) f3.value = '';
+    sincronizarSelectPersonalizado('filtroEstadoCita');
+    _paginaCitasActual = 1;
     renderCitas(_todasCitas);
     const info = document.getElementById('infoPaginacionCitas');
-    if (info) info.textContent = `Mostrando todas las citas`;
+    if (info) info.textContent = 'Mostrando todas las citas';
 }
 
-// Carga todos los usuarios (clientes) y las compras asociadas
+// Carga todos los usuarios (clientes) ordenados del último registrado al primero y las compras asociadas
 async function cargarClientes() {
     try {
         const resp = await fetch(API.usuarios);
-        _todosClientes = await resp.json();
+        _todosClientes = ordenarCitasDesc(await resp.json());
         const respCompras = await fetch(API.compras);
         _todasCompras = respCompras.ok ? await respCompras.json() : [];
         _paginaClientesActual = 1;
-        renderClientes(_todosClientes);
+        renderClientes(obtenerClientesFiltrados());
     } catch (e) {
         console.error('Error cargando clientes:', e);
     }
@@ -760,9 +1259,16 @@ function renderClientes(clientes) {
     const tbody = document.getElementById('tablaClientes');
     if (!tbody) return;
     const info = document.getElementById('infoClientes');
-    if (info) info.textContent = `${clientes.length} clientes en total`;
+    if (info) {
+        if (_filtroEstadoCompra) {
+            info.textContent = `${clientes.length} de ${_todosClientes.length} clientes (${_filtroEstadoCompra.toLowerCase()})`;
+        } else {
+            info.textContent = `${clientes.length} clientes en total`;
+        }
+    }
+    actualizarBotonesFiltroCompras();
     if (clientes.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">No hay clientes registrados</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">${_filtroEstadoCompra ? 'No hay clientes con última compra en estado "' + _filtroEstadoCompra + '"' : 'No hay clientes registrados'}</td></tr>`;
         renderPaginacionClientes(clientes);
         return;
     }
@@ -790,7 +1296,7 @@ function renderClientes(clientes) {
         ` : '';
 
         return `<tr>
-            <td class="text-muted fw-semibold">#C-${String(inicio + i + 1).padStart(3, '0')}</td>
+            <td class="text-muted fw-semibold">#C-${String(c.id).padStart(3, '0')}</td>
             <td>
                 <div class="fw-semibold">${c.nombres} ${c.apellidos}</div>
                 <small class="text-muted">${c.email || ''}</small>
@@ -809,49 +1315,79 @@ function renderClientes(clientes) {
     renderPaginacionClientes(clientes);
 }
 
-// Genera los controles de paginación para la lista de clientes
+// Genera los controles de paginación para la lista de clientes a la derecha del buscador con estilo unificado
 function renderPaginacionClientes(clientes) {
-    let cont = document.getElementById('paginacionClientes');
-    if (!cont) {
-        const tabla = document.querySelector('#sec-clientes .admin-card');
-        if (!tabla) return;
-        cont = document.createElement('div');
-        cont.id = 'paginacionClientes';
-        cont.className = 'd-flex justify-content-end gap-2 p-3 border-top';
-        tabla.appendChild(cont);
+    renderBotonesPaginacion('paginacionClientes', (clientes || []).length, CLIENTES_POR_PAGINA, _paginaClientesActual, 'irAPaginaClientes');
+}
+
+// Obtiene los clientes filtrados según el texto buscado (nombre, teléfono o correo) y filtro de última compra
+function obtenerClientesFiltrados() {
+    const busqueda = (document.getElementById('searchCliente')?.value || '').toLowerCase().trim();
+    return _todosClientes.filter(c => {
+        if (busqueda) {
+            const nombre = `${c.nombres || ''} ${c.apellidos || ''}`.toLowerCase();
+            const tel = (c.telefono || '').toLowerCase();
+            const email = (c.email || '').toLowerCase();
+            const matchBusq = nombre.includes(busqueda) || tel.includes(busqueda) || email.includes(busqueda);
+            if (!matchBusq) return false;
+        }
+        if (_filtroEstadoCompra) {
+            // Busca las compras del cliente ordenadas de la última a la primera (LIFO / mayor ID primero)
+            const comprasCliente = _todasCompras
+                .filter(comp => comp.usuario?.id === c.id)
+                .sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
+            // Si no tiene compras, no califica para el filtro
+            if (comprasCliente.length === 0) return false;
+            // Se evalúa ÚNICAMENTE la última compra realizada (cabecera del historial)
+            const ultimaCompra = comprasCliente[0];
+            const estadoUltima = (ultimaCompra.estado || '').toLowerCase().trim();
+            const estadoBuscado = _filtroEstadoCompra.toLowerCase().trim();
+            if (estadoUltima !== estadoBuscado) return false;
+        }
+        return true;
+    });
+}
+
+// Activa o desactiva el filtro de clientes según el estado de su última compra
+function toggleFiltroCompras(estado) {
+    if (_filtroEstadoCompra === estado) {
+        _filtroEstadoCompra = null;
+    } else {
+        _filtroEstadoCompra = estado;
     }
-    const totalPaginas = Math.max(1, Math.ceil(clientes.length / CLIENTES_POR_PAGINA));
-    const maxBotones = Math.min(5, totalPaginas);
-    let html = '';
-    for (let i = 1; i <= maxBotones; i++) {
-        const activo = i === _paginaClientesActual ? 'btn-primary' : 'btn-outline-primary';
-        html += `<button class="btn btn-sm ${activo}" onclick="irAPaginaClientes(${i})">${i}</button>`;
-    }
-    if (totalPaginas > 5) {
-        html += `<span class="align-self-center text-muted small">… ${totalPaginas} pág.</span>`;
-    }
-    cont.innerHTML = html || '';
+    actualizarBotonesFiltroCompras();
+    _paginaClientesActual = 1;
+    renderClientes(obtenerClientesFiltrados());
+}
+
+// Sincroniza la clase active de los 3 botones de filtro de compra
+function actualizarBotonesFiltroCompras() {
+    const mapa = [
+        { id: 'btnFiltroPorEntregar', estado: 'Por entregar' },
+        { id: 'btnFiltroEntregado', estado: 'Entregado' },
+        { id: 'btnFiltroSinPagar', estado: 'Sin pagar' }
+    ];
+    mapa.forEach(item => {
+        const btn = document.getElementById(item.id);
+        if (!btn) return;
+        if (_filtroEstadoCompra === item.estado) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
 }
 
 // Navega a la página indicada en la paginación de clientes
 function irAPaginaClientes(pagina) {
     _paginaClientesActual = pagina;
-    const filtro = document.getElementById('searchCliente')?.value.toLowerCase() || '';
-    const filtrados = filtro ? _todosClientes.filter(c => (`${c.nombres} ${c.apellidos}`.toLowerCase().includes(filtro))) : _todosClientes;
-    renderClientes(filtrados);
+    renderClientes(obtenerClientesFiltrados());
 }
 
 // Filtra la lista completa de clientes por nombre, teléfono o email
 function filtrarClientesTabla() {
-    const busqueda = (document.getElementById('searchCliente')?.value || '').toLowerCase();
-    const filtrados = _todosClientes.filter(c => {
-        const nombre = `${c.nombres} ${c.apellidos}`.toLowerCase();
-        const tel = (c.telefono || '').toLowerCase();
-        const email = (c.email || '').toLowerCase();
-        return nombre.includes(busqueda) || tel.includes(busqueda) || email.includes(busqueda);
-    });
     _paginaClientesActual = 1;
-    renderClientes(filtrados);
+    renderClientes(obtenerClientesFiltrados());
 }
 
 // Solicita confirmación para inhabilitar o habilitar un cliente y actualiza su estado
@@ -891,36 +1427,81 @@ function confirmarCambiarEstadoCliente(id, nombre, estadoActual) {
     });
 }
 
-// Muestra el modal con el historial de compras de un cliente
+// Muestra el modal con el historial de compras de un cliente (semana actual, última compra primero, paginado si > 5)
 function verComprasCliente(idCliente, nombre) {
     document.getElementById('nombreClienteCompras').textContent = nombre;
-    const comprasCliente = _todasCompras.filter(c => c.usuario?.id === idCliente);
-    renderTablaComprasCliente(comprasCliente);
-    new bootstrap.Modal(document.getElementById('modalComprasCliente')).show();
+    const modalEl = document.getElementById('modalComprasCliente');
+    if (modalEl && !modalEl.dataset.comprasCleanup) {
+        modalEl.dataset.comprasCleanup = 'true';
+        modalEl.addEventListener('hidden.bs.modal', () => limpiarPortalesSelect('compras'));
+    }
+    const comprasCliente = _todasCompras
+        .filter(c => c.usuario?.id === idCliente)
+        .sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
+
+    // Solo se muestran las compras de la semana actual para evitar acumulación
+    _comprasModalActuales = comprasCliente.filter(c => fechaEstaSemana(c.fecha));
+    _paginaComprasModalActual = 1;
+    renderTablaComprasCliente();
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
 }
 
 // Renderiza tabla con las compras de un cliente y select para cambiar estado
-function renderTablaComprasCliente(compras) {
+function renderTablaComprasCliente() {
+    limpiarPortalesSelect('compras');
     const tbody = document.getElementById('tablaComprasCliente');
     if (!tbody) return;
-    if (compras.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Este cliente no tiene compras registradas</td></tr>`;
+    if (!_comprasModalActuales || _comprasModalActuales.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">No hay compras registradas esta semana</td></tr>`;
+        renderPaginacionComprasModal(0);
         return;
     }
+
+    const totalPaginas = Math.max(1, Math.ceil(_comprasModalActuales.length / COMPRAS_MODAL_POR_PAGINA));
+    if (_paginaComprasModalActual > totalPaginas) _paginaComprasModalActual = totalPaginas;
+    if (_paginaComprasModalActual < 1) _paginaComprasModalActual = 1;
+    const inicio = (_paginaComprasModalActual - 1) * COMPRAS_MODAL_POR_PAGINA;
+    const paginaCompras = _comprasModalActuales.slice(inicio, inicio + COMPRAS_MODAL_POR_PAGINA);
+
     const badgeEstado = { 'Entregado': 'bg-success', 'Por entregar': 'bg-warning', 'Sin pagar': 'bg-danger' };
-    tbody.innerHTML = compras.map(c => {
+    tbody.innerHTML = paginaCompras.map(c => {
         const productos = (c.detalles || []).map(d => `${d.producto?.nombre || 'Prod.'} x${d.cantidad}`).join(', ') || '—';
         const claseEstado = badgeEstado[c.estado] || 'bg-secondary';
-        const opciones = ['Por entregar', 'Sin pagar', 'Entregado'].map(e => `<option value="${e}" ${e === c.estado ? 'selected' : ''}>${e}</option>`).join('');
+        const opciones = ['Por entregar', 'Entregado', 'Sin pagar'].map(e => `<option value="${e}" ${e === c.estado ? 'selected' : ''}>${e}</option>`).join('');
         return `<tr>
-            <td class="fw-semibold">#C-${String(c.id).padStart(3, '0')}</td>
+            <td class="fw-semibold col-compra-id">#C-${String(c.id).padStart(3, '0')}</td>
             <td><small>${productos}</small></td>
-            <td class="fw-semibold text-primary">S/ ${(c.total || 0).toFixed(2)}</td>
-            <td><span class="badge bg-info text-dark">${c.metodoPago || 'No especificado'}</span></td>
-            <td><span class="badge ${claseEstado}" id="badgeEstadoCompra-${c.id}">${c.estado}</span></td>
-            <td><select class="form-select form-select-sm" style="min-width:140px;" onchange="cambiarEstadoCompra(${c.id}, this.value)"> ${opciones}</select></td>
+            <td class="fw-semibold text-primary col-compra-total">S/ ${(c.total || 0).toFixed(2)}</td>
+            <td class="col-compra-pago"><span class="badge bg-info text-dark">${c.metodoPago || 'No especificado'}</span></td>
+            <td class="col-compra-estado"><span class="badge ${claseEstado}" id="badgeEstadoCompra-${c.id}">${c.estado}</span></td>
+            <td><select id="selectEstadoCompra-${c.id}" class="form-select form-select-sm" onchange="cambiarEstadoCompra(${c.id}, this.value)">${opciones}</select></td>
         </tr>`;
     }).join('');
+
+    renderPaginacionComprasModal(_comprasModalActuales.length);
+
+    paginaCompras.forEach(c => iniciarSelectPersonalizado(`selectEstadoCompra-${c.id}`, {
+        portal: true,
+        portalOwner: 'compras',
+        wrapperClass: 'modal-compras-select'
+    }));
+}
+
+// Renderiza paginación en el footer del modal sólo si sobrepasa 5 compras
+function renderPaginacionComprasModal(totalRegistros) {
+    const cont = document.getElementById('paginacionComprasModal');
+    if (!cont) return;
+    if (!totalRegistros || totalRegistros <= COMPRAS_MODAL_POR_PAGINA) {
+        cont.innerHTML = '';
+        return;
+    }
+    renderBotonesPaginacion('paginacionComprasModal', totalRegistros, COMPRAS_MODAL_POR_PAGINA, _paginaComprasModalActual, 'irAPaginaComprasModal');
+}
+
+// Cambia de página dentro del modal de compras
+function irAPaginaComprasModal(pagina) {
+    _paginaComprasModalActual = pagina;
+    renderTablaComprasCliente();
 }
 
 // Cambia el estado de una compra y actualiza el badge en la tabla
@@ -939,6 +1520,8 @@ async function cambiarEstadoCompra(idCompra, nuevoEstado) {
         }
         const compra = _todasCompras.find(c => c.id === idCompra);
         if (compra) compra.estado = nuevoEstado;
+        const compraModal = _comprasModalActuales.find(c => c.id === idCompra);
+        if (compraModal) compraModal.estado = nuevoEstado;
         mostrarToast(`Compra marcada como ${nuevoEstado}`, 'success');
         await cargarClientes();
     } catch (e) {
@@ -946,14 +1529,42 @@ async function cambiarEstadoCompra(idCompra, nuevoEstado) {
     }
 }
 
-// Muestra un toast genérico para feedback (success | error)
+// Muestra un toast genérico para feedback (success | warning | error)
 function mostrarToast(mensaje, tipo = 'success') {
     const toast = document.getElementById('toastExito');
     const toastMsg = document.getElementById('toastMensaje');
+    const toastIcon = document.getElementById('toastIcono');
     if (!toast) return;
-    toast.className = `toast align-items-center border-0 ${tipo === 'success' ? 'text-bg-success' : 'text-bg-danger'}`;
-    if (toastMsg) toastMsg.textContent = mensaje;
-    new bootstrap.Toast(toast, { delay: 3000 }).show();
+    const estilos = {
+        success: { fondo: 'text-bg-success', icono: 'bi-check-circle-fill', cierreBlanco: true, delay: 3500 },
+        warning: { fondo: 'text-bg-warning text-dark', icono: 'bi-exclamation-triangle-fill', cierreBlanco: false, delay: 4500 },
+        error: { fondo: 'text-bg-danger', icono: 'bi-exclamation-triangle-fill', cierreBlanco: true, delay: 3500 }
+    };
+    const cfg = estilos[tipo] || estilos.error;
+    toast.className = `toast align-items-center border-0 ${cfg.fondo}`;
+    if (toastIcon) {
+        toastIcon.className = `bi ${cfg.icono} me-2 fs-5`;
+    }
+    const btnCerrar = toast.querySelector('.btn-close');
+    if (btnCerrar) {
+        btnCerrar.classList.toggle('btn-close-white', cfg.cierreBlanco);
+    }
+    if (toastMsg) {
+        toastMsg.style.whiteSpace = 'pre-line';
+        toastMsg.textContent = mensaje;
+    }
+    bootstrap.Toast.getInstance(toast)?.dispose();
+    new bootstrap.Toast(toast, { delay: cfg.delay }).show();
+}
+
+// Alterna el estado de la campana entre activa (bi-bell) y silenciada (bi-bell-slash)
+function toggleCampana() {
+    const btn = document.getElementById('btnCampana');
+    const icono = document.getElementById('iconoCampana');
+    if (!btn || !icono) return;
+    const silenciada = btn.classList.toggle('bell-muted');
+    icono.className = silenciada ? 'bi bi-bell-slash' : 'bi bi-bell';
+    btn.title = silenciada ? 'Notificaciones silenciadas' : 'Notificaciones activas';
 }
 
 // Abre modal para editar los datos del administrador (nombre, teléfono, ciudad)

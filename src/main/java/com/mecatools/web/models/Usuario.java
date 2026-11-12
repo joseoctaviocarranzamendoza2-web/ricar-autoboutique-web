@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
+import java.time.LocalDate;
 
 // Marca la clase como entidad JPA
 @Entity
@@ -81,6 +82,17 @@ public class Usuario {
     // Estado del usuario: Activo o Inactivo (controla si puede acceder al sistema)
     @Column(name = "estado")
     private String estado = "Activo";
+
+    // Fecha de registro del usuario usada en reportes semanales, mensuales y anuales
+    @Column(name = "fecha_registro")
+    private LocalDate fechaRegistro;
+
+    @PrePersist
+    public void asignarFechaRegistroPorDefecto() {
+        if (this.fechaRegistro == null) {
+            this.fechaRegistro = LocalDate.now();
+        }
+    }
 
     public String getEstado() {
         return (estado != null && !estado.isBlank()) ? estado : "Activo";

@@ -216,17 +216,100 @@ function abrirModalPersonalizadoConDatos() {
     abrirModal('modalServicioPersonalizado');
 }
 
+// Formatea una fecha Date en YYYY-MM-DD usando la zona horaria local
+function formatearFechaLocalISO(fecha) {
+    const anio = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    return `${anio}-${mes}-${dia}`;
+}
+
+// Restaura las opciones originales del selector de horarios en el modal de cita
+function restaurarOpcionesHora() {
+    const selectHora = document.getElementById('citaHora');
+    if (!selectHora) return;
+    Array.from(selectHora.options).forEach(opt => {
+        if (!opt.value) return;
+        opt.disabled = false;
+        opt.textContent = opt.value;
+    });
+}
+
+// Consulta la ocupación real por horario para la fecha elegida y bloquea horarios con 3/3 vehículos
+async function actualizarHorariosDisponibles(fecha) {
+    const selectHora = document.getElementById('citaHora');
+    if (!selectHora) return;
+    if (!fecha) {
+        restaurarOpcionesHora();
+        return;
+    }
+    try {
+        const resp = await fetch(`/api/citas/ocupacion?fecha=${encodeURIComponent(fecha)}`);
+        if (!resp.ok) {
+            restaurarOpcionesHora();
+            return;
+        }
+        const data = await resp.json();
+        const capacidad = Number(data.capacidad) || 3;
+        const ocupacion = data.ocupacion || {};
+        let hayDisponibles = false;
+
+        Array.from(selectHora.options).forEach(opt => {
+            if (!opt.value) return;
+            const ocupadas = Number(ocupacion[opt.value] || 0);
+            const restantes = Math.max(0, capacidad - ocupadas);
+            if (restantes === 0) {
+                opt.disabled = true;
+                opt.textContent = `${opt.value} (Ocupado)`;
+                if (selectHora.value === opt.value) {
+                    selectHora.value = '';
+                }
+            } else {
+                opt.disabled = false;
+                const etiqueta = restantes === 1 ? '1 cupo disponible' : `${restantes} cupos disponibles`;
+                opt.textContent = `${opt.value} (${etiqueta})`;
+                hayDisponibles = true;
+            }
+        });
+
+        const citaExito = document.getElementById('citaExito');
+        if (!hayDisponibles && citaExito) {
+            const icono = document.getElementById('citaExitoIcon');
+            if (icono) icono.className = 'bi bi-exclamation-triangle-fill me-2 fs-5';
+            const titulo = document.getElementById('citaExitoTitulo');
+            if (titulo) titulo.textContent = 'Sin cupos en esta fecha';
+            document.getElementById('citaExitoMsg').textContent = `Todos los horarios del ${fecha} ya alcanzaron el máximo de ${capacidad} vehículos. Selecciona otra fecha.`;
+            citaExito.className = 'alert alert-warning py-3 text-center';
+            citaExito.classList.remove('d-none');
+        } else if (citaExito && citaExito.classList.contains('alert-warning') && !document.getElementById('citaExitoMsg')?.textContent.includes('horario')) {
+            citaExito.classList.add('d-none');
+        }
+    } catch (e) {
+        console.warn('No se pudo consultar la ocupación de horarios:', e);
+    }
+}
+
 // Inicializa el modal de agendar cita, fija la fecha mínima a mañana y valida campos antes de enviar
 function iniciarModalCita() {
     const actualizarMinFecha = () => {
-        const hoy = new Date();
-        hoy.setDate(hoy.getDate() + 1);
-        const min = hoy.toISOString().split('T')[0];
+        const manana = new Date();
+        manana.setDate(manana.getDate() + 1);
+        const min = formatearFechaLocalISO(manana);
         const campoFecha = document.getElementById('citaFecha');
         if (campoFecha) campoFecha.min = min;
     };
     actualizarMinFecha();
-    document.getElementById('modalCita')?.addEventListener('show.bs.modal', actualizarMinFecha);
+    document.getElementById('modalCita')?.addEventListener('show.bs.modal', () => {
+        actualizarMinFecha();
+        const fechaActual = document.getElementById('citaFecha')?.value;
+        if (fechaActual) actualizarHorariosDisponibles(fechaActual);
+        else restaurarOpcionesHora();
+    });
+    document.getElementById('citaFecha')?.addEventListener('change', function () {
+        this.classList.remove('is-invalid');
+        document.getElementById('citaExito')?.classList.add('d-none');
+        actualizarHorariosDisponibles(this.value);
+    });
     document.getElementById('citaDescripcion')?.addEventListener('input', function () {
         document.getElementById('citaDescContador').textContent = this.value.length + ' / 400';
     });
@@ -248,6 +331,7 @@ function iniciarModalCita() {
                 el.classList.remove('is-valid', 'is-invalid');
             }
         });
+        restaurarOpcionesHora();
         document.getElementById('citaDescContador').textContent = '0 / 400';
         document.getElementById('citaExito')?.classList.add('d-none');
         const btn = document.getElementById('btnConfirmarCita');
@@ -272,6 +356,16 @@ function iniciarModalCita() {
         if (!sesion) return;
         const mostrarResultado = (msg, tipo) => {
             const el = document.getElementById('citaExito');
+            const icono = document.getElementById('citaExitoIcon');
+            const titulo = document.getElementById('citaExitoTitulo');
+            if (icono) {
+                icono.className = tipo === 'success'
+                    ? 'bi bi-check-circle-fill me-2 fs-5'
+                    : (tipo === 'warning' ? 'bi bi-exclamation-triangle-fill me-2 fs-5' : 'bi bi-x-circle-fill me-2 fs-5');
+            }
+            if (titulo) {
+                titulo.textContent = tipo === 'success' ? '¡Cita agendada!' : (tipo === 'warning' ? 'Horario no disponible' : 'Error al agendar');
+            }
             document.getElementById('citaExitoMsg').textContent = msg;
             el.className = `alert alert-${tipo} py-3 text-center`;
             el.classList.remove('d-none');
@@ -293,7 +387,7 @@ function iniciarModalCita() {
         if (!valido) return;
         const fecha = document.getElementById('citaFecha').value;
         const hora = document.getElementById('citaHora').value;
-        const hoy = new Date().toISOString().split('T')[0];
+        const hoy = formatearFechaLocalISO(new Date());
         if (fecha <= hoy) {
             document.getElementById('citaFecha').classList.add('is-invalid');
             document.getElementById('citaFecha').classList.remove('is-valid');
@@ -308,12 +402,13 @@ function iniciarModalCita() {
         this.disabled = true;
         this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando...';
         try {
-            const dispResp = await fetch(`/api/citas/disponible?fecha=${fecha}&hora=${encodeURIComponent(hora)}`);
+            const dispResp = await fetch(`/api/citas/disponible?fecha=${encodeURIComponent(fecha)}&hora=${encodeURIComponent(hora)}`);
             const disp = await dispResp.json();
             if (!disp.disponible) {
                 document.getElementById('citaFecha').classList.add('is-invalid');
                 document.getElementById('citaHora').classList.add('is-invalid');
-                mostrarResultado('Este horario ya está ocupado. Elige otro.', 'warning');
+                await actualizarHorariosDisponibles(fecha);
+                mostrarResultado('Este horario ya alcanzó el máximo de 3 vehículos permitidos. Elige otro horario.', 'warning');
                 return;
             }
             let idServicio = servicioActualId;
@@ -324,9 +419,11 @@ function iniciarModalCita() {
             const body = { fecha, hora, vehiculo, notas, estado: 'Pendiente', usuario: { id: sesion.id }, servicio: { id: idServicio } };
             const resp = await fetch('/api/citas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
             if (resp.status === 409) {
+                const errData = await resp.json().catch(() => ({}));
                 document.getElementById('citaFecha').classList.add('is-invalid');
                 document.getElementById('citaHora').classList.add('is-invalid');
-                mostrarResultado('Este horario ya está ocupado. Elige otro.', 'warning');
+                await actualizarHorariosDisponibles(fecha);
+                mostrarResultado(errData.error || 'Este horario ya alcanzó el máximo de 3 vehículos permitidos. Elige otro horario.', 'warning');
                 return;
             }
             if (!resp.ok) throw new Error('Error del servidor');
@@ -406,7 +503,7 @@ function iniciarModalPersonalizado() {
             }
             const mañana = new Date();
             mañana.setDate(mañana.getDate() + 1);
-            const fechaTentativa = mañana.toISOString().split('T')[0];
+            const fechaTentativa = formatearFechaLocalISO(mañana);
             const body = { fecha: fechaTentativa, hora: 'Por confirmar', vehiculo, notas, estado: 'Pendiente', usuario: { id: sesion.id }, servicio: { id: idServicio } };
             const resp = await fetch('/api/citas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
             if (!resp.ok) throw new Error('Error del servidor');

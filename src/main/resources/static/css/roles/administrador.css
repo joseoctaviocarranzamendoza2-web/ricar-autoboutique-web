@@ -339,7 +339,20 @@ body {
     cursor: pointer;
 }
 
-/* Dropdown de perfil en topbar: Elimina el fondo azul predeterminado de Bootstrap al hacer clic */
+/* Estado silenciado de campana en topbar */
+.topbar-icon-btn.bell-muted {
+    color: #94a3b8;
+    background: #f1f5f9;
+}
+.topbar-icon-btn.bell-muted:hover {
+    background: #e2e8f0;
+    color: #64748b;
+}
+.topbar-icon-btn.bell-muted .topbar-notif-dot {
+    display: none;
+}
+
+/* Dropdown del topbar: Estilos personalizados para botones y cabecera de perfil */
 .topbar-right .dropdown-menu {
     border-radius: 12px;
     padding: 0 0 6px 0;
@@ -357,7 +370,7 @@ body {
     font-size: 0.875rem;
     font-weight: 700;
     padding: 11px 16px;
-    margin: 0 0 4px 0;
+    margin: 0 0 6px 0;
     border: none;
     border-bottom: none;
     text-transform: none;
@@ -373,37 +386,49 @@ body {
     display: none;
 }
 
-.topbar-right .dropdown-menu .dropdown-item {
-    border-radius: 8px;
-    padding: 8px 12px;
-    margin: 2px 6px;
+.topbar-right .dropdown-item-custom {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    margin: 3px 6px;
     width: calc(100% - 12px);
+    border-radius: 8px;
+    font-size: 0.875rem;
     font-weight: 500;
+    color: var(--color-celeste);
+    text-decoration: none;
+    cursor: pointer;
     transition: background-color 0.15s ease, color 0.15s ease;
+    border: none;
+    background: none;
+    text-align: left;
 }
 
-.topbar-right .dropdown-menu .dropdown-item:hover {
-    background-color: var(--color-gris-claro);
-}
-
-.topbar-right .dropdown-menu .dropdown-item:active,
-.topbar-right .dropdown-menu .dropdown-item:focus {
-    background-color: var(--color-gris-claro);
-    color: inherit;
-}
-
-.topbar-right .dropdown-menu .dropdown-item.text-primary:hover,
-.topbar-right .dropdown-menu .dropdown-item.text-primary:focus,
-.topbar-right .dropdown-menu .dropdown-item.text-primary:active {
+.topbar-right .dropdown-item-custom:hover,
+.topbar-right .dropdown-item-custom:focus,
+.topbar-right .dropdown-item-custom:active {
     background-color: var(--color-azul-claro);
-    color: var(--color-azul-principal) !important;
+    color: var(--color-azul-oscuro) !important;
 }
 
-.topbar-right .dropdown-menu .dropdown-item.text-danger:hover,
-.topbar-right .dropdown-menu .dropdown-item.text-danger:focus,
-.topbar-right .dropdown-menu .dropdown-item.text-danger:active {
-    background-color: rgba(239, 68, 68, 0.08);
-    color: #ef4444 !important;
+.topbar-right .dropdown-item-custom:hover .dropdown-item-icon,
+.topbar-right .dropdown-item-custom:focus .dropdown-item-icon,
+.topbar-right .dropdown-item-custom:active .dropdown-item-icon {
+    color: var(--color-azul-oscuro) !important;
+}
+
+.dropdown-item-icon {
+    font-size: 0.95rem;
+    color: var(--color-celeste);
+    flex-shrink: 0;
+    transition: color 0.15s ease;
+}
+
+.topbar-right .dropdown-divider-custom {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 4px 8px;
 }
 
 /* Contenedor principal: Margen izquierdo según el sidebar y padding interior */
@@ -430,19 +455,38 @@ body {
     display: block;
 }
 
-/* Pequeño tag de sección usado en cabeceras (color de acento, rounded) */
+/* Tag de título de sección usado en cabeceras */
 .section-tag {
-    background: var(--color-azul-claro);
-    color: var(--color-azul-principal);
-    font-size: 0.72rem;
+    background: #cfe5ff;
+    color: var(--color-azul-oscuro);
+    font-size: 0.92rem;
     font-weight: 700;
-    padding: 0.3em 0.9em;
+    padding: 0.35em 16px;
     border-radius: 50px;
     letter-spacing: 0.5px;
     text-transform: uppercase;
+    display: block;
+    width: var(--ancho-cabecera-vista, 305px);
+    max-width: 100%;
+    text-align: left;
 }
 
-/* Tarjeta KPI: Bloque informativo con icono y valor; eleva en hover */
+/* Cápsula de subtítulo debajo del tag de sección con diseño homogéneo y contraste legible */
+.section-subtitle {
+    background: #e2e8f0;
+    color: #1e293b;
+    font-size: 0.76rem;
+    font-weight: 500;
+    padding: 0.28em 16px;
+    border-radius: 50px;
+    letter-spacing: 0.2px;
+    display: block;
+    width: var(--ancho-cabecera-vista, 305px);
+    max-width: 100%;
+    text-align: left;
+}
+
+/* Tarjeta KPI: Bloque informativo con icono y valor; resalta borde celeste al pasar el cursor */
 .kpi-card {
     background: var(--color-blanco);
     border: 1px solid #e2e8f0;
@@ -451,12 +495,13 @@ body {
     display: flex;
     align-items: center;
     gap: 16px;
-    transition: box-shadow 0.2s;
+    transition: border-color 0.2s ease;
 }
 
-/* Hover KPI: Sombra sutil para enfatizar interactividad */
+/* Hover KPI: Sin sombreado, borde celeste del icono del sidebar */
 .kpi-card:hover {
-    box-shadow: 0 6px 20px rgba(13, 110, 253, 0.08);
+    border-color: var(--color-celeste);
+    box-shadow: none;
 }
 
 /* Contenedor de icono KPI: Background por variante y tamaño fijo */
@@ -522,6 +567,25 @@ body {
     border: 1px solid #e2e8f0;
     border-radius: 14px;
     overflow: hidden;
+    transition: border-color 0.2s ease;
+}
+
+/* Hover en tarjetas de administración (filtros y tablas de citas, clientes y productos): Borde celeste */
+.admin-card:hover {
+    border-color: var(--color-celeste) !important;
+    box-shadow: none !important;
+}
+
+/* Card de categoría: Transición suave para elevación y borde */
+.category-card {
+    transition: all 0.22s ease;
+}
+
+/* Hover de categoría: Borde celeste sólido de 1.5px sin sombreado idéntico a productos */
+.category-card:hover {
+    border-color: var(--color-celeste) !important;
+    box-shadow: 0 0 0 0.5px var(--color-celeste) !important;
+    transform: translateY(-3px) !important;
 }
 
 /* Grid de categorías: Cada card es columna flexible para listas */
@@ -645,21 +709,22 @@ body {
     transition: all 0.22s;
 }
 
-/* Hover product card: Borde principal y sombra para enfatizar */
+/* Hover product card: Borde celeste sólido de 1.5px equivalente al modo lista (1px + 0.5px sin desenfoque) */
 .product-admin-card:hover {
-    border-color: var(--color-azul-principal);
-    box-shadow: 0 8px 24px rgba(13, 110, 253, 0.1);
+    border-color: var(--color-celeste);
+    box-shadow: 0 0 0 0.5px var(--color-celeste);
     transform: translateY(-3px);
 }
 
-/* Caja de imagen del producto: Fondo de acento y altura fija */
+/* Caja de imagen del producto: Fondo blanco limpio y altura fija sin bordes celestes */
 .product-img-box {
-    background: var(--color-azul-claro);
+    background: #ffffff;
     height: 280px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    overflow: hidden;
 }
 
 /* Icono grandes en product box: Uso decorativo con opacidad */
@@ -718,13 +783,173 @@ body {
     margin-top: 4px;
 }
 
-/* Acciones del producto: Botones compactos al final de la card */
+/* Acciones del producto: Botones compactos al final de la card con línea separadora de 2px en tono gris (#4a5568) */
 .product-admin-actions {
     padding: 10px 12px;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1.75px solid #e1e1e1;
     display: flex;
     gap: 6px;
     margin-top: auto;
+}
+
+/* Vista de lista de productos (formato horizontal tipo tabla / Excel en un cuadrante) */
+.product-list-card {
+    background: var(--color-blanco);
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.product-list-row {
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    background: var(--color-blanco);
+    transition: background 0.18s ease, box-shadow 0.18s ease;
+    gap: 18px;
+    position: relative;
+}
+
+/* Primer producto de la lista: ajusta las esquinas superiores redondeadas para el borde azul */
+.product-list-row:first-child,
+.product-list-row.is-first-item {
+    border-top-left-radius: 13px;
+    border-top-right-radius: 13px;
+}
+
+/* Último producto de la lista: ajusta las esquinas inferiores redondeadas para el borde azul */
+.product-list-row:last-child,
+.product-list-row.is-last-item {
+    border-bottom-left-radius: 13px;
+    border-bottom-right-radius: 13px;
+    border-bottom: none;
+}
+
+/* Si solo hay un producto visible, redondea las 4 esquinas */
+.product-list-row:only-child,
+.product-list-row.is-first-item.is-last-item {
+    border-radius: 13px;
+}
+
+/* Hover de fila en lista: Sin fondo gris, conserva blanco y resalta solo con el borde celeste (#56aee8) de 1.5px (-0.25px) */
+.product-list-row:hover {
+    background: var(--color-blanco);
+    box-shadow: inset 0 0 0 1.5px var(--color-celeste);
+    z-index: 2;
+}
+
+/* Caja de imagen en lista: Tamaño ampliado, limpia, sin fondos ni bordes celestes */
+.product-list-img-box {
+    width: 86px;
+    height: 86px;
+    min-width: 86px;
+    border-radius: 8px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 0;
+    border: none;
+    flex-shrink: 0;
+}
+
+.product-list-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.product-icon-list {
+    font-size: 2.2rem;
+    color: var(--color-celeste);
+    opacity: 0.7;
+}
+
+.product-name-list {
+    min-height: auto;
+    font-size: 0.93rem;
+    font-weight: 600;
+    color: var(--color-oscuro);
+    line-height: 1.3;
+    margin: 0;
+}
+
+/* Cluster derecho en la misma línea del nombre: etiqueta - estado - editar - eliminar */
+.product-list-meta-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.product-list-meta-actions .btn {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 0.88rem;
+}
+
+.prod-list-badge {
+    height: 34px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0 12px;
+    border-radius: 8px;
+    letter-spacing: 0.2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.prod-list-status {
+    height: 34px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0 12px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+@media (max-width: 768px) {
+    .product-list-row {
+        padding: 12px 14px;
+        gap: 12px;
+    }
+    .product-list-img-box {
+        width: 72px;
+        height: 72px;
+        min-width: 72px;
+    }
+}
+
+@media (max-width: 576px) {
+    .product-list-row {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 12px;
+    }
+    .product-list-img-box {
+        width: 100%;
+        height: 120px;
+        min-width: 100%;
+    }
+    .product-list-meta-actions {
+        flex-wrap: wrap;
+        width: 100%;
+        justify-content: flex-end;
+    }
 }
 
 /* Card de servicio en admin: Diseño similar a product-admin-card */
@@ -748,10 +973,11 @@ body {
     margin-top: auto;
 }
 
-/* Hover servicio: Cambia borde y sombra para feedback visual */
+/* Hover servicio: Borde celeste sólido de 1.5px sin sombreado idéntico a productos */
 .service-admin-card:hover {
-    border-color: var(--color-azul-principal);
-    box-shadow: 0 6px 20px rgba(13, 110, 253, 0.08);
+    border-color: var(--color-celeste);
+    box-shadow: 0 0 0 0.5px var(--color-celeste);
+    transform: translateY(-3px);
 }
 
 /* Descripción del servicio y categoría con texto justificado */
@@ -855,6 +1081,62 @@ body {
     color: var(--color-blanco);
 }
 
+/* Botón outline de éxito: Restaura el borde verde visible y el estilo hover relleno */
+.btn-outline-success {
+    color: #16a34a;
+    border-color: #16a34a;
+    background-color: transparent;
+}
+
+.btn-outline-success:hover,
+.btn-outline-success:active {
+    background-color: #16a34a;
+    border-color: #16a34a;
+    color: var(--color-blanco);
+}
+
+/* Botones de acción en tabla de citas: forma cuadrada con esquinas redondeadas idéntica */
+#tablaCitas .accion-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Botones de paginación numérica para citas */
+.btn-paginacion-citas {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1.5px solid #dbe5f0;
+    background-color: #ffffff;
+    color: var(--color-azul-oscuro);
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.btn-paginacion-citas:hover:not(.active) {
+    background-color: var(--color-azul-claro);
+    border-color: var(--color-azul-oscuro);
+    color: var(--color-azul-oscuro);
+}
+
+.btn-paginacion-citas.active {
+    background-color: var(--color-azul-oscuro);
+    color: var(--color-blanco);
+    border-color: var(--color-azul-oscuro);
+}
+
 /* Botón outline de peligro: Usado para acciones destructivas */
 .btn-outline-danger {
     color: #ef4444;
@@ -881,6 +1163,14 @@ body {
     color: var(--color-blanco);
 }
 
+/* Estado activo para toggles y botones secundarios */
+.btn-outline-secondary.active,
+.btn-outline-secondary:active {
+    background-color: var(--color-gris-texto);
+    color: var(--color-blanco);
+    border-color: var(--color-gris-texto);
+}
+
 /* Variantes de tamaño de botón: 'xs' para acciones compactas */
 .btn-xs {
     padding: 5px 10px;
@@ -905,11 +1195,14 @@ body {
     height: 38px;
 }
 
-/* Focus en formularios: Resalta borde y añade halo suave */
+/* Focus en formularios y modales (Editar mis datos, filtros de citas y productos): Solo borde celeste (#56aee8) sin sombreado */
 .form-control:focus,
-.form-select:focus {
-    border-color: var(--color-azul-principal);
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+.form-select:focus,
+.modal-body .form-control:focus,
+.modal-body .form-select:focus {
+    border-color: var(--color-celeste) !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
 
 /* Overlay del sidebar en móviles: Fondo semitransparente para foco modal */
@@ -983,3 +1276,696 @@ textarea.form-control {
         padding: 20px;
     }
 }
+
+/* Barra de filtros: permite desplegar los menús flotantes fuera de la tarjeta sin recortarse */
+.filtros-citas-card,
+.filtros-barra-card {
+    overflow: visible;
+    position: relative;
+    z-index: 20;
+}
+
+.btn-limpiar-filtros {
+    --bs-btn-color: var(--color-gris-texto);
+    --bs-btn-border-color: var(--color-gris-texto);
+    --bs-btn-hover-color: var(--color-blanco);
+    --bs-btn-hover-bg: var(--color-gris-texto);
+    --bs-btn-hover-border-color: var(--color-gris-texto);
+    --bs-btn-active-color: var(--color-blanco);
+    --bs-btn-active-bg: var(--color-gris-texto);
+    --bs-btn-active-border-color: var(--color-gris-texto);
+    --bs-btn-focus-shadow-rgb: 74, 85, 104;
+    color: var(--color-gris-texto) !important;
+    border-color: var(--color-gris-texto) !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-limpiar-filtros:hover,
+.btn-limpiar-filtros:active,
+.btn-limpiar-filtros:first-child:active,
+.btn-limpiar-filtros:focus,
+.btn-limpiar-filtros:focus-visible {
+    background-color: #4a5568 !important;
+    border-color: #4a5568 !important;
+    color: var(--color-blanco) !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+}
+
+/* Selector desplegable personalizado con lista de esquinas redondeadas al inicio y final */
+.custom-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.custom-select-native {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.custom-select-trigger {
+    width: 100%;
+    height: 38px;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: var(--color-oscuro);
+    background-color: var(--color-blanco);
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.2s ease;
+}
+
+.custom-select-trigger:focus,
+.custom-select-wrapper.open .custom-select-trigger {
+    border-color: var(--color-celeste) !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.custom-select-arrow {
+    font-size: 0.78rem;
+    color: var(--color-gris-texto);
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+}
+
+.custom-select-wrapper.open .custom-select-arrow {
+    transform: rotate(180deg);
+}
+
+.custom-select-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    width: 100%;
+    max-height: 330px;
+    overflow-y: auto;
+    background-color: var(--color-blanco);
+    border: 1px solid var(--color-celeste);
+    border-radius: 8px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    z-index: 1050;
+    box-shadow: none;
+}
+
+.custom-select-wrapper.open .custom-select-menu,
+.custom-select-menu-portal.open {
+    display: block;
+}
+
+.custom-select-menu-portal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1065;
+}
+
+.modal-compras-select {
+    min-width: 145px;
+}
+
+.modal-compras-select .custom-select-trigger {
+    height: 36px;
+    padding: 6px 12px;
+    border: 1.5px solid #dce6f0;
+}
+
+.custom-select-option {
+    padding: 8px 12px;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--color-oscuro);
+    background-color: var(--color-blanco);
+    cursor: pointer;
+    border-radius: 0;
+    user-select: none;
+}
+
+.custom-select-option:first-child {
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+}
+
+.custom-select-option:last-child {
+    border-bottom-left-radius: 7px;
+    border-bottom-right-radius: 7px;
+}
+
+.custom-select-menu:not(:hover) .custom-select-option.selected,
+.custom-select-option:hover,
+.custom-select-option:active {
+    background-color: var(--color-azul-principal);
+    color: var(--color-blanco);
+}
+
+.custom-select-menu:hover .custom-select-option.selected:not(:hover) {
+    background-color: var(--color-blanco);
+    color: var(--color-oscuro);
+}
+
+/* Ancho compacto para el modal de confirmación manteniendo el código y nombre del cliente en una sola línea */
+.modal-confirmacion {
+    --bs-modal-width: 390px;
+}
+
+/* Espaciado simétrico en el footer de confirmación (#modalEliminar):
+   Mismo espacio superior (hacia el fondo gris del body) que inferior blanco */
+#modalEliminar .modal-footer {
+    padding-top: 20px !important;
+    padding-bottom: 20px !important;
+}
+
+/* Modal de confirmación (#modalEliminar): Control estricto de 2 estados en todos sus botones (Cancelar/Volver, Sí confirmar, Sí completar, Sí cancelar) */
+#modalEliminar .btn-modal-accion-cancelar,
+#modalEliminar #btnConfirmarEliminar {
+    --bs-btn-focus-shadow-rgb: 0, 0, 0;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+/* Botón Cancelar / Volver: Estado 1 (reposo) y Estado 2 (hover y clic en el mismo gris #4a5568) */
+#modalEliminar .btn-modal-accion-cancelar {
+    --bs-btn-color: var(--color-gris-texto);
+    --bs-btn-border-color: var(--color-gris-texto);
+    --bs-btn-hover-color: var(--color-blanco);
+    --bs-btn-hover-bg: #4a5568;
+    --bs-btn-hover-border-color: #4a5568;
+    --bs-btn-active-color: var(--color-blanco);
+    --bs-btn-active-bg: #4a5568;
+    --bs-btn-active-border-color: #4a5568;
+    background-color: transparent !important;
+    border-color: var(--color-gris-texto) !important;
+    color: var(--color-gris-texto) !important;
+}
+
+#modalEliminar .btn-modal-accion-cancelar:hover,
+#modalEliminar .btn-modal-accion-cancelar:active,
+#modalEliminar .btn-modal-accion-cancelar:first-child:active,
+#modalEliminar .btn-modal-accion-cancelar:focus,
+#modalEliminar .btn-modal-accion-cancelar:focus-visible {
+    background-color: #4a5568 !important;
+    border-color: #4a5568 !important;
+    color: var(--color-blanco) !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Confirmar cita (btn-success): Estado 1 (#198754) -> Estado 2 (#157347 en hover, clic y carga) */
+#modalEliminar #btnConfirmarEliminar.btn-success {
+    --bs-btn-bg: #198754;
+    --bs-btn-border-color: #198754;
+    --bs-btn-hover-bg: #157347;
+    --bs-btn-hover-border-color: #157347;
+    --bs-btn-active-bg: #157347;
+    --bs-btn-active-border-color: #157347;
+    background-color: #198754 !important;
+    border-color: #198754 !important;
+    color: var(--color-blanco) !important;
+}
+
+#modalEliminar #btnConfirmarEliminar.btn-success:hover,
+#modalEliminar #btnConfirmarEliminar.btn-success:active,
+#modalEliminar #btnConfirmarEliminar.btn-success:focus,
+#modalEliminar #btnConfirmarEliminar.btn-success:focus-visible,
+#modalEliminar #btnConfirmarEliminar.btn-success:disabled {
+    background-color: #157347 !important;
+    border-color: #157347 !important;
+    color: var(--color-blanco) !important;
+    opacity: 1 !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Completar cita (btn-primary): Estado 1 (#0d6efd) -> Estado 2 (#0052a3 en hover, clic y carga) */
+#modalEliminar #btnConfirmarEliminar.btn-primary {
+    --bs-btn-bg: var(--color-azul-principal);
+    --bs-btn-border-color: var(--color-azul-principal);
+    --bs-btn-hover-bg: #0052a3;
+    --bs-btn-hover-border-color: #0052a3;
+    --bs-btn-active-bg: #0052a3;
+    --bs-btn-active-border-color: #0052a3;
+    background-color: var(--color-azul-principal) !important;
+    border-color: var(--color-azul-principal) !important;
+    color: var(--color-blanco) !important;
+}
+
+#modalEliminar #btnConfirmarEliminar.btn-primary:hover,
+#modalEliminar #btnConfirmarEliminar.btn-primary:active,
+#modalEliminar #btnConfirmarEliminar.btn-primary:focus,
+#modalEliminar #btnConfirmarEliminar.btn-primary:focus-visible,
+#modalEliminar #btnConfirmarEliminar.btn-primary:disabled {
+    background-color: #0052a3 !important;
+    border-color: #0052a3 !important;
+    color: var(--color-blanco) !important;
+    opacity: 1 !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Cancelar cita / Eliminar (btn-danger): Estado 1 (#dc3545) -> Estado 2 (#b02a37 en hover, clic y carga) */
+#modalEliminar #btnConfirmarEliminar.btn-danger {
+    --bs-btn-bg: #dc3545;
+    --bs-btn-border-color: #dc3545;
+    --bs-btn-hover-bg: #b02a37;
+    --bs-btn-hover-border-color: #b02a37;
+    --bs-btn-active-bg: #b02a37;
+    --bs-btn-active-border-color: #b02a37;
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: var(--color-blanco) !important;
+}
+
+#modalEliminar #btnConfirmarEliminar.btn-danger:hover,
+#modalEliminar #btnConfirmarEliminar.btn-danger:active,
+#modalEliminar #btnConfirmarEliminar.btn-danger:focus,
+#modalEliminar #btnConfirmarEliminar.btn-danger:focus-visible,
+#modalEliminar #btnConfirmarEliminar.btn-danger:disabled {
+    background-color: #b02a37 !important;
+    border-color: #b02a37 !important;
+    color: var(--color-blanco) !important;
+    opacity: 1 !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Modal Editar Datos: Botones alineados matemáticamente con los campos y control estricto de 2 estados */
+.btn-modal-cancelar,
+.btn-modal-guardar {
+    height: 42px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.92rem !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+/* Botón Cancelar: Estado 1 - Normal */
+.btn-modal-cancelar {
+    background-color: #ffffff !important;
+    border: 1.5px solid #d1d5db !important;
+    color: #374151 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+}
+
+/* Botón Cancelar / Cerrar: Estado 2 - Hover y Clic idénticos (mantiene su tono gris oscuro sin aclararse a gris claro) */
+.btn-modal-cancelar:hover,
+.btn-modal-cancelar:active,
+.btn-modal-cancelar:first-child:active,
+.btn-modal-cancelar:focus,
+.btn-modal-cancelar:focus-visible {
+    background-color: #4a5568 !important;
+    border-color: #4a5568 !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+}
+
+.modal-compras-footer {
+    background-color: #ffffff;
+    padding: 0.75rem 1.5rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+/* Modal de Compras del cliente: Ancho amplio para evitar cortes de línea en #C-XXX y montos de hasta 5+ cifras */
+@media (min-width: 992px) {
+    .modal-compras-dialog {
+        --bs-modal-width: min(940px, calc(100vw - 2rem));
+    }
+}
+
+#modalComprasCliente .col-compra-id,
+#modalComprasCliente .col-compra-total,
+#modalComprasCliente .col-compra-pago,
+#modalComprasCliente .col-compra-estado {
+    white-space: nowrap;
+}
+
+#modalComprasCliente .col-compra-total {
+    min-width: 120px;
+}
+
+/* Botón Guardar Cambios: Estado 1 - Celeste de marca (#56aee8) igual a la barra lateral del icono */
+.btn-modal-guardar {
+    --bs-btn-bg: var(--color-celeste);
+    --bs-btn-border-color: var(--color-celeste);
+    --bs-btn-hover-bg: var(--color-azul-oscuro);
+    --bs-btn-hover-border-color: var(--color-azul-oscuro);
+    --bs-btn-active-bg: var(--color-azul-oscuro);
+    --bs-btn-active-border-color: var(--color-azul-oscuro);
+    background-color: var(--color-celeste) !important;
+    border: 1.5px solid var(--color-celeste) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+}
+
+/* Botón Guardar Cambios: Estado 2 - Hover, Clic y Focus idénticos en azul oscuro (#0a3d6b) de la cabecera y sidebar */
+.btn-modal-guardar:hover,
+.btn-modal-guardar:active,
+.btn-modal-guardar:focus,
+.btn-modal-guardar:focus-visible,
+.btn-modal-guardar:disabled {
+    background-color: var(--color-azul-oscuro) !important;
+    border-color: var(--color-azul-oscuro) !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+}
+
+/* Modales CRUD (Producto, Servicio y Categoría): Mismos bordes, prefijos/sufijos y footer homogéneos que Editar mis datos */
+:is(#modalProducto, #modalServicio, #modalCategoria) .custom-select-trigger,
+:is(#modalProducto, #modalServicio, #modalCategoria) .input-group .input-group-text {
+    border: 1.5px solid #dce6f0;
+}
+
+:is(#modalProducto, #modalServicio, #modalCategoria) .input-group .input-group-text {
+    background-color: #f8fafc;
+    color: var(--color-gris-texto);
+    transition: border-color 0.2s;
+}
+
+:is(#modalProducto, #modalServicio, #modalCategoria) .input-group > .input-group-text:first-child {
+    border-radius: 8px 0 0 8px;
+}
+
+:is(#modalProducto, #modalServicio, #modalCategoria) .input-group > .input-group-text:last-child {
+    border-radius: 0 8px 8px 0;
+}
+
+:is(#modalProducto, #modalServicio, #modalCategoria) .input-group:focus-within .input-group-text,
+:is(#modalProducto, #modalServicio, #modalCategoria) .input-group:focus-within .form-control {
+    border-color: var(--color-celeste) !important;
+}
+
+.modal-producto-footer {
+    background-color: #f8fafd;
+    padding: 0 1.5rem 1.5rem;
+    gap: 0.75rem;
+}
+
+:is(#modalProducto, #modalServicio) .custom-select-menu {
+    max-height: 270px;
+}
+
+/* ========================================================
+   BOTONES DE ACCIÓN PRINCIPAL (Nuevo Producto, Servicio, Categoría)
+   Estrictamente 2 estados: reposo y hover/clic idénticos
+   ======================================================== */
+.btn-admin-nuevo {
+    background-color: var(--color-celeste) !important;
+    border: 1.5px solid var(--color-celeste) !important;
+    color: var(--color-blanco) !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    border-radius: 9px !important;
+    height: 40px !important;
+    padding: 0 1.25rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+    letter-spacing: 0.2px !important;
+    cursor: pointer !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+/* Estado 2: Hover, Clic (active) y Focus idénticos en azul oscuro del sidebar (#0a3d6b) sin tercer color */
+.btn-admin-nuevo:hover,
+.btn-admin-nuevo:active,
+.btn-admin-nuevo:focus,
+.btn-admin-nuevo:focus-visible {
+    background-color: var(--color-azul-oscuro) !important;
+    border-color: var(--color-azul-oscuro) !important;
+    color: var(--color-blanco) !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+}
+
+.btn-admin-nuevo i {
+    color: inherit !important;
+}
+
+/* ========================================================
+   BOTONES DE FILTRO DE COMPRAS EN GESTIÓN - CLIENTES
+   (Por entregar, Entregado, Sin pagar)
+   Estado 1 (Reposo): Fondo blanco, borde neutro, texto gris oscuro
+   Hover: Borde celeste de marca (#56aee8) y texto azul oscuro
+   Estado 2 (.active): Fondo y borde según estado (ámbar, verde, rojo), texto blanco
+   ======================================================== */
+.btn-filtro-compra {
+    background-color: #ffffff !important;
+    border: 1.5px solid #d1d5db !important;
+    color: #374151 !important;
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    border-radius: 9px !important;
+    height: 40px !important;
+    padding: 0 1.15rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+    cursor: pointer !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+}
+
+.btn-filtro-compra:hover {
+    border-color: var(--color-celeste) !important;
+    color: var(--color-azul-oscuro) !important;
+}
+
+.btn-filtro-compra.btn-filtro-por-entregar.active,
+.btn-filtro-compra.btn-filtro-por-entregar.active:hover,
+.btn-filtro-compra.btn-filtro-por-entregar.active:active,
+.btn-filtro-compra.btn-filtro-por-entregar.active:focus {
+    background-color: #d97706 !important;
+    border-color: #d97706 !important;
+    color: #ffffff !important;
+}
+
+.btn-filtro-compra.btn-filtro-entregado.active,
+.btn-filtro-compra.btn-filtro-entregado.active:hover,
+.btn-filtro-compra.btn-filtro-entregado.active:active,
+.btn-filtro-compra.btn-filtro-entregado.active:focus {
+    background-color: #198754 !important;
+    border-color: #198754 !important;
+    color: #ffffff !important;
+}
+
+.btn-filtro-compra.btn-filtro-sin-pagar.active,
+.btn-filtro-compra.btn-filtro-sin-pagar.active:hover,
+.btn-filtro-compra.btn-filtro-sin-pagar.active:active,
+.btn-filtro-compra.btn-filtro-sin-pagar.active:focus {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: #ffffff !important;
+}
+
+.btn-filtro-compra.active i {
+    color: #ffffff !important;
+}
+
+/* ========================================================
+   BOTONES DE TOGGLE DE VISTA (Cuadrícula / Lista)
+   Estricto control de 2 estados: reposo y hover/clic/activo idénticos
+   ======================================================== */
+.btn-toggle-vista {
+    background-color: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    color: var(--color-gris-texto, #64748b) !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    border-radius: 8px !important;
+    height: 38px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+}
+
+/* Estado 2: Hover, Clic (active), Focus y Activo (.active) comparten exactamente el mismo tono */
+.btn-toggle-vista:hover,
+.btn-toggle-vista:active,
+.btn-toggle-vista:focus,
+.btn-toggle-vista:focus-visible,
+.btn-toggle-vista.active,
+.btn-toggle-vista.active:hover,
+.btn-toggle-vista.active:active,
+.btn-toggle-vista.active:focus {
+    background-color: #4a5568 !important;
+    border-color: #4a5568 !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+}
+
+.btn-toggle-vista i {
+    color: inherit !important;
+    font-size: 1rem;
+}
+
+/* ========================================================
+   BOTÓN EDITAR PRODUCTO, SERVICIO Y CATEGORÍA (Grid y Lista)
+   Estado 1: Reposo -> Icono, letra y borde en celeste (#56aee8, grosor 1.25px), fondo transparente
+   Estado 2: Hover y Clic -> Fondo en celeste (#56aee8), borde celeste, letra e icono en blanco (#ffffff)
+   ======================================================== */
+.btn-editar-prod,
+.btn-editar-serv,
+.btn-editar-cat,
+.product-admin-actions .btn-outline-primary,
+.product-list-meta-actions .btn-outline-primary,
+.service-admin-card .card-actions .btn-outline-primary,
+.category-card .card-actions .btn-outline-primary,
+#gridCategorias .card-actions .btn-outline-primary {
+    --bs-btn-color: var(--color-celeste);
+    --bs-btn-border-color: var(--color-celeste);
+    --bs-btn-hover-color: var(--color-blanco);
+    --bs-btn-hover-bg: var(--color-celeste);
+    --bs-btn-hover-border-color: var(--color-celeste);
+    --bs-btn-active-color: var(--color-blanco);
+    --bs-btn-active-bg: var(--color-celeste);
+    --bs-btn-active-border-color: var(--color-celeste);
+    --bs-btn-focus-shadow-rgb: 86, 174, 232;
+    color: var(--color-celeste) !important;
+    border-color: var(--color-celeste) !important;
+    border-width: 1.25px !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+    font-weight: 600 !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-editar-prod i,
+.btn-editar-serv i,
+.btn-editar-cat i,
+.product-admin-actions .btn-outline-primary i,
+.product-list-meta-actions .btn-outline-primary i,
+.service-admin-card .card-actions .btn-outline-primary i,
+.category-card .card-actions .btn-outline-primary i,
+#gridCategorias .card-actions .btn-outline-primary i {
+    color: inherit !important;
+}
+
+/* Estado 2: Hover, Clic (active), Focus idénticos sin tercer color */
+.btn-editar-prod:hover,
+.btn-editar-prod:active,
+.btn-editar-prod:focus,
+.btn-editar-prod:focus-visible,
+.btn-editar-serv:hover,
+.btn-editar-serv:active,
+.btn-editar-serv:focus,
+.btn-editar-serv:focus-visible,
+.btn-editar-cat:hover,
+.btn-editar-cat:active,
+.btn-editar-cat:focus,
+.btn-editar-cat:focus-visible,
+.product-admin-actions .btn-outline-primary:hover,
+.product-admin-actions .btn-outline-primary:active,
+.product-admin-actions .btn-outline-primary:focus,
+.product-admin-actions .btn-outline-primary:focus-visible,
+.product-list-meta-actions .btn-outline-primary:hover,
+.product-list-meta-actions .btn-outline-primary:active,
+.product-list-meta-actions .btn-outline-primary:focus,
+.product-list-meta-actions .btn-outline-primary:focus-visible,
+.service-admin-card .card-actions .btn-outline-primary:hover,
+.service-admin-card .card-actions .btn-outline-primary:active,
+.service-admin-card .card-actions .btn-outline-primary:focus,
+.service-admin-card .card-actions .btn-outline-primary:focus-visible,
+.category-card .card-actions .btn-outline-primary:hover,
+.category-card .card-actions .btn-outline-primary:active,
+.category-card .card-actions .btn-outline-primary:focus,
+.category-card .card-actions .btn-outline-primary:focus-visible,
+#gridCategorias .card-actions .btn-outline-primary:hover,
+#gridCategorias .card-actions .btn-outline-primary:active,
+#gridCategorias .card-actions .btn-outline-primary:focus,
+#gridCategorias .card-actions .btn-outline-primary:focus-visible {
+    background-color: var(--color-celeste) !important;
+    border-color: var(--color-celeste) !important;
+    color: var(--color-blanco) !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+}
+
+.btn-editar-prod:hover i,
+.btn-editar-prod:active i,
+.btn-editar-prod:focus i,
+.btn-editar-prod:focus-visible i,
+.btn-editar-serv:hover i,
+.btn-editar-serv:active i,
+.btn-editar-serv:focus i,
+.btn-editar-serv:focus-visible i,
+.btn-editar-cat:hover i,
+.btn-editar-cat:active i,
+.btn-editar-cat:focus i,
+.btn-editar-cat:focus-visible i,
+.product-admin-actions .btn-outline-primary:hover i,
+.product-admin-actions .btn-outline-primary:active i,
+.product-admin-actions .btn-outline-primary:focus i,
+.product-admin-actions .btn-outline-primary:focus-visible i,
+.product-list-meta-actions .btn-outline-primary:hover i,
+.product-list-meta-actions .btn-outline-primary:active i,
+.product-list-meta-actions .btn-outline-primary:focus i,
+.product-list-meta-actions .btn-outline-primary:focus-visible i,
+.service-admin-card .card-actions .btn-outline-primary:hover i,
+.service-admin-card .card-actions .btn-outline-primary:active i,
+.service-admin-card .card-actions .btn-outline-primary:focus i,
+.service-admin-card .card-actions .btn-outline-primary:focus-visible i,
+.category-card .card-actions .btn-outline-primary:hover i,
+.category-card .card-actions .btn-outline-primary:active i,
+.category-card .card-actions .btn-outline-primary:focus i,
+.category-card .card-actions .btn-outline-primary:focus-visible i,
+#gridCategorias .card-actions .btn-outline-primary:hover i,
+#gridCategorias .card-actions .btn-outline-primary:active i,
+#gridCategorias .card-actions .btn-outline-primary:focus i,
+#gridCategorias .card-actions .btn-outline-primary:focus-visible i {
+    color: var(--color-blanco) !important;
+}
+
+

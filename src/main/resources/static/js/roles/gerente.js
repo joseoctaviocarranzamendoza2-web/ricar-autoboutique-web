@@ -8,7 +8,7 @@ let _productos = [];
 let _usuarios = [];
 let _comprasFiltradas = [];
 let _citasFiltradas = [];
-let _tipoVentasActivo = 'productos'; // 'productos' o 'servicios'
+let _tipoVentasActivo = 'productos';
 let _paginaVentasActual = 1;
 const VENTAS_POR_PAGINA = 20;
 let _anioVentas = new Date().getFullYear();
@@ -67,7 +67,6 @@ function mostrarSeccion(nombre, link) {
     if (sec) sec.classList.add('active');
     const linkActivo = link || document.querySelector(`[data-seccion="${nombre}"]`);
     if (linkActivo) linkActivo.classList.add('active');
-
     const sesion = obtenerSesion();
     const segmento = MAPA_SECCION_URL[nombre];
     if (sesion && segmento) {
@@ -115,14 +114,131 @@ function calcularVentasTotales() {
     return ingresosCompras + ingresosServicios;
 }
 
+// Parsea de forma segura cualquier string de fecha ISO o YYYY-MM-DD
+function parsearFechaYMD(fechaStr) {
+    if (!fechaStr) return null;
+    const str = String(fechaStr).trim();
+    const ymd = str.substring(0, 10);
+    const parts = ymd.split('-').map(Number);
+    if (parts.length === 3 && !parts.some(Number.isNaN) && parts[0] > 1900 && parts[1] >= 1 && parts[1] <= 12 && parts[2] >= 1 && parts[2] <= 31) {
+        return {
+            anio: parts[0],
+            mes: parts[1],
+            dia: parts[2],
+            fechaObj: new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0)
+        };
+    }
+    const d = new Date(str);
+    if (!isNaN(d.getTime())) {
+        return {
+            anio: d.getFullYear(),
+            mes: d.getMonth() + 1,
+            dia: d.getDate(),
+            fechaObj: new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0)
+        };
+    }
+    return null;
+}
+
+// Comprueba si una fecha corresponde a la semana actual del calendario (Lunes a Domingo)
+function fechaEstaSemana(fechaISO) {
+    const p = parsearFechaYMD(fechaISO);
+    if (!p) return false;
+    const hoy = new Date();
+    const hoyMid = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 0, 0, 0, 0);
+    const dia = hoyMid.getDay(); // 0: Dom, 1: Lun, ..., 6: Sab
+    const diffLunes = dia === 0 ? -6 : 1 - dia;
+    const inicioSemana = new Date(hoyMid);
+    inicioSemana.setDate(hoyMid.getDate() + diffLunes);
+    inicioSemana.setHours(0, 0, 0, 0);
+    const finSemana = new Date(inicioSemana);
+    finSemana.setDate(inicioSemana.getDate() + 6);
+    finSemana.setHours(23, 59, 59, 999);
+    return p.fechaObj >= inicioSemana && p.fechaObj <= finSemana;
+}
+
+// Comprueba si una fecha corresponde al mes actual del calendario
+function fechaEsteMes(fechaISO) {
+    const p = parsearFechaYMD(fechaISO);
+    if (!p) return false;
+    const hoy = new Date();
+    return p.anio === hoy.getFullYear() && p.mes === (hoy.getMonth() + 1);
+}
+
+// Comprueba si una fecha corresponde al año actual del calendario
+function fechaEsteAnio(fechaISO) {
+    const p = parsearFechaYMD(fechaISO);
+    if (!p) return false;
+    const hoy = new Date();
+    return p.anio === hoy.getFullYear();
+}
+
+// Obtiene la fecha de registro o primera interacción de un cliente
+function obtenerFechaRegistroCliente(usuario) {
+    if (!usuario) return null;
+    const fechaDirecta = usuario.fechaRegistro || usuario.fechaCreacion || usuario.createdAt || usuario.fecha;
+    if (Array.isArray(fechaDirecta) && fechaDirecta.length >= 3) {
+        return `${fechaDirecta[0]}-${String(fechaDirecta[1]).padStart(2, '0')}-${String(fechaDirecta[2]).padStart(2, '0')}`;
+    }
+    if (fechaDirecta) return String(fechaDirecta).substring(0, 10);
+    const fechas = [];
+    _compras.forEach(c => {
+        if (c.usuario?.id === usuario.id && c.fecha) {
+            fechas.push(c.fecha.substring(0, 10));
+        }
+    });
+    _citas.forEach(c => {
+        if (c.usuario?.id === usuario.id && c.fecha) {
+            fechas.push(c.fecha.substring(0, 10));
+        }
+    });
+    if (fechas.length > 0) {
+        fechas.sort();
+        return fechas[0];
+    }
+    return null;
+}
+
+// Calcula las 4 métricas para un período dado según su función de filtro de fechas
+function calcularMetricasPeriodo(filtroFn) {
+    const comprasPeriodo = _compras.filter(c => c.fecha && filtroFn(c.fecha));
+    const citasCompletadasPeriodo = _citas.filter(c => (c.estado === 'Completada' || c.estado === 'Atendida') && c.fecha && filtroFn(c.fecha));
+
+    const ventasCompras = comprasPeriodo.reduce((acc, c) => acc + (Number(c.total) || 0), 0);
+    const ventasServicios = citasCompletadasPeriodo.reduce((acc, c) => acc + (Number(c.servicio?.precioBase) || 0), 0);
+    const ventas = ventasCompras + ventasServicios;
+
+    const citasAtendidas = citasCompletadasPeriodo.length;
+
+    const productosVendidos = comprasPeriodo.reduce((acc, c) => {
+        return acc + (c.detalles || []).reduce((s, d) => s + (Number(d.cantidad) || 0), 0);
+    }, 0);
+
+    const nuevosClientes = _usuarios.filter(u => {
+        const fechaReg = obtenerFechaRegistroCliente(u);
+        if (fechaReg) {
+            return filtroFn(fechaReg);
+        }
+        return filtroFn === fechaEsteAnio;
+    }).length;
+
+    return {
+        ventas,
+        citasAtendidas,
+        productosVendidos,
+        nuevosClientes
+    };
+}
+
 // Renderiza KPIs y pequeños resúmenes para el dashboard del gerente
 function renderDashboard() {
-    const ventasTotal = calcularVentasTotales();
-    const citasMes = _citas.length;
+    const metricasMes = calcularMetricasPeriodo(fechaEsteMes);
+    const ventasMes = metricasMes.ventas;
+    const citasMes = _citas.filter(c => c.fecha && fechaEsteMes(c.fecha)).length;
     const prodActivos = _productos.filter(p => !p.estado || p.estado === 'Activo').length;
     const clientes = _usuarios.length;
     const kpis = document.querySelectorAll('#sec-dashboard .kpi-value');
-    if (kpis[0]) kpis[0].textContent = `S/ ${ventasTotal.toFixed(0)}`;
+    if (kpis[0]) kpis[0].textContent = `S/ ${ventasMes.toFixed(0)}`;
     if (kpis[1]) kpis[1].textContent = citasMes;
     if (kpis[2]) kpis[2].textContent = prodActivos;
     if (kpis[3]) kpis[3].textContent = clientes;
@@ -205,7 +321,6 @@ function iniciarFiltrosVentas() {
     const btnFiltrar = document.getElementById('btnFiltrarVentas') || document.querySelector('#sec-ventas .btn-primary.w-100');
     const btnExportar = document.getElementById('btnExportarVentas');
     const btnExportarServicios = document.getElementById('btnExportarServicios');
-
     // Validación interactiva de rangos de fecha (de pasado al presente)
     inputFechaIni?.addEventListener('change', () => {
         if (inputFechaIni.value && inputFechaFin) {
@@ -217,22 +332,18 @@ function iniciarFiltrosVentas() {
             inputFechaIni.max = inputFechaFin.value;
         }
     });
-
     inputBusq?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
             btnFiltrar?.click();
         }
     });
-
     btnFiltrar?.addEventListener('click', () => {
         ejecutarFiltroVentas(true);
         btnFiltrar.blur();
     });
-
     const btnExportarPdf = document.getElementById('btnExportarVentasPdf');
     const btnExportarServiciosPdf = document.getElementById('btnExportarServiciosPdf');
-
     if (btnExportar && !btnExportar.dataset.bound) {
         btnExportar.dataset.bound = 'true';
         btnExportar.addEventListener('click', (e) => {
@@ -275,13 +386,11 @@ function ejecutarFiltroVentas(conToast = false) {
     const termino = (inputBusq?.value || '').toLowerCase().trim();
     const desde = inputFechaIni?.value || '';
     const hasta = inputFechaFin?.value || '';
-
     // Validación estricta: el rango no puede ir de presente al pasado
     if (desde && hasta && desde > hasta) {
         mostrarToast('El rango de fechas no es válido. La fecha inicial debe ser anterior o igual a la final.', 'error');
         return;
     }
-
     if (_tipoVentasActivo === 'productos') {
         const filtradas = _compras.filter(c => {
             const cliente = `${c.usuario?.nombres || ''} ${c.usuario?.apellidos || ''}`.toLowerCase();
@@ -371,6 +480,16 @@ function actualizarTotalVentasUI(totalEl, etiqueta, monto) {
     totalEl.innerHTML = `<strong>${etiqueta}</strong> <span class="lbl-total-monto">S/ ${Number(monto || 0).toFixed(2)}</span>`;
 }
 
+// Obtiene el monto a cobrar y el estado de pago de una cita (las citas canceladas no generan cobro)
+function obtenerDatosPagoCita(cita) {
+    const esCancelada = cita?.estado === 'Cancelada';
+    const esCompletada = cita?.estado === 'Completada';
+    const monto = esCancelada ? 0 : Number(cita?.servicio?.precioBase || 0);
+    const metodoPago = esCancelada ? 'Sin cobro' : (cita?.metodoPago || (esCompletada ? 'Efectivo' : 'Pendiente'));
+    const badgePago = esCancelada ? 'bg-secondary' : (esCompletada ? 'bg-info text-dark' : 'bg-warning text-dark');
+    return { monto, metodoPago, badgePago };
+}
+
 // Renderiza la tabla de ventas según el tipo activo (Productos o Servicios) con paginación
 function renderVentas() {
     const thead = document.getElementById('theadVentas') || document.querySelector('#sec-ventas thead');
@@ -394,7 +513,7 @@ function renderVentas() {
 
         if (_comprasFiltradas.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4 align-middle">No hay ventas registradas para este filtro.</td></tr>`;
-            actualizarTotalVentasUI(totalEl, 'Total de la venta semanal:', 0);
+            actualizarTotalVentasUI(totalEl, 'Total de productos en este mes:', 0);
             renderPaginacionVentas(0);
             return;
         }
@@ -423,7 +542,7 @@ function renderVentas() {
         }).join('');
 
         const total = _comprasFiltradas.reduce((acc, c) => acc + (c.total || 0), 0);
-        actualizarTotalVentasUI(totalEl, 'Total de la venta semanal:', total);
+        actualizarTotalVentasUI(totalEl, 'Total de productos en este mes:', total);
         renderPaginacionVentas(_comprasFiltradas.length);
 
     } else {
@@ -443,7 +562,7 @@ function renderVentas() {
 
         if (_citasFiltradas.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4 align-middle">No hay ventas registradas para este filtro.</td></tr>`;
-            actualizarTotalVentasUI(totalEl, 'Total de servicios:', 0);
+            actualizarTotalVentasUI(totalEl, 'Total de servicios en este mes:', 0);
             renderPaginacionVentas(0);
             return;
         }
@@ -463,23 +582,21 @@ function renderVentas() {
 
         tbody.innerHTML = paginaCitas.map((c) => {
             const claseEstado = badgeEstadoCita[c.estado] || 'bg-secondary';
-            const precio = c.servicio?.precioBase || 0;
-            const metodoPago = c.metodoPago || (c.estado === 'Completada' ? 'Efectivo' : 'Pendiente');
-            const badgePago = c.estado === 'Completada' ? 'bg-info text-dark' : 'bg-warning text-dark';
+            const { monto, metodoPago, badgePago } = obtenerDatosPagoCita(c);
             return `
             <tr>
                 <td class="fw-semibold text-center align-middle" style="padding-left: 1.25rem;">#S-${String(c.id).padStart(3, '0')}</td>
                 <td class="text-center align-middle" style="white-space: normal; line-height: 1.35;">${c.usuario?.nombres || '—'} ${c.usuario?.apellidos || ''}</td>
                 <td class="text-center align-middle" style="white-space: normal; line-height: 1.35;">${c.servicio?.nombre || '—'}</td>
                 <td class="text-center align-middle" style="white-space: normal; line-height: 1.35;">${formatearFechaHora(c.fecha, c.hora)}</td>
-                <td class="text-center align-middle"><span class="monto-tabla">S/ ${precio.toFixed(2)}</span></td>
+                <td class="text-center align-middle"><span class="monto-tabla">S/ ${monto.toFixed(2)}</span></td>
                 <td class="text-center align-middle"><span class="badge ${claseEstado} px-2 py-1">${c.estado || '—'}</span></td>
                 <td class="text-center align-middle" style="padding-right: 1.25rem;"><span class="badge ${badgePago} px-2 py-1">${metodoPago}</span></td>
             </tr>`;
         }).join('');
 
-        const total = _citasFiltradas.reduce((acc, c) => acc + (c.servicio?.precioBase || 0), 0);
-        actualizarTotalVentasUI(totalEl, 'Total de servicios:', total);
+        const total = _citasFiltradas.reduce((acc, c) => acc + obtenerDatosPagoCita(c).monto, 0);
+        actualizarTotalVentasUI(totalEl, 'Total de servicios en este mes:', total);
         renderPaginacionVentas(_citasFiltradas.length);
     }
 }
@@ -690,15 +807,18 @@ async function exportarVentasExcel() {
                 return;
             }
             const cabeceras = ['# SERVICIO', 'CLIENTE', 'SERVICIO', 'FECHA Y HORA', 'TOTAL', 'ESTADO', 'MÉTODO DE PAGO'];
-            const filas = _citasFiltradas.map(c => [
-                `#S-${String(c.id).padStart(3, '0')}`,
-                `${c.usuario?.nombres || ''} ${c.usuario?.apellidos || ''}`.trim() || '—',
-                c.servicio?.nombre || '—',
-                `${c.fecha || ''} ${c.hora || ''}`.trim() || '—',
-                Number(c.servicio?.precioBase || 0),
-                c.estado || '—',
-                c.metodoPago || (c.estado === 'Completada' ? 'Efectivo' : 'Pendiente')
-            ]);
+            const filas = _citasFiltradas.map(c => {
+                const { monto, metodoPago } = obtenerDatosPagoCita(c);
+                return [
+                    `#S-${String(c.id).padStart(3, '0')}`,
+                    `${c.usuario?.nombres || ''} ${c.usuario?.apellidos || ''}`.trim() || '—',
+                    c.servicio?.nombre || '—',
+                    `${c.fecha || ''} ${c.hora || ''}`.trim() || '—',
+                    monto,
+                    c.estado || '—',
+                    metodoPago
+                ];
+            });
             await generarExcelProfesional({
                 titulo: 'RICAR AUTOBOUTIQUE - REGISTRO DE VENTAS POR SERVICIO',
                 subtitulo: `Exportado el ${ahora} | Total transacciones: ${filas.length}`,
@@ -918,15 +1038,18 @@ async function exportarVentasPdf() {
                 return;
             }
             const cabeceras = ['# SERVICIO', 'CLIENTE', 'SERVICIO', 'FECHA Y HORA', 'TOTAL', 'ESTADO', 'MÉTODO DE PAGO'];
-            const filas = _citasFiltradas.map(c => [
-                `#S-${String(c.id).padStart(3, '0')}`,
-                `${c.usuario?.nombres || ''} ${c.usuario?.apellidos || ''}`.trim() || '—',
-                c.servicio?.nombre || '—',
-                `${c.fecha || ''} ${c.hora || ''}`.trim() || '—',
-                Number(c.servicio?.precioBase || 0),
-                c.estado || '—',
-                c.metodoPago || (c.estado === 'Completada' ? 'Efectivo' : 'Pendiente')
-            ]);
+            const filas = _citasFiltradas.map(c => {
+                const { monto, metodoPago } = obtenerDatosPagoCita(c);
+                return [
+                    `#S-${String(c.id).padStart(3, '0')}`,
+                    `${c.usuario?.nombres || ''} ${c.usuario?.apellidos || ''}`.trim() || '—',
+                    c.servicio?.nombre || '—',
+                    `${c.fecha || ''} ${c.hora || ''}`.trim() || '—',
+                    monto,
+                    c.estado || '—',
+                    metodoPago
+                ];
+            });
             await generarPdfProfesional({
                 titulo: 'RICAR AUTOBOUTIQUE — REGISTRO DE VENTAS POR SERVICIO',
                 subtitulo: `Generado el ${ahora} | Total transacciones: ${filas.length} | Panel de Gerente`,
@@ -1020,25 +1143,8 @@ async function exportarServiciosPdf() {
     }
 }
 
-// Comprueba si una fecha corresponde a la semana actual del calendario
-function fechaEstaSemana(fechaISO) {
-    if (!fechaISO) return false;
-    const fechaParts = fechaISO.substring(0, 10).split('-').map(Number);
-    if (fechaParts.length !== 3 || fechaParts.some(Number.isNaN)) return false;
-    const fecha = new Date(fechaParts[0], fechaParts[1] - 1, fechaParts[2]);
-    const hoy = new Date();
-    const inicioSemana = new Date(hoy);
-    inicioSemana.setHours(0, 0, 0, 0);
-    inicioSemana.setDate(hoy.getDate() - hoy.getDay());
-    const finSemana = new Date(inicioSemana);
-    finSemana.setDate(inicioSemana.getDate() + 6);
-    finSemana.setHours(23, 59, 59, 999);
-    return fecha >= inicioSemana && fecha <= finSemana;
-}
-
 // Calcula y renderiza reportes/resúmenes por servicio y métricas
 function renderReportes() {
-    const ventasTotal = calcularVentasTotales();
     const porServicio = {};
     const citasCompletadas = _citas.filter(c => c.estado === 'Completada' && c.servicio?.precioBase);
     citasCompletadas.forEach(c => {
@@ -1051,40 +1157,32 @@ function renderReportes() {
         porServicio[nombre].ingresos += precio;
     });
     const totalCitasIngresos = Object.values(porServicio).reduce((acc, s) => acc + s.ingresos, 0);
-    const ventasSemanaCompras = _compras.filter(c => fechaEstaSemana(c.fecha)).reduce((acc, c) => acc + (c.total || 0), 0);
-    const ventasSemanaServicios = citasCompletadas.filter(c => fechaEstaSemana(c.fecha)).reduce((acc, c) => acc + (c.servicio?.precioBase || 0), 0);
-    const ventasSemana = ventasSemanaCompras + ventasSemanaServicios;
-    const citasSemana = _citas.filter(c => fechaEstaSemana(c.fecha)).length;
+
+    const metricasSemana = calcularMetricasPeriodo(fechaEstaSemana);
+    const metricasMes = calcularMetricasPeriodo(fechaEsteMes);
+    const metricasAnio = calcularMetricasPeriodo(fechaEsteAnio);
+
     const cards = document.querySelectorAll('#sec-reportes .admin-card-body');
     if (cards[0]) {
         const valores = cards[0].querySelectorAll('.fw-bold');
-        if (valores[0]) valores[0].textContent = `S/ ${ventasSemana.toFixed(0)}`;
-        if (valores[1]) valores[1].textContent = citasSemana;
-        if (valores[2]) {
-            const units = _compras.slice(-7).reduce((acc, c) => acc + (c.detalles || []).reduce((s, d) => s + d.cantidad, 0), 0);
-            valores[2].textContent = `${units} uds.`;
-        }
-        if (valores[3]) valores[3].textContent = _usuarios.length;
+        if (valores[0]) valores[0].textContent = `S/ ${metricasSemana.ventas.toFixed(0)}`;
+        if (valores[1]) valores[1].textContent = metricasSemana.citasAtendidas;
+        if (valores[2]) valores[2].textContent = `${metricasSemana.productosVendidos} uds.`;
+        if (valores[3]) valores[3].textContent = metricasSemana.nuevosClientes;
     }
     if (cards[1]) {
         const valores = cards[1].querySelectorAll('.fw-bold');
-        if (valores[0]) valores[0].textContent = `S/ ${ventasTotal.toFixed(0)}`;
-        if (valores[1]) valores[1].textContent = _citas.length;
-        if (valores[2]) {
-            const units = _compras.reduce((acc, c) => acc + (c.detalles || []).reduce((s, d) => s + d.cantidad, 0), 0);
-            valores[2].textContent = `${units} uds.`;
-        }
-        if (valores[3]) valores[3].textContent = _usuarios.length;
+        if (valores[0]) valores[0].textContent = `S/ ${metricasMes.ventas.toFixed(0)}`;
+        if (valores[1]) valores[1].textContent = metricasMes.citasAtendidas;
+        if (valores[2]) valores[2].textContent = `${metricasMes.productosVendidos} uds.`;
+        if (valores[3]) valores[3].textContent = metricasMes.nuevosClientes;
     }
     if (cards[2]) {
         const valores = cards[2].querySelectorAll('.fw-bold');
-        if (valores[0]) valores[0].textContent = `S/ ${ventasTotal.toFixed(0)}`;
-        if (valores[1]) valores[1].textContent = _citas.length;
-        if (valores[2]) {
-            const units = _compras.reduce((acc, c) => acc + (c.detalles || []).reduce((s, d) => s + d.cantidad, 0), 0);
-            valores[2].textContent = `${units} uds.`;
-        }
-        if (valores[3]) valores[3].textContent = _usuarios.length;
+        if (valores[0]) valores[0].textContent = `S/ ${metricasAnio.ventas.toFixed(0)}`;
+        if (valores[1]) valores[1].textContent = metricasAnio.citasAtendidas;
+        if (valores[2]) valores[2].textContent = `${metricasAnio.productosVendidos} uds.`;
+        if (valores[3]) valores[3].textContent = metricasAnio.nuevosClientes;
     }
     const tbodyServ = document.querySelector('#sec-reportes tbody');
     if (!tbodyServ) return;

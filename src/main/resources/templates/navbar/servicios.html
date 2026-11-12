@@ -486,14 +486,14 @@
                             <label class="form-label" for="citaHora">Hora preferida <span class="text-danger">*</span></label>
                             <select class="form-select" id="citaHora">
                                 <option value="">Seleccionar horario...</option>
-                                <option>08:00 – 09:00</option>
-                                <option>09:00 – 10:00</option>
-                                <option>10:00 – 11:00</option>
-                                <option>11:00 – 12:00</option>
-                                <option>14:00 – 15:00</option>
-                                <option>15:00 – 16:00</option>
-                                <option>16:00 – 17:00</option>
-                                <option>17:00 – 18:00</option>
+                                <option value="08:00 – 09:00">08:00 – 09:00</option>
+                                <option value="09:00 – 10:00">09:00 – 10:00</option>
+                                <option value="10:00 – 11:00">10:00 – 11:00</option>
+                                <option value="11:00 – 12:00">11:00 – 12:00</option>
+                                <option value="14:00 – 15:00">14:00 – 15:00</option>
+                                <option value="15:00 – 16:00">15:00 – 16:00</option>
+                                <option value="16:00 – 17:00">16:00 – 17:00</option>
+                                <option value="17:00 – 18:00">17:00 – 18:00</option>
                             </select>
                             <div class="invalid-feedback">Selecciona un horario.</div>
                         </div>
@@ -545,8 +545,8 @@
                         </div>
                         <div class="col-12">
                             <div id="citaExito" class="alert alert-success d-none py-3 text-center">
-                                <i class="bi bi-check-circle-fill me-2 fs-5"></i>
-                                <strong>¡Cita agendada!</strong><br>
+                                <i id="citaExitoIcon" class="bi bi-check-circle-fill me-2 fs-5"></i>
+                                <strong id="citaExitoTitulo">¡Cita agendada!</strong><br>
                                 <span id="citaExitoMsg"></span>
                             </div>
                         </div>
@@ -566,6 +566,6 @@
     <!-- global.js: Scripts compartidos de interacción general, validación de formularios y comportamientos de navbar -->
     <script th:src="@{/js/global.js}"></script>
     <!-- servicios.js: Lógica de comportamiento específica de la página de servicios -->
-    <script th:src="@{/js/navbar/servicios.js}"></script>
+    <script th:src="@{/js/navbar/servicios.js(v='1.1')}"></script>
 </body>
 </html>

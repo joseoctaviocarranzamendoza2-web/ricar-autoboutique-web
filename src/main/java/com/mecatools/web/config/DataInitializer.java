@@ -7,6 +7,7 @@ import com.mecatools.web.repositories.UsuarioRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Component
@@ -39,6 +40,9 @@ public class DataInitializer implements CommandLineRunner {
 
             if (u.getEstado() == null || u.getEstado().isBlank()) {
                 u.setEstado("Activo");
+            }
+            if (u.getFechaRegistro() == null) {
+                u.setFechaRegistro(LocalDate.now());
             }
 
             if (esGerente) {

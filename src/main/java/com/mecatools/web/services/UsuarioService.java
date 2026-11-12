@@ -11,6 +11,7 @@ import com.mecatools.web.repositories.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -69,6 +70,9 @@ public class UsuarioService {
         }
         if (usuario.getEstado() == null || usuario.getEstado().isBlank()) {
             usuario.setEstado("Activo");
+        }
+        if (usuario.getFechaRegistro() == null) {
+            usuario.setFechaRegistro(LocalDate.now());
         }
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
 

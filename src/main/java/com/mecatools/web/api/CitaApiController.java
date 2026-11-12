@@ -2,12 +2,14 @@ package com.mecatools.web.api;
 
 import com.mecatools.web.models.Cita;
 import com.mecatools.web.services.CitaService;
-import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -21,6 +23,7 @@ public class CitaApiController {
 
     // Inyección de dependencia del servicio de cita para manejar la lógica de negocio.
     private final CitaService citaService;
+    private final Object slotLock = new Object();
 
     public CitaApiController(CitaService citaService) {
         this.citaService = citaService;
@@ -35,22 +38,46 @@ public class CitaApiController {
         return ResponseEntity.ok(citaService.listarTodas());
     }
 
-    // Método para verificar la disponibilidad de una cita en una fecha y hora específicas. Devuelve una respuesta HTTP con el estado OK y un mapa indicando si la cita está disponible o no.
+    // Verifica la disponibilidad y cupos restantes para una fecha y horario (capacidad máxima de 3 vehículos).
     @GetMapping("/disponible")
-    public ResponseEntity<Map<String, Boolean>> verificarDisponibilidad(@RequestParam String fecha, @RequestParam String hora) {
-        boolean libre = citaService.disponible(LocalDate.parse(fecha), hora);
-        return ResponseEntity.ok(Map.of("disponible", libre));
+    public ResponseEntity<Map<String, Object>> verificarDisponibilidad(@RequestParam String fecha, @RequestParam String hora) {
+        LocalDate fechaLocal = LocalDate.parse(fecha);
+        long ocupadas = citaService.contarActivasEnHorario(fechaLocal, hora);
+        boolean libre = citaService.disponible(fechaLocal, hora);
+        long restantes = Math.max(0L, CitaService.MAX_VEHICULOS_POR_HORARIO - ocupadas);
+        return ResponseEntity.ok(Map.of(
+                "disponible", libre,
+                "ocupadas", ocupadas,
+                "capacidad", CitaService.MAX_VEHICULOS_POR_HORARIO,
+                "restantes", restantes));
     }
 
-    // Método para crear una nueva cita. Valida los datos recibidos y devuelve una respuesta HTTP con el estado Created y la cita creada, o un estado Bad Request si hay errores de validación o conflictos.
+    // Lista la ocupación por horario para una fecha específica para mostrar cupos disponibles u ocupados al cliente.
+    @GetMapping("/ocupacion")
+    public ResponseEntity<?> obtenerOcupacionPorFecha(@RequestParam String fecha) {
+        try {
+            LocalDate fechaLocal = LocalDate.parse(fecha);
+            Map<String, Long> ocupacion = citaService.obtenerOcupacionPorFecha(fechaLocal);
+            return ResponseEntity.ok(Map.of(
+                    "fecha", fechaLocal.toString(),
+                    "capacidad", CitaService.MAX_VEHICULOS_POR_HORARIO,
+                    "ocupacion", ocupacion));
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Formato de fecha inválido"));
+        }
+    }
+
+    // Método para crear una nueva cita. Valida los datos recibidos y sincroniza el control de aforo por horario antes de persistir.
     @PostMapping
-    public ResponseEntity<?> crear(@Valid @RequestBody Cita cita, BindingResult result) {
+    public ResponseEntity<?> crear(@Validated({ Default.class, Cita.OnCreate.class }) @RequestBody Cita cita, BindingResult result) {
         if (result.hasErrors()) {
             String msg = result.getFieldErrors().stream().map(e -> e.getDefaultMessage()).findFirst().orElse("Datos inválidos");
             return ResponseEntity.badRequest().body(Map.of("error", msg));
         }
         try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(citaService.crear(cita));
+            synchronized (slotLock) {
+                return ResponseEntity.status(HttpStatus.CREATED).body(citaService.crear(cita));
+            }
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (IllegalStateException e) {

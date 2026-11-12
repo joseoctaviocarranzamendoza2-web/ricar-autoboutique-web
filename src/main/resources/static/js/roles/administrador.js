@@ -582,6 +582,23 @@ async function cargarServicios() {
     }
 }
 
+// Obtiene la duración en horas de un servicio (maneja registros en horas o heredados en minutos)
+function obtenerHorasServicio(s) {
+    if (!s) return 1;
+    const val = typeof s === 'object' ? Number(s.duracionHoras ?? s.duracionMinutos) : Number(s);
+    if (isNaN(val) || val < 1) return 1;
+    if (val >= 15) {
+        return Math.max(1, Math.round(val / 60));
+    }
+    return Math.max(1, Math.floor(val));
+}
+
+// Formatea la duración para mostrar en las tarjetas (ej: "1 hr" o "2 hrs")
+function formatearDuracionServicio(s) {
+    const horas = obtenerHorasServicio(s);
+    return horas === 1 ? '1 hr' : `${horas} hrs`;
+}
+
 // Renderiza tarjetas de servicios en el panel de admin
 function renderServicios(servicios) {
     const grid = document.getElementById('gridServicios');
@@ -602,14 +619,14 @@ function renderServicios(servicios) {
                     <div class="service-icon"><i class="bi ${icono}"></i></div>
                     <div class="flex-grow-1">
                         <h6 class="fw-bold mb-0">${s.nombre}</h6>
-                        <small class="text-muted">${s.categoria || ''}</small>
+                        ${s.categoria ? `<span class="service-category-badge">${s.categoria}</span>` : ''}
                     </div>
                     <span class="status-badge ${badge}">${s.estado}</span>
                 </div>
                 <p class="text-muted small mb-3 flex-grow-1">${s.descripcion || 'Sin descripción.'}</p>
                 <div class="d-flex justify-content-between mb-3">
-                    <div><small class="text-muted d-block">Precio base</small><strong class="text-primary">S/ ${s.precioBase.toFixed(2)}</strong></div>
-                    <div><small class="text-muted d-block">Duración</small><strong>${s.duracionMinutos} min</strong></div>
+                    <div><small class="text-muted d-block">Precio</small><strong class="text-primary">S/ ${s.precioBase.toFixed(2)}</strong></div>
+                    <div><small class="text-muted d-block">Duración</small><strong>${formatearDuracionServicio(s)}</strong></div>
                 </div>
                 <div class="d-flex gap-2 card-actions">
                     <button class="btn btn-sm btn-outline-primary btn-editar-serv flex-fill" onclick="abrirEditarServicio(${s.id})"><i class="bi bi-pencil me-1"></i>Editar</button>
@@ -633,6 +650,7 @@ function abrirNuevoServicio() {
     servicioEdit = null;
     document.getElementById('modalServicioTitulo').textContent = 'Nuevo Servicio';
     document.getElementById('formServicio').reset();
+    document.getElementById('servDuracion').value = '1';
     document.getElementById('servEstado').value = 'Activo';
     document.getElementById('servImagen').value = '';
     sincronizarSelectPersonalizado('servEstado');
@@ -655,7 +673,7 @@ async function abrirEditarServicio(id) {
         document.getElementById('servNombre').value = servicio.nombre || '';
         document.getElementById('servCategoria').value = servicio.categoria || '';
         document.getElementById('servPrecio').value = servicio.precioBase ?? '';
-        document.getElementById('servDuracion').value = servicio.duracionMinutos ?? '';
+        document.getElementById('servDuracion').value = obtenerHorasServicio(servicio);
         document.getElementById('servDescripcion').value = servicio.descripcion || '';
         document.getElementById('servEstado').value = servicio.estado || 'Activo';
         document.getElementById('servImagen').value = servicio.imagen || '';
@@ -676,8 +694,8 @@ async function guardarServicio() {
     const desc = document.getElementById('servDescripcion').value.trim();
     const estado = document.getElementById('servEstado').value;
     const imagen = document.getElementById('servImagen')?.value.trim() || '';
-    if (!nombre || isNaN(precio) || isNaN(duracion)) {
-        mostrarToast('Completa los campos obligatorios', 'error');
+    if (!nombre || isNaN(precio) || isNaN(duracion) || duracion < 1) {
+        mostrarToast(duracion < 1 ? 'La duración debe ser al menos de 1 hora' : 'Completa los campos obligatorios', 'error');
         return;
     }
     const body = { nombre, categoria, precioBase: precio, duracionMinutos: duracion, descripcion: desc, estado, imagen };
@@ -1040,10 +1058,19 @@ function posicionarMenuPortal(trigger, menu) {
     menu.style.left = `${rect.left}px`;
     menu.style.width = `${rect.width}px`;
     menu.classList.add('open');
-    const altoMenu = menu.offsetHeight || 120;
-    const cabeAbajo = rect.bottom + 2 + altoMenu <= window.innerHeight - 12;
-    const topPos = cabeAbajo ? rect.bottom + 2 : Math.max(8, rect.top - altoMenu - 2);
-    menu.style.top = `${topPos}px`;
+
+    const espacioAbajo = window.innerHeight - rect.bottom - 12;
+    const espacioArriba = rect.top - 12;
+    const desplegarAbajo = espacioAbajo >= 150 || espacioAbajo >= espacioArriba;
+    const altoMax = Math.min(240, Math.max(120, desplegarAbajo ? espacioAbajo : espacioArriba));
+    menu.style.maxHeight = `${altoMax}px`;
+
+    if (desplegarAbajo) {
+        menu.style.top = `${rect.bottom + 2}px`;
+    } else {
+        const topPos = Math.max(8, rect.top - menu.offsetHeight - 2);
+        menu.style.top = `${topPos}px`;
+    }
 }
 
 // Sincroniza el estado visual de un select personalizado con el <select> nativo

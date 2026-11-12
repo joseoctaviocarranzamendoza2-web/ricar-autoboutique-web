@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,15 +65,42 @@ public class CitaService {
         return citaRepository.findByUsuario_Id(idUsuario);
     }
 
-    // Cuenta cuántos vehículos activos (no cancelados) ocupan un horario específico en la fecha dada
+    private static final Set<String> ESTADOS_VALIDOS = Set.of("Pendiente", "Confirmada", "Completada", "Cancelada");
+    private static final Pattern PATRON_HORA = Pattern.compile("\\b(\\d{1,2}:\\d{2})\\b");
+
+    // Extrae los minutos desde medianoche del inicio y fin de un rango horario (ej: "08:00 – 10:00" -> [480, 600])
+    private int[] extraerMinutosRango(String hora) {
+        if (hora == null) return null;
+        Matcher m = PATRON_HORA.matcher(hora);
+        List<Integer> mins = new ArrayList<>();
+        while (m.find()) {
+            String[] partes = m.group(1).split(":");
+            mins.add(Integer.parseInt(partes[0]) * 60 + Integer.parseInt(partes[1]));
+        }
+        if (mins.isEmpty()) return null;
+        if (mins.size() == 1) return new int[]{mins.get(0), mins.get(0) + 60};
+        return new int[]{mins.get(0), mins.get(1)};
+    }
+
+    // Comprueba si dos horarios se cruzan en el tiempo
+    private boolean haySolapamiento(String horaA, String horaB) {
+        if (esHorarioSinLimite(horaA) || esHorarioSinLimite(horaB)) return false;
+        int[] rA = extraerMinutosRango(horaA);
+        int[] rB = extraerMinutosRango(horaB);
+        if (rA == null || rB == null) {
+            return normalizarHora(horaA).equals(normalizarHora(horaB));
+        }
+        return rA[0] < rB[1] && rB[0] < rA[1];
+    }
+
+    // Cuenta cuántos vehículos activos (no cancelados) ocupan o se solapan con un horario específico en la fecha dada
     @Transactional(readOnly = true)
     public long contarActivasEnHorario(LocalDate fecha, String hora) {
         if (fecha == null || hora == null || hora.isBlank() || esHorarioSinLimite(hora)) {
             return 0L;
         }
-        String horaNorm = normalizarHora(hora);
         return citaRepository.findByFechaAndEstadoNot(fecha, ESTADO_CANCELADA).stream()
-                .filter(c -> normalizarHora(c.getHora()).equals(horaNorm))
+                .filter(c -> haySolapamiento(c.getHora(), hora))
                 .count();
     }
 
@@ -94,14 +122,28 @@ public class CitaService {
         if (fecha == null) {
             return Map.of();
         }
-        return citaRepository.findByFechaAndEstadoNot(fecha, ESTADO_CANCELADA).stream()
+        List<Cita> activas = citaRepository.findByFechaAndEstadoNot(fecha, ESTADO_CANCELADA);
+        Map<String, Long> ocupacion = activas.stream()
                 .map(c -> normalizarHora(c.getHora()))
                 .filter(h -> !h.isBlank() && !HORARIO_POR_CONFIRMAR.equalsIgnoreCase(h))
                 .collect(Collectors.groupingBy(Function.identity(), LinkedHashMap::new, Collectors.counting()));
-    }
 
-    private static final Set<String> ESTADOS_VALIDOS = Set.of("Pendiente", "Confirmada", "Completada", "Cancelada");
-    private static final Pattern PATRON_HORA = Pattern.compile("\\b(\\d{1,2}:\\d{2})\\b");
+        // Para compatibilidad con rangos de múltiples horas (1h, 2h, 3h, 4h o más)
+        String[] rangosComunes = {
+            "08:00 – 09:00", "09:00 – 10:00", "10:00 – 11:00", "11:00 – 12:00",
+            "14:00 – 15:00", "15:00 – 16:00", "16:00 – 17:00", "17:00 – 18:00",
+            "08:00 – 10:00", "10:00 – 12:00", "14:00 – 16:00", "16:00 – 18:00",
+            "08:00 – 11:00", "09:00 – 12:00", "14:00 – 17:00", "15:00 – 18:00",
+            "08:00 – 12:00", "14:00 – 18:00", "08:00 – 18:00"
+        };
+        for (String r : rangosComunes) {
+            long count = activas.stream().filter(c -> haySolapamiento(c.getHora(), r)).count();
+            if (count > 0) {
+                ocupacion.put(r, count);
+            }
+        }
+        return ocupacion;
+    }
 
     // Método para crear una nueva cita. Verifica la validez del usuario y servicio, y que no supere el máximo de 3 vehículos por horario.
     @Transactional

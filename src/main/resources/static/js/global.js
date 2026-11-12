@@ -753,3 +753,192 @@ function limpiarCamposRegister() {
         checkbox.classList.remove('is-valid', 'is-invalid');
     }
 }
+
+// ========================================================
+// COMPONENTE DESPLEGABLE PERSONALIZADO (CUSTOM SELECT)
+// ========================================================
+
+// Resuelve el elemento <select> a partir de su ID o referencia directa
+function resolverElementoSelect(selectTarget) {
+    return typeof selectTarget === 'string' ? document.getElementById(selectTarget) : selectTarget;
+}
+
+// Cierra todos los selects desplegados (tanto inline como portales en body)
+function cerrarTodosSelectsPersonalizados() {
+    document.querySelectorAll('.custom-select-wrapper.open').forEach(w => {
+        w.classList.remove('open');
+        w.querySelector('.custom-select-trigger')?.setAttribute('aria-expanded', 'false');
+    });
+    document.querySelectorAll('.custom-select-menu-portal.open').forEach(m => {
+        m.classList.remove('open');
+    });
+}
+
+// Elimina menús portales de un propietario dado (ej. al re-renderizar o cerrar modal)
+function limpiarPortalesSelect(owner) {
+    document.querySelectorAll(`.custom-select-menu-portal[data-portal-owner="${owner}"]`).forEach(m => m.remove());
+}
+
+// Posiciona un menú portal sobre la pantalla alineado con su botón disparador
+function posicionarMenuPortal(trigger, menu) {
+    const rect = trigger.getBoundingClientRect();
+    menu.style.left = `${rect.left}px`;
+    menu.style.width = `${rect.width}px`;
+    menu.classList.add('open');
+
+    const espacioAbajo = window.innerHeight - rect.bottom - 12;
+    const espacioArriba = rect.top - 12;
+    const desplegarAbajo = espacioAbajo >= 150 || espacioAbajo >= espacioArriba;
+    const altoMax = Math.min(240, Math.max(120, desplegarAbajo ? espacioAbajo : espacioArriba));
+    menu.style.maxHeight = `${altoMax}px`;
+
+    if (desplegarAbajo) {
+        menu.style.top = `${rect.bottom + 2}px`;
+    } else {
+        const topPos = Math.max(8, rect.top - menu.offsetHeight - 2);
+        menu.style.top = `${topPos}px`;
+    }
+}
+
+// Sincroniza el estado visual de un select personalizado con el <select> nativo
+function sincronizarSelectPersonalizado(selectTarget) {
+    const select = resolverElementoSelect(selectTarget);
+    const refs = select?._customRefs;
+    const wrapper = refs?.wrapper || select?.closest('.custom-select-wrapper');
+    const menu = refs?.menu || wrapper?.querySelector('.custom-select-menu');
+    if (!select || !wrapper || !menu) return;
+    const texto = wrapper.querySelector('.custom-select-label');
+    const opcionActual = select.options[select.selectedIndex];
+    if (texto) texto.textContent = opcionActual ? opcionActual.textContent : '';
+    menu.querySelectorAll('.custom-select-option').forEach(li => {
+        const activa = li.dataset.value === select.value;
+        li.classList.toggle('selected', activa);
+        li.setAttribute('aria-selected', activa ? 'true' : 'false');
+    });
+}
+
+// Reconstruye la lista de opciones del menú personalizado cuando cambia dinámicamente el <select>
+function reconstruirOpcionesSelectPersonalizado(selectTarget) {
+    const select = resolverElementoSelect(selectTarget);
+    const refs = select?._customRefs;
+    const wrapper = refs?.wrapper || select?.closest('.custom-select-wrapper');
+    const menu = refs?.menu || wrapper?.querySelector('.custom-select-menu');
+    const trigger = refs?.trigger || wrapper?.querySelector('.custom-select-trigger');
+    if (!select || !wrapper || !menu || !trigger) return;
+
+    menu.innerHTML = '';
+    Array.from(select.options).forEach(opt => {
+        const li = document.createElement('li');
+        li.className = 'custom-select-option';
+        li.setAttribute('role', 'option');
+        li.dataset.value = opt.value;
+        li.textContent = opt.textContent;
+
+        if (opt.disabled) {
+            li.classList.add('disabled');
+            li.setAttribute('aria-disabled', 'true');
+        } else {
+            li.addEventListener('click', e => {
+                e.stopPropagation();
+                if (select.value !== opt.value) {
+                    select.value = opt.value;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                sincronizarSelectPersonalizado(select);
+                cerrarTodosSelectsPersonalizados();
+            });
+        }
+        menu.appendChild(li);
+    });
+    sincronizarSelectPersonalizado(select);
+}
+
+// Reemplaza visualmente un <select> por un desplegable con esquinas redondeadas manteniendo el <select> sincronizado
+function iniciarSelectPersonalizado(selectTarget, opciones = {}) {
+    const select = resolverElementoSelect(selectTarget);
+    if (!select || select.dataset.customInit === 'true') return;
+    select.dataset.customInit = 'true';
+
+    const usarPortal = Boolean(opciones.portal);
+    const wrapper = document.createElement('div');
+    wrapper.className = `custom-select-wrapper${opciones.wrapperClass ? ' ' + opciones.wrapperClass : ''}`;
+    select.parentNode.insertBefore(wrapper, select);
+    wrapper.appendChild(select);
+    select.classList.add('custom-select-native');
+    select.tabIndex = -1;
+    select.setAttribute('aria-hidden', 'true');
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'custom-select-trigger';
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.innerHTML = '<span class="custom-select-label"></span><i class="bi bi-chevron-down custom-select-arrow"></i>';
+
+    const menu = document.createElement('ul');
+    menu.className = `custom-select-menu${usarPortal ? ' custom-select-menu-portal' : ''}`;
+    menu.setAttribute('role', 'listbox');
+    if (usarPortal && opciones.portalOwner) {
+        menu.dataset.portalOwner = opciones.portalOwner;
+    }
+
+    select._customRefs = { wrapper, trigger, menu, portal: usarPortal };
+    wrapper.appendChild(trigger);
+    if (usarPortal) {
+        document.body.appendChild(menu);
+    } else {
+        wrapper.appendChild(menu);
+    }
+    reconstruirOpcionesSelectPersonalizado(select);
+
+    trigger.addEventListener('click', e => {
+        e.stopPropagation();
+        const abierto = wrapper.classList.contains('open');
+        cerrarTodosSelectsPersonalizados();
+        if (!abierto) {
+            wrapper.classList.add('open');
+            trigger.setAttribute('aria-expanded', 'true');
+            if (usarPortal) {
+                posicionarMenuPortal(trigger, menu);
+            }
+        }
+    });
+
+    trigger.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            cerrarTodosSelectsPersonalizados();
+        } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            const delta = e.key === 'ArrowDown' ? 1 : -1;
+            const nextIdx = Math.max(0, Math.min(select.options.length - 1, select.selectedIndex + delta));
+            if (nextIdx !== select.selectedIndex) {
+                select.selectedIndex = nextIdx;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                sincronizarSelectPersonalizado(select);
+            }
+        }
+    });
+
+    select.addEventListener('change', () => sincronizarSelectPersonalizado(select));
+
+    if (!document.body.dataset.customSelectListeners) {
+        document.body.dataset.customSelectListeners = 'true';
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.custom-select-wrapper') && !e.target.closest('.custom-select-menu')) {
+                cerrarTodosSelectsPersonalizados();
+            }
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                cerrarTodosSelectsPersonalizados();
+            }
+        });
+        window.addEventListener('resize', cerrarTodosSelectsPersonalizados);
+        document.addEventListener('scroll', e => {
+            if (!e.target?.closest?.('.custom-select-menu')) {
+                cerrarTodosSelectsPersonalizados();
+            }
+        }, true);
+    }
+}
+

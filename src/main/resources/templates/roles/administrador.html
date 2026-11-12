@@ -427,17 +427,17 @@
                                 <input type="text" id="servCategoria" class="form-control" placeholder="Ej: Lubricación" maxlength="50">
                             </div>
                             <div class="col-sm-6">
-                                <label class="form-label small fw-semibold">Precio base (S/) <span class="text-danger">*</span></label>
+                                <label class="form-label small fw-semibold">Precio (S/) <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text">S/</span>
                                     <input type="number" id="servPrecio" class="form-control" placeholder="0.00" min="0.1" step="0.5">
                                 </div>
                             </div>
                             <div class="col-sm-6">
-                                <label class="form-label small fw-semibold">Duración (min)</label>
+                                <label class="form-label small fw-semibold">Duración (horas)</label>
                                 <div class="input-group">
-                                    <input type="number" id="servDuracion" class="form-control" placeholder="60" min="5" step="5">
-                                    <span class="input-group-text">min</span>
+                                    <input type="number" id="servDuracion" class="form-control" placeholder="1" min="1" step="1">
+                                    <span class="input-group-text">hrs</span>
                                 </div>
                             </div>
                             <!-- servEstado: Controla si el servicio aparece en el catálogo público de servicios.html; solo los servicios con estado "Activo" son devueltos por GET /api/servicios/activos consumido por servicios.js -->
@@ -605,7 +605,7 @@
     <!-- global.js: Define obtenerSesion(), guardarSesion(), cerrarSesion(), actualizarNavbar(), abrirModal(), limpiarBackdropsSobrantes() y otras utilidades compartidas entre todos los roles; debe cargarse antes de administrador.js -->
     <script th:src="@{/js/global.js}"></script>
     <!-- administrador.js: Lógica principal del panel; valida el rol "administrador" en sessionStorage al cargar, realiza todas las llamadas a la API REST (/api/categorias, /api/productos, /api/servicios, /api/citas, /api/usuarios, /api/compras) y gestiona el estado de la SPA -->
-    <script th:src="@{/js/roles/administrador.js(v='3.2')}"></script>
+    <script th:src="@{/js/roles/administrador.js(v='3.3')}"></script>
     <!-- Activa la sección correspondiente según la URL solicitada al servidor -->
     <script th:inline="javascript">
         const seccionActiva = null;

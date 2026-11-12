@@ -963,6 +963,21 @@ body {
     flex-direction: column;
 }
 
+/* Resaltador de categoría de servicio en la card de administración:
+   Mismo fondo gris (#e2e8f0) y mismo color de letra (#1e293b) que .section-subtitle */
+.service-category-badge {
+    background: #e2e8f0;
+    color: #1e293b;
+    font-size: 0.74rem;
+    font-weight: 500;
+    padding: 0.22em 0.85em;
+    border-radius: 50px;
+    letter-spacing: 0.2px;
+    display: inline-block;
+    margin-top: 8px;
+    line-height: 1.35;
+}
+
 /* Grid de servicios: Asegura que cada card ocupe altura mínima */
 #gridServicios .service-admin-card {
     min-height: 100%;
@@ -1019,17 +1034,19 @@ body {
     opacity: 0.85;
 }
 
-/* Icono del servicio: Caja cuadrada con color de acento */
+/* Icono del servicio: Caja cuadrada ampliada con color de acento */
 .service-icon {
-    width: 44px;
-    height: 44px;
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
     background: var(--color-azul-claro);
     color: var(--color-azul-principal);
-    border-radius: 10px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
+    font-size: 1.45rem;
+    flex-shrink: 0;
 }
 
 /* Botones genéricos: Tamaño, padding y estilo base para acciones */
@@ -1375,7 +1392,7 @@ textarea.form-control {
     top: calc(100% + 2px);
     left: 0;
     width: 100%;
-    max-height: 330px;
+    max-height: 260px;
     overflow-y: auto;
     background-color: var(--color-blanco);
     border: 1px solid var(--color-celeste);
@@ -1385,6 +1402,15 @@ textarea.form-control {
     list-style: none;
     z-index: 1050;
     box-shadow: none;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+.custom-select-menu::-webkit-scrollbar,
+.custom-select-menu-portal::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 
 .custom-select-wrapper.open .custom-select-menu,
@@ -1397,6 +1423,17 @@ textarea.form-control {
     top: 0;
     left: 0;
     z-index: 1065;
+    background-color: var(--color-blanco);
+    border: 1px solid var(--color-celeste);
+    border-radius: 8px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    max-height: 260px;
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
 }
 
 .modal-compras-select {

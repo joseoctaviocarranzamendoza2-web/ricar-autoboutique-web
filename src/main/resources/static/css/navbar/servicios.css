@@ -158,11 +158,11 @@
     transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
 }
 
-/* Elevación pronunciada en hover */
+/* Elevación pronunciada en hover: Borde celeste idéntico a las cards de administrador */
 .card-serv:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 14px 36px rgba(21, 101, 192, 0.12);
-    border-color: var(--celeste);
+    transform: translateY(-4px);
+    box-shadow: 0 0 0 0.5px var(--celeste) !important;
+    border-color: var(--celeste) !important;
 }
 
 /* Cabecera con degradado o imagen de fondo (proporción 1:1, misma distancia vertical que horizontal) */
@@ -204,31 +204,32 @@
     width: 100%;
 }
 
-/* Contenedor icono con fondo sutil translúcido */
+/* Contenedor icono con fondo oscuro sólido y borde celeste para máxima visibilidad */
 .card-serv-icono {
-    width: 52px;
-    height: 52px;
-    background: rgba(10, 25, 47, 0.55);
-    backdrop-filter: blur(6px);
-    border: 1px solid rgba(86, 174, 232, 0.4);
+    width: 48px;
+    height: 48px;
+    background: #07172c;
+    border: 1.5px solid var(--celeste);
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
-    color: var(--celeste);
+    font-size: 1.4rem;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
 }
 
-/* Etiqueta precio con fondo tenue y legible sobre fotos */
+/* Etiqueta precio con fondo oscuro sólido y borde celeste nítido sobre cualquier foto */
 .card-serv-precio {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 800;
-    color: #fff;
-    background: rgba(10, 25, 47, 0.65);
-    backdrop-filter: blur(6px);
-    border: 1px solid rgba(86, 174, 232, 0.45);
-    padding: 0.4em 1em;
+    color: #ffffff;
+    background: #07172c;
+    border: 1.5px solid var(--celeste);
+    padding: 0.45em 1.15em;
     border-radius: 50px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+    letter-spacing: 0.3px;
 }
 
 /* Cuerpo principal con padding */
@@ -292,33 +293,75 @@
     background: #fafbfc;
 }
 
-/* Etiqueta de duración con estilo discreto */
-.badge-duracion {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #6c7d8e;
-    background: #f0f4f8;
-    border: 1px solid #e2e8f0;
-    padding: 0.3em 0.8em;
-    border-radius: 50px;
-}
-
-/* Botón de acción para servicio */
-.btn-serv {
-    background-color: var(--azul-medio);
-    color: #fff;
+/* Etiqueta de tipo de servicio con fondo celeste suave sin bordes */
+.badge-serv-categoria {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(86, 174, 232, 0.16);
+    color: var(--azul-oscuro);
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 4px 11px;
+    border-radius: 6px;
     border: none;
-    border-radius: 8px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    padding: 0.4rem 1rem;
-    transition: background-color 0.2s, transform 0.2s;
+    letter-spacing: 0.2px;
 }
 
-/* Color de hover y micro-movimiento */
-.btn-serv:hover {
-    background-color: var(--celeste);
-    color: #fff;
+.badge-serv-categoria i {
+    color: var(--azul-oscuro);
+    font-size: 0.82rem;
+}
+
+/* Etiqueta de duración con tipografía en negrita, más grande y colores más oscuros */
+.badge-duracion {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: var(--azul-oscuro, #0a3d6b);
+    background: #e8f2fa;
+    border: 1.5px solid #c8e0f4;
+    padding: 0.35rem 0.85rem;
+    border-radius: 50px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    letter-spacing: 0.2px;
+}
+
+.badge-duracion i {
+    font-size: 0.95rem;
+    color: var(--azul-oscuro, #0a3d6b);
+}
+
+/* Botón de agendar: Reposo celeste de marca con texto blanco, Hover/Click azul oscuro del sidebar */
+.btn-serv,
+.btn-agendar-serv {
+    background-color: var(--celeste) !important;
+    border: 1.5px solid var(--celeste) !important;
+    color: #ffffff !important;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 0.45rem 1.15rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    box-shadow: none !important;
+    outline: none !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-serv:hover,
+.btn-serv:focus,
+.btn-serv:active,
+.btn-agendar-serv:hover,
+.btn-agendar-serv:focus,
+.btn-agendar-serv:active {
+    background-color: var(--azul-oscuro) !important;
+    border-color: var(--azul-oscuro) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    outline: none !important;
     transform: translateY(-1px);
 }
 
@@ -686,3 +729,222 @@
         min-width: 16px;
     }
 }
+
+/* ========================================================
+   MODAL AGENDAR CITA (#modalCita) - REDISEÑO DE ESTILOS
+   ======================================================== */
+#modalCita .modal-content {
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+/* Header con fondo azul oscuro sólido del sidebar (sin degradado) */
+#modalCita .modal-cita-header {
+    background: var(--azul-oscuro) !important;
+    background-color: var(--azul-oscuro) !important;
+    background-image: none !important;
+    color: #ffffff !important;
+    padding: 1.15rem 1.5rem;
+    border-bottom: none;
+}
+
+/* Icono de agenda alineado a la izquierda entre el título y el subtítulo */
+.modal-cita-header-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: #ffffff;
+    color: var(--azul-oscuro);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+}
+
+.modal-cita-barra-celeste {
+    color: var(--celeste);
+    font-weight: 800;
+    margin-right: 0.4rem;
+}
+
+.modal-cita-subtitulo {
+    font-size: 0.86rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin-top: 2px;
+}
+
+/* Separación uniforme de los bloques de datos englobados */
+.modal-cita-seccion {
+    margin-top: 1.65rem;
+}
+
+.modal-cita-seccion:first-child {
+    margin-top: 0;
+}
+
+.modal-cita-seccion-header {
+    margin-bottom: 0.9rem;
+}
+
+/* Títulos de sección con el color azul del sidebar */
+.modal-cita-seccion-titulo {
+    color: var(--azul-oscuro) !important;
+    font-weight: 700;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.45rem;
+}
+
+.modal-cita-seccion-titulo i {
+    color: var(--azul-oscuro) !important;
+    font-size: 1.1rem;
+}
+
+.modal-cita-seccion-linea {
+    height: 1.5px;
+    background-color: #e2e8f0;
+    width: 100%;
+}
+
+/* Form labels ordenados y limpios */
+#modalCita .form-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.35rem;
+}
+
+/* Campos de formulario e inputs */
+#modalCita .form-control,
+#modalCita .form-select,
+#modalCita .custom-select-trigger {
+    height: 40px;
+    border: 1.5px solid #dce6f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: var(--oscuro, #1a2332);
+    background-color: #ffffff;
+    transition: border-color 0.2s ease;
+}
+
+#modalCita textarea.form-control {
+    height: auto;
+}
+
+#modalCita .input-group-text {
+    background-color: #f8fafc;
+    border: 1.5px solid #dce6f0;
+    border-right: none;
+    color: #64748b;
+    border-radius: 8px 0 0 8px;
+    transition: border-color 0.2s ease;
+}
+
+#modalCita .input-group .form-control {
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+}
+
+/* Borde celeste al dar click (focus) a todos los campos */
+#modalCita .form-control:focus,
+#modalCita .form-select:focus,
+#modalCita .custom-select-trigger:focus,
+#modalCita .custom-select-wrapper.open .custom-select-trigger {
+    border-color: var(--celeste) !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+#modalCita .input-group:focus-within .input-group-text,
+#modalCita .input-group:focus-within .form-control {
+    border-color: var(--celeste) !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Footer del modal y botones de acción */
+#modalCita .modal-footer {
+    padding-top: 1.25rem;
+    padding-bottom: 1.5rem;
+}
+
+/* Botón Confirmar cita: Reposo celeste de marca, Hover/Click azul oscuro del sidebar */
+.btn-cita-confirmar {
+    background-color: var(--celeste) !important;
+    border: 1.5px solid var(--celeste) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 0.92rem !important;
+    border-radius: 9px !important;
+    height: 42px !important;
+    padding: 0 1.5rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease !important;
+}
+
+.btn-cita-confirmar:hover,
+.btn-cita-confirmar:focus,
+.btn-cita-confirmar:active,
+.btn-cita-confirmar.active {
+    background-color: var(--azul-oscuro) !important;
+    border-color: var(--azul-oscuro) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Botón Cancelar: A la derecha de Confirmar cita con estilo neutral */
+.btn-cita-cancelar {
+    background-color: #ffffff !important;
+    border: 1.5px solid #d1d5db !important;
+    color: #374151 !important;
+    font-weight: 600 !important;
+    font-size: 0.92rem !important;
+    border-radius: 9px !important;
+    height: 42px !important;
+    padding: 0 1.25rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
+}
+
+.btn-cita-cancelar:hover,
+.btn-cita-cancelar:focus,
+.btn-cita-cancelar:active {
+    background-color: #4a5568 !important;
+    border-color: #4a5568 !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Oculta la barra de scroll en las opciones del selector de marca y horarios manteniendo el scroll con la rueda del ratón */
+#modalCita .custom-select-menu,
+.custom-select-menu-portal[data-portal-owner="modalCita"],
+.custom-select-menu,
+.custom-select-menu-portal {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+#modalCita .custom-select-menu::-webkit-scrollbar,
+.custom-select-menu-portal[data-portal-owner="modalCita"]::-webkit-scrollbar,
+.custom-select-menu::-webkit-scrollbar,
+.custom-select-menu-portal::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+

@@ -41,11 +41,27 @@ public class Servicio {
     @Column(nullable = false)
     private Double precioBase;
 
-    // Duración estimada del servicio en minutos
+    // Duración estimada del servicio en horas (o minutos en registros heredados)
     @NotNull(message = "La duración no puede estar vacía")
-    @Min(value = 1, message = "Mínimo 1 minuto")
+    @Min(value = 1, message = "La duración debe ser al menos de 1 hora")
     @Column(nullable = false)
     private Integer duracionMinutos;
+
+    // Obtiene la duración en horas (calcula si el registro histórico estaba en minutos >= 15)
+    public Integer getDuracionHoras() {
+        if (duracionMinutos == null) return 1;
+        if (duracionMinutos >= 15) {
+            return Math.max(1, Math.round((float) duracionMinutos / 60.0f));
+        }
+        return Math.max(1, duracionMinutos);
+    }
+
+    // Permite asignar la duración en horas directamente
+    public void setDuracionHoras(Integer horas) {
+        if (horas != null && horas >= 1) {
+            this.duracionMinutos = horas;
+        }
+    }
 
     // Descripción opcional del servicio
     @Size(max = 300, message = "Máximo 300 caracteres")

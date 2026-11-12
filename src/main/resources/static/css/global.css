@@ -768,3 +768,162 @@ body {
 .modal-body .form-check-input.is-invalid~.form-check-label {
     color: #dc3545;
 }
+
+/* ========================================================
+   COMPONENTE DESPLEGABLE PERSONALIZADO (CUSTOM SELECT)
+   Esquinas redondeadas al inicio y final, animación de flecha
+   y sincronización con elementos <select> nativos
+   ======================================================== */
+.custom-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.custom-select-native {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.custom-select-trigger {
+    width: 100%;
+    height: 38px;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: var(--oscuro, #1a2332);
+    background-color: var(--blanco, #ffffff);
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.2s ease;
+}
+
+.custom-select-trigger:focus,
+.custom-select-wrapper.open .custom-select-trigger {
+    border-color: var(--celeste) !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.custom-select-arrow {
+    font-size: 0.78rem;
+    color: #64748b;
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+}
+
+.custom-select-wrapper.open .custom-select-arrow {
+    transform: rotate(180deg);
+}
+
+.custom-select-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    width: 100%;
+    max-height: 260px;
+    overflow-y: auto;
+    background-color: var(--blanco, #ffffff);
+    border: 1px solid var(--celeste);
+    border-radius: 8px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    z-index: 1050;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+.custom-select-menu::-webkit-scrollbar,
+.custom-select-menu-portal::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+.custom-select-wrapper.open .custom-select-menu,
+.custom-select-menu-portal.open {
+    display: block;
+}
+
+.custom-select-menu-portal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1065;
+    background-color: var(--blanco, #ffffff);
+    border: 1px solid var(--celeste);
+    border-radius: 8px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    max-height: 260px;
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+.custom-select-option {
+    padding: 8px 12px;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--oscuro, #1a2332);
+    background-color: var(--blanco, #ffffff);
+    cursor: pointer;
+    border-radius: 0;
+    user-select: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.custom-select-option:first-child {
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+}
+
+.custom-select-option:last-child {
+    border-bottom-left-radius: 7px;
+    border-bottom-right-radius: 7px;
+}
+
+.custom-select-menu:not(:hover) .custom-select-option.selected,
+.custom-select-menu-portal:not(:hover) .custom-select-option.selected,
+.custom-select-option:hover,
+.custom-select-option:active {
+    background-color: var(--azul-oscuro, #0a3d6b) !important;
+    color: #ffffff !important;
+}
+
+.custom-select-menu:hover .custom-select-option.selected:not(:hover),
+.custom-select-menu-portal:hover .custom-select-option.selected:not(:hover) {
+    background-color: var(--blanco, #ffffff) !important;
+    color: var(--oscuro, #1a2332) !important;
+}
+
+.custom-select-option.disabled {
+    opacity: 0.55;
+    cursor: not-allowed !important;
+    background-color: #f8fafc !important;
+    color: #94a3b8 !important;
+    pointer-events: none;
+}
+
+.custom-select-wrapper.is-invalid .custom-select-trigger {
+    border-color: #dc3545 !important;
+}
+
+.custom-select-wrapper.is-invalid ~ .invalid-feedback {
+    display: block !important;
+}
+

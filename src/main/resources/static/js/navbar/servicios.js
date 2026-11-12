@@ -1,6 +1,78 @@
 // Id del servicio seleccionado actualmente (usado al agendar)
 let servicioActualId = null;
 let servicioActualNombre = '';
+let servicioActualDuracionHoras = 1;
+
+// Obtiene la duración en horas de un servicio (maneja registros en horas o heredados en minutos)
+function obtenerHorasServicio(s) {
+    if (!s) return 1;
+    const val = typeof s === 'object' ? Number(s.duracionHoras ?? s.duracionMinutos) : Number(s);
+    if (isNaN(val) || val < 1) return 1;
+    if (val >= 15) {
+        return Math.max(1, Math.round(val / 60));
+    }
+    return Math.max(1, Math.floor(val));
+}
+
+// Formatea la duración para mostrar en las tarjetas (ej: "1 hr" o "2 hrs")
+function formatearDuracionServicio(s) {
+    const horas = obtenerHorasServicio(s);
+    return horas === 1 ? '1 hr' : `${horas} hrs`;
+}
+
+// Genera los rangos de horario según la duración en horas del servicio
+function generarRangosHorarios(duracionHoras) {
+    const dur = Math.max(1, Math.floor(Number(duracionHoras) || 1));
+    const pad = n => String(n).padStart(2, '0');
+    const formatearRango = (hInicio, hFin) => `${pad(hInicio)}:00 – ${pad(hFin)}:00`;
+
+    if (dur >= 8) {
+        return ['08:00 – 18:00'];
+    }
+
+    const turnos = [
+        { inicio: 8, fin: 12 },  // Mañana: 08:00 a 12:00 (4 hrs)
+        { inicio: 14, fin: 18 }  // Tarde: 14:00 a 18:00 (4 hrs)
+    ];
+
+    const rangos = [];
+    turnos.forEach(t => {
+        const duracionTurno = t.fin - t.inicio;
+        if (dur >= duracionTurno) {
+            rangos.push(formatearRango(t.inicio, t.fin));
+        } else {
+            for (let h = t.inicio; h + dur <= t.fin; h += dur) {
+                rangos.push(formatearRango(h, h + dur));
+            }
+            if (dur === 3 && !rangos.includes(formatearRango(t.fin - dur, t.fin))) {
+                rangos.push(formatearRango(t.fin - dur, t.fin));
+            }
+        }
+    });
+
+    return rangos.length > 0 ? rangos : ['08:00 – 12:00', '14:00 – 18:00'];
+}
+
+// Actualiza las opciones del selector de hora preferida según la duración del servicio
+function actualizarOpcionesHorariosSegunServicio(duracionHoras) {
+    const selectHora = document.getElementById('citaHora');
+    if (!selectHora) return;
+    const dur = obtenerHorasServicio(duracionHoras);
+    const rangos = generarRangosHorarios(dur);
+
+    const valorPrevio = selectHora.value;
+    selectHora.innerHTML = '<option value="">Seleccionar horario...</option>' +
+        rangos.map(r => `<option value="${r}">${r}</option>`).join('');
+
+    if (rangos.includes(valorPrevio)) {
+        selectHora.value = valorPrevio;
+    } else {
+        selectHora.value = '';
+    }
+    if (typeof reconstruirOpcionesSelectPersonalizado === 'function') {
+        reconstruirOpcionesSelectPersonalizado(selectHora);
+    }
+}
 
 // Mapa de palabras clave a iconos Bootstrap para mostrar en cada tarjeta de servicio
 const ICONOS_SERV = { 'aceite': 'bi-droplet-fill', 'lubric': 'bi-droplet-fill', 'eléctric': 'bi-battery-charging', 'electr': 'bi-battery-charging', 'manten': 'bi-gear-fill', 'diagnós': 'bi-speedometer2', 'diagnos': 'bi-speedometer2', 'alineac': 'bi-arrows-angle-expand', 'freno': 'bi-shield-check', 'suspens': 'bi-shield-check', 'aire': 'bi-wind', 'combustible': 'bi-fuel-pump-fill', 'inyect': 'bi-fuel-pump-fill', 'refriger': 'bi-thermometer-half', 'motor': 'bi-wrench-adjustable', 'revisión': 'bi-car-front-fill', 'revision': 'bi-car-front-fill', 'tecnica': 'bi-car-front-fill', 'técnica': 'bi-car-front-fill', 'transmis': 'bi-arrow-repeat', 'lavado': 'bi-droplet', 'pintura': 'bi-brush-fill' };
@@ -87,8 +159,9 @@ async function cargarServiciosDesdeDB() {
 function renderizarServicios(grid, servicios) {
     const cards = servicios.map(s => {
         const icono = iconoPorNombre(s.nombre);
-        const duracion = s.duracionMinutos ? `${s.duracionMinutos} min` : 'Variable';
-        const precio = `Desde S/ ${s.precioBase.toFixed(2)}`;
+        const horasServicio = obtenerHorasServicio(s);
+        const duracion = formatearDuracionServicio(s);
+        const precio = `S/ ${s.precioBase.toFixed(2)}`;
         const desc = s.descripcion || 'Servicio profesional con garantía de calidad.';
         const bgStyle = s.imagen ? `style="background-image: url('${s.imagen}');"` : '';
         const hasImgClass = s.imagen ? 'has-image' : '';
@@ -103,11 +176,11 @@ function renderizarServicios(grid, servicios) {
                 </div>
                 <div class="card-serv-body">
                     <h5>${s.nombre}</h5>
-                    <p>${desc}</p>${s.categoria ? `<p class="text-muted small mb-0"><i class="bi bi-tag me-1"></i>${s.categoria}</p>` : ''}
+                    <p>${desc}</p>${s.categoria ? `<div class="mt-2"><span class="badge-serv-categoria"><i class="bi bi-tag-fill me-1"></i>${s.categoria}</span></div>` : ''}
                 </div>
                 <div class="card-serv-footer">
                     <span class="badge-duracion"><i class="bi bi-clock me-1"></i>${duracion}</span>
-                    <button class="btn btn-sm btn-serv btn-agendar-serv" data-servicio-id="${s.id}" data-servicio="${s.nombre}"><i class="bi bi-calendar-check me-1"></i>Agendar</button>
+                    <button class="btn btn-sm btn-serv btn-agendar-serv" data-servicio-id="${s.id}" data-servicio="${s.nombre}" data-duracion-horas="${horasServicio}"><i class="bi bi-calendar-check me-1"></i>Agendar</button>
                 </div>
             </div>
         </div>`;
@@ -162,8 +235,12 @@ function asociarEventosBotones() {
             }
             servicioActualId = parseInt(this.dataset.servicioId) || null;
             servicioActualNombre = this.dataset.servicio || '—';
+            servicioActualDuracionHoras = parseInt(this.dataset.duracionHoras) || 1;
             const spanNombre = document.getElementById('citaNombreServicio');
-            if (spanNombre) spanNombre.textContent = servicioActualNombre;
+            if (spanNombre) {
+                spanNombre.textContent = `${servicioActualNombre} (${formatearDuracionServicio(servicioActualDuracionHoras)})`;
+            }
+            actualizarOpcionesHorariosSegunServicio(servicioActualDuracionHoras);
             precargarDatosCita(sesion);
             abrirModal('modalCita');
         });
@@ -233,6 +310,9 @@ function restaurarOpcionesHora() {
         opt.disabled = false;
         opt.textContent = opt.value;
     });
+    if (typeof reconstruirOpcionesSelectPersonalizado === 'function') {
+        reconstruirOpcionesSelectPersonalizado(selectHora);
+    }
 }
 
 // Consulta la ocupación real por horario para la fecha elegida y bloquea horarios con 3/3 vehículos
@@ -272,6 +352,10 @@ async function actualizarHorariosDisponibles(fecha) {
             }
         });
 
+        if (typeof reconstruirOpcionesSelectPersonalizado === 'function') {
+            reconstruirOpcionesSelectPersonalizado(selectHora);
+        }
+
         const citaExito = document.getElementById('citaExito');
         if (!hayDisponibles && citaExito) {
             const icono = document.getElementById('citaExitoIcon');
@@ -299,8 +383,23 @@ function iniciarModalCita() {
         if (campoFecha) campoFecha.min = min;
     };
     actualizarMinFecha();
+
+    if (typeof iniciarSelectPersonalizado === 'function') {
+        iniciarSelectPersonalizado('citaHora', { portal: true, portalOwner: 'modalCita' });
+        iniciarSelectPersonalizado('citaMarca', { portal: true, portalOwner: 'modalCita' });
+    }
+
+    ['citaHora', 'citaMarca'].forEach(id => {
+        document.getElementById(id)?.addEventListener('change', function () {
+            this.classList.remove('is-invalid');
+            this._customRefs?.trigger?.classList.remove('is-invalid');
+            this._customRefs?.wrapper?.classList.remove('is-invalid');
+        });
+    });
+
     document.getElementById('modalCita')?.addEventListener('show.bs.modal', () => {
         actualizarMinFecha();
+        actualizarOpcionesHorariosSegunServicio(servicioActualDuracionHoras);
         const fechaActual = document.getElementById('citaFecha')?.value;
         if (fechaActual) actualizarHorariosDisponibles(fechaActual);
         else restaurarOpcionesHora();
@@ -329,8 +428,16 @@ function iniciarModalCita() {
             if (el) {
                 el.value = '';
                 el.classList.remove('is-valid', 'is-invalid');
+                el._customRefs?.trigger?.classList.remove('is-valid', 'is-invalid');
+                el._customRefs?.wrapper?.classList.remove('is-valid', 'is-invalid');
+                if (typeof sincronizarSelectPersonalizado === 'function') {
+                    sincronizarSelectPersonalizado(el);
+                }
             }
         });
+        if (typeof cerrarTodosSelectsPersonalizados === 'function') {
+            cerrarTodosSelectsPersonalizados();
+        }
         restaurarOpcionesHora();
         document.getElementById('citaDescContador').textContent = '0 / 400';
         document.getElementById('citaExito')?.classList.add('d-none');
@@ -375,12 +482,30 @@ function iniciarModalCita() {
         requeridos.forEach(({ id, test }) => {
             const el = document.getElementById(id);
             if (!el) return;
+            const trigger = el._customRefs?.trigger;
+            const wrapper = el._customRefs?.wrapper;
             if (test(el.value)) {
                 el.classList.remove('is-invalid');
                 el.classList.add('is-valid');
+                if (trigger) {
+                    trigger.classList.remove('is-invalid');
+                    trigger.classList.add('is-valid');
+                }
+                if (wrapper) {
+                    wrapper.classList.remove('is-invalid');
+                    wrapper.classList.add('is-valid');
+                }
             } else {
                 el.classList.add('is-invalid');
                 el.classList.remove('is-valid');
+                if (trigger) {
+                    trigger.classList.add('is-invalid');
+                    trigger.classList.remove('is-valid');
+                }
+                if (wrapper) {
+                    wrapper.classList.add('is-invalid');
+                    wrapper.classList.remove('is-valid');
+                }
                 valido = false;
             }
         });
@@ -406,7 +531,10 @@ function iniciarModalCita() {
             const disp = await dispResp.json();
             if (!disp.disponible) {
                 document.getElementById('citaFecha').classList.add('is-invalid');
-                document.getElementById('citaHora').classList.add('is-invalid');
+                const horaEl = document.getElementById('citaHora');
+                horaEl?.classList.add('is-invalid');
+                horaEl?._customRefs?.trigger?.classList.add('is-invalid');
+                horaEl?._customRefs?.wrapper?.classList.add('is-invalid');
                 await actualizarHorariosDisponibles(fecha);
                 mostrarResultado('Este horario ya alcanzó el máximo de 3 vehículos permitidos. Elige otro horario.', 'warning');
                 return;
@@ -421,7 +549,10 @@ function iniciarModalCita() {
             if (resp.status === 409) {
                 const errData = await resp.json().catch(() => ({}));
                 document.getElementById('citaFecha').classList.add('is-invalid');
-                document.getElementById('citaHora').classList.add('is-invalid');
+                const horaEl = document.getElementById('citaHora');
+                horaEl?.classList.add('is-invalid');
+                horaEl?._customRefs?.trigger?.classList.add('is-invalid');
+                horaEl?._customRefs?.wrapper?.classList.add('is-invalid');
                 await actualizarHorariosDisponibles(fecha);
                 mostrarResultado(errData.error || 'Este horario ya alcanzó el máximo de 3 vehículos permitidos. Elige otro horario.', 'warning');
                 return;

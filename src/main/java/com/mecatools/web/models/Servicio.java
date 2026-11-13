@@ -37,7 +37,7 @@ public class Servicio {
 
     // Precio base del servicio
     @NotNull(message = "El precio base no puede estar vacío")
-    @DecimalMin(value = "0.1", message = "El precio debe ser mayor a 0")
+    @DecimalMin(value = "0.0", message = "El precio base no puede ser negativo")
     @Column(nullable = false)
     private Double precioBase;
 

@@ -365,18 +365,37 @@
     transform: translateY(-1px);
 }
 
-/* Variante destacada con borde punteado */
+/* Variante destacada con borde punteado: Mismo grosor uniforme (1px) que las demás cards */
 .card-serv-custom {
-    border: 2px dashed var(--celeste);
+    border: 1px dashed var(--celeste) !important;
     background: #fff;
 }
 
-/* Cambia a borde sólido y sombra */
+/* Hover en card de personalizado: Mismo grosor de 1px sólido, borde celeste y sombra que las otras cards */
 .card-serv-custom:hover {
-    border-color: var(--azul-medio);
-    border-style: solid;
-    box-shadow: 0 14px 36px rgba(21, 101, 192, 0.15);
-    transform: translateY(-6px);
+    border-width: 1px !important;
+    border-style: solid !important;
+    border-color: var(--celeste) !important;
+    box-shadow: 0 0 0 0.5px var(--celeste) !important;
+    transform: translateY(-4px);
+}
+
+/* Etiqueta Personalizado con icono de estrellas: Mismos colores y fondo que el icono derecho */
+.badge-personalizado-tag {
+    background: rgba(86, 174, 232, 0.12);
+    border: 1px solid rgba(86, 174, 232, 0.3);
+    color: var(--celeste);
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 0.35rem 0.85rem;
+    border-radius: 50px;
+    display: inline-flex;
+    align-items: center;
+    letter-spacing: 0.2px;
+}
+
+.badge-personalizado-tag i {
+    color: var(--celeste);
 }
 
 /* Icono compacto para el servicio personalizado */
@@ -406,23 +425,35 @@
     text-justify: inter-word;
 }
 
-/* CTA grande con degradado */
+/* Botón Detallar mi solicitud: Fondo azul oscuro del sidebar, se aclara/blanquea ligeramente con opacidad en hover/clic sin cambiar de color */
 .btn-custom-serv {
-    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul-medio) 100%);
-    color: #fff;
-    border: none;
+    background-color: var(--azul-oscuro) !important;
+    background-image: none !important;
+    color: #fff !important;
+    border: 1.5px solid var(--azul-oscuro) !important;
     border-radius: 10px;
     font-size: 0.9rem;
     font-weight: 700;
     padding: 0.7rem 1rem;
-    transition: opacity 0.2s, transform 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    box-shadow: none !important;
+    outline: none !important;
+    transition: opacity 0.2s ease, transform 0.2s ease;
     margin-top: auto;
 }
 
-/* Reduce opacidad y mueve ligeramente */
-.btn-custom-serv:hover {
-    opacity: 0.9;
-    color: #fff;
+.btn-custom-serv:hover,
+.btn-custom-serv:focus,
+.btn-custom-serv:active {
+    background-color: var(--azul-oscuro) !important;
+    border-color: var(--azul-oscuro) !important;
+    color: #fff !important;
+    opacity: 0.84 !important;
+    box-shadow: none !important;
+    outline: none !important;
     transform: translateY(-2px);
 }
 
@@ -482,40 +513,46 @@
 
 /* Modal con bordes redondeados */
 .modal-custom-serv {
-    border-radius: 18px !important;
+    border-radius: 14px !important;
     overflow: hidden;
     border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
 }
 
-/* Header del modal con degradado */
+/* Header del modal con color azul oscuro sólido del sidebar */
 .modal-custom-header {
-    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--celeste) 100%);
-    padding: 2rem 1.5rem 1.8rem !important;
+    background: var(--azul-oscuro) !important;
+    background-color: var(--azul-oscuro) !important;
+    background-image: none !important;
+    color: #ffffff !important;
+    padding: 1.15rem 1.5rem !important;
     border-bottom: none !important;
-    flex-direction: column;
-    gap: 1rem;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
-/* Icono circular dentro del header del modal */
-.modal-custom-icon {
-    width: 58px;
-    height: 58px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 2px solid rgba(255, 255, 255, 0.4);
-    border-radius: 50%;
+/* Icono dentro del header del modal alineado a la izquierda del texto */
+.modal-custom-header-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: #ffffff;
+    color: var(--azul-oscuro);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.6rem;
-    color: #fff;
+    font-size: 1.35rem;
     flex-shrink: 0;
 }
 
 /* Título principal del modal en blanco */
 .modal-custom-header .modal-title {
     color: #fff !important;
-    font-size: 1.1rem;
-    font-weight: 800 !important;
+    font-size: 1.15rem;
+    font-weight: 700 !important;
+    margin-bottom: 0 !important;
 }
 
 /* Elimina pseudo del título en modal personalizado */
@@ -524,9 +561,10 @@
 }
 
 /* Subtítulo del modal en blanco semitransparente */
-.modal-custom-sub {
-    color: rgba(255, 255, 255, 0.75);
-    font-size: 0.85rem;
+.modal-custom-subtitulo {
+    font-size: 0.86rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin-top: 2px;
 }
 
 /* Barra de pasos dentro del modal */
@@ -541,52 +579,59 @@
     padding: 0.9rem 1.5rem;
 }
 
-/* Item de paso con opacidad por defecto */
+/* Item de paso con opacidad por defecto (inactivo) */
 .modal-paso {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     opacity: 0.45;
-    transition: opacity 0.2s;
+    transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
 /* Item de paso activo con opacidad plena */
 .modal-paso.activo {
-    opacity: 1;
+    opacity: 1 !important;
 }
 
-/* Círculo numerado para cada paso */
+/* Círculo numerado para cada paso (inactivo) */
 .modal-paso-num {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: #e2e8f0;
-    color: #6c7d8e;
+    color: #64748b;
+    border: 2px solid #cbd5e1;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.78rem;
+    font-size: 0.85rem;
     font-weight: 700;
+    transition: all 0.25s ease;
 }
 
-/* Cambia el color del círculo numerado */
+/* Cambia el color del círculo numerado cuando está activo */
 .modal-paso.activo .modal-paso-num {
-    background: var(--azul-medio);
-    color: #fff;
+    background: var(--celeste) !important;
+    border-color: var(--celeste) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(86, 174, 232, 0.45) !important;
+    transform: scale(1.05);
 }
 
-/* Label corto del paso */
+/* Label corto del paso (inactivo) */
 .modal-paso span {
-    font-size: 0.7rem;
+    font-size: 0.76rem;
     font-weight: 600;
-    color: #6c7d8e;
+    color: #64748b;
     white-space: nowrap;
+    transition: color 0.25s ease, font-weight 0.25s ease;
 }
 
-/* Color cuando está activo */
+/* Color del label cuando está activo */
 .modal-paso.activo span {
-    color: var(--azul-medio);
+    color: var(--azul-oscuro) !important;
+    font-weight: 700 !important;
 }
 
 /* Separador entre pasos */
@@ -595,8 +640,13 @@
     height: 2px;
     background: #e2e8f0;
     min-width: 30px;
-    margin: 0 6px;
-    margin-bottom: 14px;
+    margin: 0 10px 14px 10px;
+    transition: background 0.25s ease;
+}
+
+/* Separador activo */
+.modal-paso-linea.activa {
+    background: var(--celeste) !important;
 }
 
 /* Bloque de título dentro del modal */
@@ -682,36 +732,76 @@
     font-size: 0.95rem;
 }
 
-/* Fondo y separación superior */
+/* Footer del modal personalizado */
 .modal-custom-footer {
-    background: #f8fafd;
-    border-top: 1px solid #e2e8f0 !important;
-    padding: 1rem 1.5rem !important;
+    background: #ffffff !important;
+    border-top: none !important;
+    padding: 1.25rem 1.5rem 1.5rem !important;
 }
 
-/* Botón enviar con degradado */
+/* Botón Enviar solicitud: Reposo celeste de marca, Hover/Click azul oscuro del sidebar */
 .btn-custom-enviar {
-    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul-medio) 100%);
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    padding: 0.6rem 2rem;
-    transition: opacity 0.2s, transform 0.2s;
+    background-color: var(--celeste) !important;
+    border: 1.5px solid var(--celeste) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 0.92rem !important;
+    border-radius: 9px !important;
+    height: 42px !important;
+    padding: 0 1.5rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease !important;
 }
 
-/* Ligera opacidad y movimiento */
-.btn-custom-enviar:hover {
-    opacity: 0.9;
-    color: #fff;
-    transform: translateY(-1px);
+.btn-custom-enviar:hover,
+.btn-custom-enviar:focus,
+.btn-custom-enviar:active,
+.btn-custom-enviar.active {
+    background-color: var(--azul-oscuro) !important;
+    border-color: var(--azul-oscuro) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
 
-/* Estilo cuando el botón está deshabilitado */
 .btn-custom-enviar:disabled {
-    background: #10b981;
-    opacity: 1;
+    background-color: var(--celeste) !important;
+    border-color: var(--celeste) !important;
+    opacity: 0.7 !important;
+    color: #ffffff !important;
+    cursor: not-allowed !important;
+}
+
+/* Botón Cancelar: Pegado a la izquierda de Enviar solicitud con estilo neutral */
+.btn-custom-cancelar {
+    background-color: #ffffff !important;
+    border: 1.5px solid #d1d5db !important;
+    color: #374151 !important;
+    font-weight: 600 !important;
+    font-size: 0.92rem !important;
+    border-radius: 9px !important;
+    height: 42px !important;
+    padding: 0 1.25rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
+}
+
+.btn-custom-cancelar:hover,
+.btn-custom-cancelar:focus,
+.btn-custom-cancelar:active {
+    background-color: #4a5568 !important;
+    border-color: #4a5568 !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
 
 /* Responsive: Ajustes de la barra de pasos en móviles */
@@ -812,7 +902,9 @@
 }
 
 /* Form labels ordenados y limpios */
-#modalCita .form-label {
+#modalCita .form-label,
+#modalServicioPersonalizado .form-label,
+#modalServicioPersonalizado .modal-label {
     font-size: 0.8rem;
     font-weight: 600;
     color: #374151;
@@ -822,7 +914,10 @@
 /* Campos de formulario e inputs */
 #modalCita .form-control,
 #modalCita .form-select,
-#modalCita .custom-select-trigger {
+#modalCita .custom-select-trigger,
+#modalServicioPersonalizado .form-control,
+#modalServicioPersonalizado .form-select,
+#modalServicioPersonalizado .custom-select-trigger {
     height: 40px;
     border: 1.5px solid #dce6f0;
     border-radius: 8px;
@@ -832,11 +927,13 @@
     transition: border-color 0.2s ease;
 }
 
-#modalCita textarea.form-control {
+#modalCita textarea.form-control,
+#modalServicioPersonalizado textarea.form-control {
     height: auto;
 }
 
-#modalCita .input-group-text {
+#modalCita .input-group-text,
+#modalServicioPersonalizado .input-group-text {
     background-color: #f8fafc;
     border: 1.5px solid #dce6f0;
     border-right: none;
@@ -845,7 +942,8 @@
     transition: border-color 0.2s ease;
 }
 
-#modalCita .input-group .form-control {
+#modalCita .input-group .form-control,
+#modalServicioPersonalizado .input-group .form-control {
     border-left: none;
     border-radius: 0 8px 8px 0;
 }
@@ -854,14 +952,20 @@
 #modalCita .form-control:focus,
 #modalCita .form-select:focus,
 #modalCita .custom-select-trigger:focus,
-#modalCita .custom-select-wrapper.open .custom-select-trigger {
+#modalCita .custom-select-wrapper.open .custom-select-trigger,
+#modalServicioPersonalizado .form-control:focus,
+#modalServicioPersonalizado .form-select:focus,
+#modalServicioPersonalizado .custom-select-trigger:focus,
+#modalServicioPersonalizado .custom-select-wrapper.open .custom-select-trigger {
     border-color: var(--celeste) !important;
     box-shadow: none !important;
     outline: none !important;
 }
 
 #modalCita .input-group:focus-within .input-group-text,
-#modalCita .input-group:focus-within .form-control {
+#modalCita .input-group:focus-within .form-control,
+#modalServicioPersonalizado .input-group:focus-within .input-group-text,
+#modalServicioPersonalizado .input-group:focus-within .form-control {
     border-color: var(--celeste) !important;
     box-shadow: none !important;
     outline: none !important;

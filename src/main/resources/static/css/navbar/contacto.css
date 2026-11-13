@@ -187,29 +187,36 @@
     box-shadow: 0 0 0 3px rgba(86, 174, 232, 0.15);
 }
 
-/* Botón enviar: Gradiente de marca y estilo CTA */
+/* Botón enviar: Mismo color y diseño CSS que "Detallar mi solicitud" de servicios (azul oscuro sólido del sidebar, sin degradado, aclara/blanquea ligeramente con opacidad en hover/clic) */
 .btn-cont-enviar {
-    background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul-medio) 100%);
-    color: #fff;
-    border: none;
-    border-radius: 12px;
+    background-color: var(--azul-oscuro) !important;
+    background-image: none !important;
+    color: #fff !important;
+    border: 1.5px solid var(--azul-oscuro) !important;
+    border-radius: 10px;
     font-weight: 700;
     font-size: 0.95rem;
     padding: 0.75rem;
-    transition: opacity 0.2s, transform 0.2s;
+    transition: opacity 0.2s ease, transform 0.15s ease;
 }
 
-/* Hover enviar: Ligera opacidad y elevación */
-.btn-cont-enviar:hover {
-    opacity: 0.9;
-    color: #fff;
-    transform: translateY(-1px);
+/* Hover, focus y click: Fondo azul constante que se aclara/blanquea ligeramente con opacidad sin cambiar de color */
+.btn-cont-enviar:hover,
+.btn-cont-enviar:focus,
+.btn-cont-enviar:active {
+    background-color: var(--azul-oscuro) !important;
+    border-color: var(--azul-oscuro) !important;
+    color: #fff !important;
+    opacity: 0.84 !important;
+    box-shadow: none !important;
 }
 
-/* Estado disabled: Fondo alternativo y opacidad estándar */
+/* Estado disabled / enviado: Verde de éxito cuando el mensaje fue enviado */
 .btn-cont-enviar:disabled {
-    background: #10b981;
-    opacity: 1;
+    background-color: #10b981 !important;
+    border-color: #10b981 !important;
+    color: #fff !important;
+    opacity: 1 !important;
 }
 
 /* Icono social: Caja cuadrada centrada con transición */

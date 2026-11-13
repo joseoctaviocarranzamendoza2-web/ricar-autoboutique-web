@@ -53,8 +53,8 @@ public class Cita {
     private String vehiculo;
 
     // Notas opcionales de la cita
-    @Size(max = 400, message = "Máximo 400 caracteres")
-    @Column
+    @Size(max = 2000, message = "Máximo 2000 caracteres")
+    @Column(columnDefinition = "TEXT")
     private String notas;
 
     // Estado de la cita con valores permitidos

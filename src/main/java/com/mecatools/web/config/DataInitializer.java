@@ -1,8 +1,12 @@
 package com.mecatools.web.config;
 
+import com.mecatools.web.models.Cita;
 import com.mecatools.web.models.Rol;
+import com.mecatools.web.models.Servicio;
 import com.mecatools.web.models.Usuario;
+import com.mecatools.web.repositories.CitaRepository;
 import com.mecatools.web.repositories.RolRepository;
+import com.mecatools.web.repositories.ServicioRepository;
 import com.mecatools.web.repositories.UsuarioRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -15,10 +19,15 @@ public class DataInitializer implements CommandLineRunner {
 
     private final RolRepository rolRepository;
     private final UsuarioRepository usuarioRepository;
+    private final ServicioRepository servicioRepository;
+    private final CitaRepository citaRepository;
 
-    public DataInitializer(RolRepository rolRepository, UsuarioRepository usuarioRepository) {
+    public DataInitializer(RolRepository rolRepository, UsuarioRepository usuarioRepository,
+                           ServicioRepository servicioRepository, CitaRepository citaRepository) {
         this.rolRepository = rolRepository;
         this.usuarioRepository = usuarioRepository;
+        this.servicioRepository = servicioRepository;
+        this.citaRepository = citaRepository;
     }
 
     @Override
@@ -27,6 +36,47 @@ public class DataInitializer implements CommandLineRunner {
         Rol rolCliente = obtenerOCrearRol("cliente");
         Rol rolAdmin = obtenerOCrearRol("administrador");
         Rol rolGerente = obtenerOCrearRol("gerente");
+
+        // Garantiza la existencia del servicio "Personalizado" para solicitudes especiales
+        Servicio servPersonalizado = servicioRepository.findAll().stream()
+                .filter(s -> s.getNombre() != null && s.getNombre().toLowerCase().contains("personalizad"))
+                .findFirst()
+                .orElseGet(() -> {
+                    Servicio s = new Servicio();
+                    s.setNombre("Personalizado");
+                    s.setCategoria("Personalizado");
+                    s.setPrecioBase(0.0);
+                    s.setDuracionMinutos(1);
+                    s.setEstado("Activo");
+                    s.setDescripcion("Servicio a medida según cotización y diagnóstico personalizado.");
+                    s.setImagen("");
+                    return servicioRepository.save(s);
+                });
+
+        boolean actualizarPersonalizado = false;
+        if (!"Personalizado".equalsIgnoreCase(servPersonalizado.getNombre())) {
+            servPersonalizado.setNombre("Personalizado");
+            actualizarPersonalizado = true;
+        }
+        if (servPersonalizado.getPrecioBase() == null) {
+            servPersonalizado.setPrecioBase(0.0);
+            actualizarPersonalizado = true;
+        }
+        if (actualizarPersonalizado) {
+            servicioRepository.save(servPersonalizado);
+        }
+
+        // Corrige citas existentes generadas desde el modal personalizado para asociarlas al servicio "Personalizado"
+        List<Cita> citas = citaRepository.findAll();
+        for (Cita c : citas) {
+            String notas = c.getNotas() != null ? c.getNotas().toLowerCase() : "";
+            if (notas.contains("servicio personalizado") || notas.contains("solicitud de servicio personalizado")) {
+                if (c.getServicio() == null || !c.getServicio().getId().equals(servPersonalizado.getId())) {
+                    c.setServicio(servPersonalizado);
+                    citaRepository.save(c);
+                }
+            }
+        }
 
         // Sincroniza y correlaciona usuarios existentes con la tabla de unión
         // usuario_rol

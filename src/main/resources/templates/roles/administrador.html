@@ -588,6 +588,109 @@
             </div>
         </div>
     </div>
+    <!-- Modal para visualizar detalles adicionales de Solicitud de Servicio Personalizado -->
+    <div class="modal fade" id="modalDetallePersonalizado" tabindex="-1" aria-labelledby="tituloModalDetallePersonalizado" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content modal-custom-serv">
+                <div class="modal-header d-flex align-items-center justify-content-between px-4 py-3" style="background: var(--azul-oscuro); color: #fff;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="modal-detalle-icon">
+                            <i class="bi bi-sliders"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold text-white mb-0" id="tituloModalDetallePersonalizado">
+                                Solicitud Personalizada <span id="detCitaCodigo" class="text-white-50 ms-1">#S-000</span>
+                            </h5>
+                            <small class="text-white-50" id="detCitaCliente">—</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar" onclick="this.blur();"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- Resumen del Vehículo -->
+                    <div class="detalle-seccion-header mb-2 d-flex align-items-center gap-2">
+                        <i class="bi bi-car-front-fill fs-5" style="color: var(--celeste);"></i>
+                        <h6 class="fw-bold mb-0" style="color: var(--azul-oscuro);">Datos del Vehículo</h6>
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6">
+                            <div class="detalle-dato-card">
+                                <span class="detalle-dato-label"><i class="bi bi-truck me-1"></i>Tipo de Vehículo</span>
+                                <span class="detalle-dato-valor" id="detCitaTipoVehiculo">—</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="detalle-dato-card">
+                                <span class="detalle-dato-label"><i class="bi bi-speedometer me-1"></i>Kilometraje Aproximado</span>
+                                <span class="detalle-dato-valor" id="detCitaKm">—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Diagnóstico del Problema -->
+                    <div class="detalle-seccion-header mb-2 d-flex align-items-center gap-2">
+                        <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+                        <h6 class="fw-bold mb-0" style="color: var(--azul-oscuro);">Diagnóstico y Detalles del Problema</h6>
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <div class="detalle-dato-card">
+                                <span class="detalle-dato-label"><i class="bi bi-gear-wide-connected me-1"></i>Áreas o Sistemas Afectados</span>
+                                <div class="d-flex flex-wrap gap-2 mt-1" id="detCitaAreas">
+                                    <span class="badge bg-light text-dark border">No especificado</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="detalle-dato-card">
+                                <span class="detalle-dato-label"><i class="bi bi-clock-history me-1"></i>¿Cuándo ocurre el problema?</span>
+                                <span class="detalle-dato-valor" id="detCitaCuando">—</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="detalle-dato-card">
+                                <span class="detalle-dato-label"><i class="bi bi-lightning-charge me-1"></i>Nivel de Urgencia</span>
+                                <div class="mt-1" id="detCitaUrgencia">
+                                    <span class="badge bg-secondary">No especificado</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="detalle-dato-card">
+                                <span class="detalle-dato-label"><i class="bi bi-chat-left-text me-1"></i>Descripción del Caso (indicada por el cliente)</span>
+                                <div class="detalle-descripcion-box mt-1" id="detCitaDescripcion">
+                                    Sin descripción.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Medio de Contacto Preferido -->
+                    <div class="detalle-seccion-header mb-2 d-flex align-items-center gap-2">
+                        <i class="bi bi-telephone-inbound-fill fs-5" style="color: var(--celeste);"></i>
+                        <h6 class="fw-bold mb-0" style="color: var(--azul-oscuro);">Contacto con el Cliente</h6>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <div class="detalle-dato-card">
+                                <span class="detalle-dato-label"><i class="bi bi-chat-dots me-1"></i>Medio de Contacto Preferido</span>
+                                <div class="mt-1" id="detCitaContactoPref">—</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="detalle-dato-card">
+                                <span class="detalle-dato-label"><i class="bi bi-whatsapp me-1"></i>Teléfono de Contacto</span>
+                                <span class="detalle-dato-valor text-success fw-bold" id="detCitaTelefono">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 d-flex justify-content-end px-4 pb-4">
+                    <button type="button" class="btn btn-modal-cancelar px-4" data-bs-dismiss="modal" onclick="this.blur();">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Toast de notificación reutilizable: MostrarToast() en administrador.js cambia la clase entre text-bg-success y text-bg-danger según el tipo; se muestra 3 segundos tras cada operación CRUD exitosa o fallida -->
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
         <div id="toastExito" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">

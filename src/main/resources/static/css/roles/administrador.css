@@ -1124,6 +1124,125 @@ body {
     justify-content: center;
 }
 
+/* Botón outline celeste para ver detalles de solicitud personalizada */
+.btn-outline-celeste {
+    color: var(--color-celeste, #56aee8) !important;
+    border: 1px solid var(--color-celeste, #56aee8) !important;
+    background-color: transparent !important;
+    transition: all 0.18s ease !important;
+}
+
+.btn-outline-celeste:hover,
+.btn-outline-celeste:active,
+.btn-outline-celeste:focus {
+    background-color: var(--color-celeste, #56aee8) !important;
+    border-color: var(--color-celeste, #56aee8) !important;
+    color: #ffffff !important;
+}
+
+/* Botones de acción en tabla de clientes (#tablaClientes) */
+#tablaClientes td .btn-sm {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#tablaClientes .btn-outline-primary,
+#tablaClientes .btn-compras-cliente {
+    color: var(--color-celeste, #56aee8) !important;
+    border-color: var(--color-celeste, #56aee8) !important;
+    background-color: transparent !important;
+    transition: all 0.18s ease !important;
+}
+
+#tablaClientes .btn-outline-primary i,
+#tablaClientes .btn-compras-cliente i {
+    color: var(--color-celeste, #56aee8) !important;
+    transition: color 0.18s ease !important;
+}
+
+#tablaClientes .btn-outline-primary:hover,
+#tablaClientes .btn-outline-primary:active,
+#tablaClientes .btn-outline-primary:focus,
+#tablaClientes .btn-compras-cliente:hover,
+#tablaClientes .btn-compras-cliente:active,
+#tablaClientes .btn-compras-cliente:focus {
+    background-color: var(--color-celeste, #56aee8) !important;
+    border-color: var(--color-celeste, #56aee8) !important;
+    color: #ffffff !important;
+}
+
+#tablaClientes .btn-outline-primary:hover i,
+#tablaClientes .btn-outline-primary:active i,
+#tablaClientes .btn-outline-primary:focus i,
+#tablaClientes .btn-compras-cliente:hover i,
+#tablaClientes .btn-compras-cliente:active i,
+#tablaClientes .btn-compras-cliente:focus i {
+    color: #ffffff !important;
+}
+
+/* Modal de detalle de solicitud personalizada */
+.modal-detalle-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: #ffffff;
+    color: var(--color-azul-oscuro, #0a3d6b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+}
+
+.detalle-seccion-header {
+    padding-bottom: 0.35rem;
+    border-bottom: 1.5px solid #e2e8f0;
+}
+
+.detalle-dato-card {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.75rem 0.95rem;
+    height: 100%;
+}
+
+.detalle-dato-label {
+    display: block;
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #64748b;
+    margin-bottom: 0.25rem;
+}
+
+.detalle-dato-valor {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.detalle-descripcion-box {
+    background: #ffffff;
+    border: 1px solid #dce6f0;
+    border-left: 3.5px solid var(--color-celeste, #56aee8);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+    color: #334155;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
 /* Botones de paginación numérica para citas */
 .btn-paginacion-citas {
     min-width: 34px;

@@ -1,21 +1,129 @@
-// Clave usada en sessionStorage para guardar la sesión del usuario
+// Claves usadas en sessionStorage y localStorage para guardar la sesión del usuario y tokens
 const SESION_KEY = 'mecatools_sesion';
 const JWT_KEY = 'mecatools_access_token';
+const REFRESH_KEY = 'mecatools_refresh_token';
+const ACTIVIDAD_KEY = 'mecatools_ultima_actividad';
+const TOKEN_TIMESTAMP_KEY = 'mecatools_token_timestamp';
 
+// Helper para leer el valor de una cookie por nombre
+function obtenerCookie(nombre) {
+    const matches = document.cookie.match(new RegExp('(?:^|; )' + nombre.replace(/([.$?*|{}()\[\]\\\/+^])/g, '\\$1') + '=([^;]*)'));
+    return matches ? decodeURIComponent(matches[1]) : null;
+}
+
+// Registro de actividad del usuario: detecta interacción activa en la página
+let _ultimaActividadLocal = Date.now();
+function registrarActividadUsuario() {
+    const ahora = Date.now();
+    if (ahora - _ultimaActividadLocal > 15000) {
+        _ultimaActividadLocal = ahora;
+        try {
+            localStorage.setItem(ACTIVIDAD_KEY, String(ahora));
+        } catch (e) {}
+    }
+}
+['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove', 'click'].forEach(evt => {
+    window.addEventListener(evt, registrarActividadUsuario, { passive: true });
+});
+
+// Función centralizada para renovar el Access Token mediante el Refresh Token
+let _promesaRenovacion = null;
+async function renovarTokenJWT() {
+    if (_promesaRenovacion) return _promesaRenovacion;
+    _promesaRenovacion = (async () => {
+        try {
+            const refreshToken = sessionStorage.getItem(REFRESH_KEY)
+                || (function () { try { return localStorage.getItem(REFRESH_KEY); } catch (e) { return null; } })()
+                || obtenerCookie('refresh_token');
+
+            if (!refreshToken) {
+                return null;
+            }
+
+            const resp = await fetchOriginal('/api/auth/refresh', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Refresh-Token': refreshToken
+                },
+                body: JSON.stringify({ refreshToken })
+            });
+
+            if (!resp.ok) {
+                console.warn('Renovación de token rechazada por el servidor:', resp.status);
+                if (resp.status === 401 || resp.status === 403) {
+                    sessionStorage.removeItem(REFRESH_KEY);
+                    try { localStorage.removeItem(REFRESH_KEY); } catch (e) {}
+                }
+                return null;
+            }
+
+            const data = await resp.json();
+            if (data && data.token) {
+                const ahora = Date.now();
+                sessionStorage.setItem(JWT_KEY, data.token);
+                sessionStorage.setItem(TOKEN_TIMESTAMP_KEY, String(ahora));
+                document.cookie = `access_token=${data.token}; path=/; max-age=${20 * 60}; SameSite=Lax`;
+
+                if (data.refreshToken) {
+                    sessionStorage.setItem(REFRESH_KEY, data.refreshToken);
+                    try { localStorage.setItem(REFRESH_KEY, data.refreshToken); } catch (e) {}
+                    document.cookie = `refresh_token=${data.refreshToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+                }
+
+                if (data.usuario) {
+                    const sesionActual = obtenerSesion();
+                    if (sesionActual) {
+                        Object.assign(sesionActual, data.usuario);
+                        sessionStorage.setItem(SESION_KEY, JSON.stringify(sesionActual));
+                    }
+                }
+
+                console.log('[JWT] Token renovado exitosamente por actividad activa del usuario.');
+                return data.token;
+            }
+            return null;
+        } catch (err) {
+            console.error('Error durante la renovación de token JWT:', err);
+            return null;
+        } finally {
+            _promesaRenovacion = null;
+        }
+    })();
+    return _promesaRenovacion;
+}
+
+// Interceptor de fetch para inyectar token y renovar reactivamente en caso de 401
 const fetchOriginal = window.fetch.bind(window);
-window.fetch = (input, init = {}) => {
+window.fetch = async (input, init = {}) => {
     const url = new URL(input instanceof Request ? input.url : input, window.location.href);
     if (url.origin !== window.location.origin || !url.pathname.startsWith('/api/')) {
         return fetchOriginal(input, init);
     }
 
     const headers = new Headers(init.headers || (input instanceof Request ? input.headers : undefined));
-    const token = sessionStorage.getItem(JWT_KEY);
+    let token = sessionStorage.getItem(JWT_KEY);
     const method = String(init.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
     const esLecturaPublica = method === 'GET'
         && /^\/api\/(productos|servicios|categorias|comentarios)(\/|$)/.test(url.pathname);
-    if (token && !esLecturaPublica) headers.set('Authorization', `Bearer ${token}`);
-    return fetchOriginal(input, { ...init, headers });
+    if (token && !esLecturaPublica && !headers.has('Authorization')) {
+        headers.set('Authorization', `Bearer ${token}`);
+    }
+
+    let respuesta = await fetchOriginal(input, { ...init, headers });
+
+    // Si la API responde 401 y no es petición de auth (login/refresh), intentar renovar silenciosamente y reintentar
+    if (respuesta.status === 401 && !url.pathname.includes('/refresh') && !url.pathname.includes('/login')) {
+        const sesion = (typeof obtenerSesion === 'function') ? obtenerSesion() : null;
+        if (sesion) {
+            const nuevoToken = await renovarTokenJWT();
+            if (nuevoToken) {
+                headers.set('Authorization', `Bearer ${nuevoToken}`);
+                respuesta = await fetchOriginal(input, { ...init, headers });
+            }
+        }
+    }
+    return respuesta;
 };
 
 // Recupera el objeto de sesión desde sessionStorage o null si no existe
@@ -24,18 +132,31 @@ function obtenerSesion() {
     return data ? JSON.parse(data) : null;
 }
 
-// Guarda el usuario en sessionStorage para mantener sesión en el cliente y sincroniza la cookie de 20m
+// Guarda el usuario en sessionStorage para mantener sesión en el cliente y sincroniza tokens y cookies
 function guardarSesion(usuario) {
     const datosSesion = { ...usuario };
     const token = (typeof datosSesion.token === 'string' && datosSesion.token)
         ? datosSesion.token
         : sessionStorage.getItem(JWT_KEY);
 
+    const refreshToken = (typeof datosSesion.refreshToken === 'string' && datosSesion.refreshToken)
+        ? datosSesion.refreshToken
+        : sessionStorage.getItem(REFRESH_KEY);
+
+    const ahora = Date.now();
+
     if (token) {
         sessionStorage.setItem(JWT_KEY, token);
+        sessionStorage.setItem(TOKEN_TIMESTAMP_KEY, String(ahora));
         // Persistir en cookie de 20 minutos para todas las navegaciones entre vistas y cambios de rol
         document.cookie = `access_token=${token}; path=/; max-age=${20 * 60}; SameSite=Lax`;
         delete datosSesion.token;
+    }
+    if (refreshToken) {
+        sessionStorage.setItem(REFRESH_KEY, refreshToken);
+        try { localStorage.setItem(REFRESH_KEY, refreshToken); } catch (e) {}
+        document.cookie = `refresh_token=${refreshToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+        delete datosSesion.refreshToken;
     }
     if (datosSesion.rol) {
         document.cookie = `rol_activo=${datosSesion.rol}; path=/; max-age=${20 * 60}; SameSite=Lax`;
@@ -47,8 +168,15 @@ function guardarSesion(usuario) {
 async function cerrarSesion() {
     sessionStorage.removeItem(SESION_KEY);
     sessionStorage.removeItem(JWT_KEY);
+    sessionStorage.removeItem(REFRESH_KEY);
+    sessionStorage.removeItem(TOKEN_TIMESTAMP_KEY);
+    try {
+        localStorage.removeItem(REFRESH_KEY);
+        localStorage.removeItem(ACTIVIDAD_KEY);
+    } catch (e) {}
     document.cookie = 'access_token=; path=/; max-age=0; SameSite=Lax';
     document.cookie = 'jwt_token=; path=/; max-age=0; SameSite=Lax';
+    document.cookie = 'refresh_token=; path=/; max-age=0; SameSite=Lax';
     document.cookie = 'rol_activo=; path=/; max-age=0; SameSite=Lax';
     try {
         await fetchOriginal('/logout', { method: 'POST' });
@@ -412,10 +540,17 @@ async function confirmarEmpresarial() {
 
 // Inicializaciones y bindings que deben ejecutarse cuando el DOM está listo
 document.addEventListener('DOMContentLoaded', () => {
-    // Garantiza que la cookie access_token de 20m y rol_activo estén activas si ya existen en sessionStorage
+    // Garantiza que la cookie access_token de 20m, refresh_token y rol_activo estén activas si ya existen en sessionStorage
     const tokenActivo = sessionStorage.getItem(JWT_KEY);
     if (tokenActivo && !document.cookie.includes('access_token=')) {
         document.cookie = `access_token=${tokenActivo}; path=/; max-age=${20 * 60}; SameSite=Lax`;
+    }
+    const refreshTokenActivo = sessionStorage.getItem(REFRESH_KEY) || (function () { try { return localStorage.getItem(REFRESH_KEY); } catch (e) { return null; } })();
+    if (refreshTokenActivo && !document.cookie.includes('refresh_token=')) {
+        document.cookie = `refresh_token=${refreshTokenActivo}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+    }
+    if (tokenActivo && !sessionStorage.getItem(TOKEN_TIMESTAMP_KEY)) {
+        sessionStorage.setItem(TOKEN_TIMESTAMP_KEY, String(Date.now()));
     }
     const sesionActiva = (typeof obtenerSesion === 'function') ? obtenerSesion() : null;
     if (sesionActiva && sesionActiva.rol && !document.cookie.includes('rol_activo=')) {
@@ -475,6 +610,30 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnRegister')?.addEventListener('click', manejarRegister);
     document.getElementById('btnConfirmarEmpresarial')?.addEventListener('click', confirmarEmpresarial);
 });
+
+// Monitor de actividad y renovación silenciosa: cada 60s verifica si el usuario sigue activo
+// y renueva el token JWT automáticamente cuando el token actual supere los 15 minutos de antigüedad
+setInterval(async () => {
+    const sesion = (typeof obtenerSesion === 'function') ? obtenerSesion() : null;
+    if (!sesion) return;
+
+    const ahora = Date.now();
+    let ultimaActividad = _ultimaActividadLocal;
+    try {
+        const actStore = Number(localStorage.getItem(ACTIVIDAD_KEY) || '0');
+        if (actStore > ultimaActividad) ultimaActividad = actStore;
+    } catch (e) {}
+
+    const tiempoInactivo = ahora - ultimaActividad;
+    // Si el usuario tuvo interacción en los últimos 20 minutos
+    if (tiempoInactivo < 20 * 60 * 1000) {
+        const emitidoEn = Number(sessionStorage.getItem(TOKEN_TIMESTAMP_KEY) || '0');
+        // Renueva preventivamente a partir de los 15 minutos (antes del corte a los 20 min)
+        if (ahora - emitidoEn >= 15 * 60 * 1000) {
+            await renovarTokenJWT();
+        }
+    }
+}, 60000);
 
 // Maneja el proceso de inicio de sesión: Validaciones, llamada al endpoint y manejo de UI
 async function manejarLogin() {

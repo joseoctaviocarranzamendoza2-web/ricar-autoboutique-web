@@ -157,7 +157,9 @@ async function cargarServiciosDesdeDB() {
 
 // Renderiza las tarjetas de servicio en el grid y añade una tarjeta especial "Personalizado"
 function renderizarServicios(grid, servicios) {
-    const cards = servicios.map(s => {
+    const cards = servicios
+        .filter(s => !s.nombre.toLowerCase().includes('personalizad'))
+        .map(s => {
         const icono = iconoPorNombre(s.nombre);
         const horasServicio = obtenerHorasServicio(s);
         const duracion = formatearDuracionServicio(s);
@@ -190,7 +192,7 @@ function renderizarServicios(grid, servicios) {
         <div class="card-serv card-serv-custom h-100">
             <div class="card-serv-custom-body">
                 <div class="d-flex align-items-center justify-content-between mb-3">
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-bold" style="font-size:0.75rem;">
+                    <span class="badge-personalizado-tag">
                         <i class="bi bi-stars me-1"></i>Personalizado
                     </span>
                     <div class="card-serv-icono-custom-sm"><i class="bi bi-sliders"></i></div>
@@ -290,6 +292,9 @@ function abrirModalPersonalizadoConDatos() {
     if (campoTel && sesion.telefono) campoTel.value = sesion.telefono;
     const campoEmail = document.getElementById('pEmail');
     if (campoEmail && sesion.email) campoEmail.value = sesion.email;
+    if (typeof actualizarPasosPersonalizado === 'function') {
+        actualizarPasosPersonalizado();
+    }
     abrirModal('modalServicioPersonalizado');
 }
 
@@ -576,47 +581,205 @@ function iniciarModalCita() {
     });
 }
 
-// Configura el modal de servicio personalizado: contador, validaciones y envío de la solicitud
+// Evalúa y actualiza dinámicamente los estados (1, 2, 3) del modal personalizado según los datos completados
+function actualizarPasosPersonalizado() {
+    const marcaVal = document.getElementById('pMarca')?.value?.trim() || '';
+    const modeloVal = document.getElementById('pModelo')?.value?.trim() || '';
+    const anioVal = document.getElementById('pAnio')?.value?.trim() || '';
+    const anioNum = Number(anioVal);
+    const anioValido = anioVal.length === 4 && !isNaN(anioNum) && anioNum >= 1990 && anioNum <= 2026;
+    const paso1Completo = Boolean(marcaVal && modeloVal && anioValido);
+
+    const descVal = document.getElementById('pDescripcion')?.value?.trim() || '';
+    const paso2Completo = descVal.length >= 3;
+
+    const nomVal = document.getElementById('pNombre')?.value?.trim() || '';
+    const telVal = document.getElementById('pTelefono')?.value?.trim() || '';
+    const paso3Completo = nomVal.length >= 3 && /^9[0-9]{8}$/.test(telVal);
+
+    const elPaso1 = document.getElementById('pasoPersonalizado1');
+    const elPaso2 = document.getElementById('pasoPersonalizado2');
+    const elPaso3 = document.getElementById('pasoPersonalizado3');
+    const linea1 = document.getElementById('pasoLinea1');
+    const linea2 = document.getElementById('pasoLinea2');
+
+    if (elPaso1) elPaso1.classList.toggle('activo', paso1Completo);
+    if (elPaso2) elPaso2.classList.toggle('activo', paso2Completo);
+    if (elPaso3) elPaso3.classList.toggle('activo', paso3Completo);
+
+    if (linea1) linea1.classList.toggle('activa', paso1Completo);
+    if (linea2) linea2.classList.toggle('activa', paso1Completo && paso2Completo);
+}
+
+// Configura el modal de servicio personalizado: selectores custom, pasos dinámicos, validaciones y envío
 function iniciarModalPersonalizado() {
+    if (typeof iniciarSelectPersonalizado === 'function') {
+        iniciarSelectPersonalizado('pMarca', { portal: true, portalOwner: 'modalServicioPersonalizado' });
+        iniciarSelectPersonalizado('pTipoVehiculo', { portal: true, portalOwner: 'modalServicioPersonalizado' });
+        iniciarSelectPersonalizado('pCuando', { portal: true, portalOwner: 'modalServicioPersonalizado' });
+        iniciarSelectPersonalizado('pContactoPref', { portal: true, portalOwner: 'modalServicioPersonalizado' });
+    }
+
+    const modalPers = document.getElementById('modalServicioPersonalizado');
+
+    modalPers?.addEventListener('show.bs.modal', () => {
+        actualizarPasosPersonalizado();
+    });
+
+    modalPers?.addEventListener('hidden.bs.modal', () => {
+        ['pModelo', 'pAnio', 'pKm', 'pDescripcion', 'pNombre', 'pTelefono', 'pEmail'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.value = '';
+                el.classList.remove('is-valid', 'is-invalid');
+            }
+        });
+        ['pMarca', 'pTipoVehiculo', 'pCuando', 'pContactoPref'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.value = '';
+                el.classList.remove('is-valid', 'is-invalid');
+                el._customRefs?.trigger?.classList.remove('is-valid', 'is-invalid');
+                el._customRefs?.wrapper?.classList.remove('is-valid', 'is-invalid');
+                if (typeof sincronizarSelectPersonalizado === 'function') {
+                    sincronizarSelectPersonalizado(el);
+                }
+            }
+        });
+        if (typeof cerrarTodosSelectsPersonalizados === 'function') {
+            cerrarTodosSelectsPersonalizados();
+        }
+        document.querySelectorAll('#checkAreas .check-area-input').forEach(c => c.checked = false);
+        const uBaja = document.getElementById('uBaja');
+        if (uBaja) uBaja.checked = true;
+        const alerta = document.getElementById('alertaServPersonalizado');
+        if (alerta) alerta.classList.add('d-none');
+        const contador = document.getElementById('contadorDesc');
+        if (contador) contador.textContent = '0 / 500 caracteres';
+        actualizarPasosPersonalizado();
+        const btn = document.getElementById('btnEnviarPersonalizado');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-send-fill me-2"></i>Enviar solicitud';
+        }
+    });
+
+    ['pMarca', 'pTipoVehiculo', 'pCuando', 'pContactoPref'].forEach(id => {
+        const el = document.getElementById(id);
+        el?.addEventListener('change', function () {
+            this.classList.remove('is-invalid');
+            this._customRefs?.trigger?.classList.remove('is-invalid');
+            this._customRefs?.wrapper?.classList.remove('is-invalid');
+            const contCol = this.closest('.col-sm-4, .col-sm-6, .col-12');
+            const fb = contCol?.querySelector('.invalid-feedback');
+            if (fb) fb.textContent = '';
+            actualizarPasosPersonalizado();
+        });
+    });
+
+    ['pModelo', 'pAnio', 'pKm', 'pDescripcion', 'pNombre', 'pTelefono', 'pEmail'].forEach(id => {
+        const el = document.getElementById(id);
+        el?.addEventListener('input', function () {
+            this.classList.remove('is-invalid');
+            const contCol = this.closest('.col-sm-4, .col-sm-6, .col-12');
+            const fb = contCol?.querySelector('.invalid-feedback');
+            if (fb) fb.textContent = '';
+            actualizarPasosPersonalizado();
+        });
+    });
+
+    document.querySelectorAll('#checkAreas .check-area-input, input[name="urgencia"]').forEach(el => {
+        el.addEventListener('change', actualizarPasosPersonalizado);
+    });
+
     document.getElementById('pDescripcion')?.addEventListener('input', function () {
         const max = 500;
         if (this.value.length > max) this.value = this.value.slice(0, max);
         document.getElementById('contadorDesc').textContent = `${Math.min(this.value.length, max)} / ${max} caracteres`;
+        actualizarPasosPersonalizado();
     });
+
     document.getElementById('pTelefono')?.addEventListener('input', function () {
         this.value = this.value.replace(/\D/g, '').slice(0, 9);
+        actualizarPasosPersonalizado();
     });
+
     document.getElementById('btnEnviarPersonalizado')?.addEventListener('click', async function () {
         const sesion = obtenerSesion();
         if (!sesion) return;
         let valido = true;
-        const campos = [{ id: 'pMarca', msg: 'Selecciona la marca del vehículo' }, { id: 'pModelo', msg: 'Ingresa el modelo' }, { id: 'pAnio', msg: 'Ingresa el año del vehículo' }, { id: 'pDescripcion', msg: 'Describe el problema' }, { id: 'pNombre', msg: 'Ingresa tu nombre' }, { id: 'pTelefono', msg: 'El teléfono debe empezar con 9 y tener 9 dígitos', test: v => /^9[0-9]{8}$/.test(v.trim()) }];
+        const campos = [
+            { id: 'pMarca', msg: 'Selecciona la marca del vehículo' },
+            { id: 'pModelo', msg: 'Ingresa el modelo' },
+            { id: 'pAnio', msg: 'Ingresa un año válido (ej: 2019)', test: v => {
+                const n = Number(v.trim());
+                return v.trim().length === 4 && !isNaN(n) && n >= 1990 && n <= 2026;
+            }},
+            { id: 'pDescripcion', msg: 'Describe el problema con tu vehículo' },
+            { id: 'pNombre', msg: 'Ingresa tu nombre' },
+            { id: 'pTelefono', msg: 'El teléfono debe empezar con 9 y tener 9 dígitos', test: v => /^9[0-9]{8}$/.test(v.trim()) }
+        ];
+
         campos.forEach(({ id, msg, test }) => {
             const el = document.getElementById(id);
             if (!el) return;
-            const fb = el.parentNode.querySelector('.invalid-feedback');
+            const contCol = el.closest('.col-sm-4, .col-sm-6, .col-12');
+            const fb = contCol ? contCol.querySelector('.invalid-feedback') : el.parentNode.querySelector('.invalid-feedback');
+            const trigger = el._customRefs?.trigger;
+            const wrapper = el._customRefs?.wrapper;
             const pasó = test ? test(el.value) : el.value.trim() !== '';
             if (!pasó) {
                 el.classList.add('is-invalid');
                 el.classList.remove('is-valid');
+                if (trigger) {
+                    trigger.classList.add('is-invalid');
+                    trigger.classList.remove('is-valid');
+                }
+                if (wrapper) {
+                    wrapper.classList.add('is-invalid');
+                    wrapper.classList.remove('is-valid');
+                }
                 if (fb) fb.textContent = msg;
                 valido = false;
             } else {
                 el.classList.remove('is-invalid');
                 el.classList.add('is-valid');
+                if (trigger) {
+                    trigger.classList.remove('is-invalid');
+                    trigger.classList.add('is-valid');
+                }
+                if (wrapper) {
+                    wrapper.classList.remove('is-invalid');
+                    wrapper.classList.add('is-valid');
+                }
                 if (fb) fb.textContent = '';
             }
         });
+
+        actualizarPasosPersonalizado();
         if (!valido) return;
+
         const areas = [];
         ['aMotor', 'aElectrico', 'aFrenosS', 'aRefrig', 'aTransmision', 'aOtro'].forEach(id => {
             const chk = document.getElementById(id);
             if (chk?.checked) areas.push(chk.nextElementSibling.textContent.trim());
         });
         const urgencia = document.querySelector('input[name="urgencia"]:checked')?.value || 'baja';
+        const cuando = document.getElementById('pCuando')?.value || 'No especificado';
+        const tipoVal = document.getElementById('pTipoVehiculo')?.value || 'No especificado';
+        const kmVal = document.getElementById('pKm')?.value ? `${document.getElementById('pKm').value} km` : 'No especificado';
         const vehiculo = `${document.getElementById('pMarca').value} ${document.getElementById('pModelo').value} ${document.getElementById('pAnio').value}`.trim();
         const descripcion = document.getElementById('pDescripcion').value.trim();
-        const notas = `Solicitud de servicio personalizado.\n` + `Vehículo: ${vehiculo}\n` + `Tipo: ${document.getElementById('pTipoVehiculo').value || 'No especificado'}\n` + `Kilometraje: ${document.getElementById('pKm').value || 'No especificado'}\n` + `Áreas afectadas: ${areas.join(', ') || 'No especificado'}\n` + `Urgencia: ${urgencia}\n` + `Descripción: ${descripcion}\n` + `Contacto preferido: ${document.getElementById('pContactoPref').value}`;
+        const notas = `Solicitud de servicio personalizado.\n` +
+            `Vehículo: ${vehiculo}\n` +
+            `Tipo: ${tipoVal}\n` +
+            `Kilometraje: ${kmVal}\n` +
+            `Áreas afectadas: ${areas.join(', ') || 'No especificado'}\n` +
+            `Ocurre: ${cuando}\n` +
+            `Urgencia: ${urgencia}\n` +
+            `Descripción: ${descripcion}\n` +
+            `Contacto preferido: ${document.getElementById('pContactoPref')?.value || 'WhatsApp'}`;
+
         this.disabled = true;
         this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando...';
         try {
@@ -644,19 +807,6 @@ function iniciarModalPersonalizado() {
             this.innerHTML = '<i class="bi bi-check2-circle me-2"></i>Solicitud enviada';
             setTimeout(() => {
                 bootstrap.Modal.getInstance(document.getElementById('modalServicioPersonalizado'))?.hide();
-                ['pMarca', 'pModelo', 'pAnio', 'pTipoVehiculo', 'pKm', 'pDescripcion', 'pCuando', 'pNombre', 'pTelefono', 'pEmail'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) {
-                        el.value = '';
-                        el.classList.remove('is-valid', 'is-invalid');
-                    }
-                });
-                document.querySelectorAll('#checkAreas .check-area-input').forEach(c => c.checked = false);
-                document.getElementById('uBaja').checked = true;
-                document.getElementById('alertaServPersonalizado').classList.add('d-none');
-                document.getElementById('contadorDesc').textContent = '0 / 500 caracteres';
-                this.disabled = false;
-                this.innerHTML = '<i class="bi bi-send-fill me-2"></i>Enviar solicitud';
             }, 2200);
         } catch (e) {
             console.error(e);

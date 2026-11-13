@@ -224,7 +224,8 @@ function renderCitas(citas) {
     grid.innerHTML = citas.map(c => {
         const color = colores[c.estado] || 'celeste';
         const opaca = c.estado === 'Completada' || c.estado === 'Cancelada' ? 'opaca' : '';
-        const precio = c.servicio?.precioBase ? `S/ ${c.servicio.precioBase.toFixed(2)}` : '—';
+        const esPers = (c.servicio?.nombre || '').toLowerCase().includes('personalizad') || (c.notas && c.notas.toLowerCase().includes('servicio personalizado'));
+        const precio = esPers ? 'A cotizar' : (c.servicio?.precioBase ? `S/ ${c.servicio.precioBase.toFixed(2)}` : '—');
         const acciones = (c.estado === 'Pendiente' || c.estado === 'Confirmada') ? `<button class="btn-cita peligro" onclick="cancelarCita(${c.id}, this)">Cancelar</button>` : '';
         return `
         <div class="col-12 col-md-6" data-estado="${c.estado}">

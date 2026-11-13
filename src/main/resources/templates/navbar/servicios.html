@@ -235,28 +235,33 @@
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
             <div class="modal-content modal-custom-serv">
-                <div class="modal-header modal-custom-header justify-content-center position-relative">
-                    <div class="modal-custom-icon">
-                        <i class="bi bi-sliders"></i>
+                <div class="modal-header modal-custom-header border-0 position-relative d-flex align-items-center justify-content-center text-center">
+                    <div class="d-flex align-items-center justify-content-center gap-3">
+                        <div class="modal-custom-header-icon">
+                            <i class="bi bi-sliders"></i>
+                        </div>
+                        <div class="d-flex flex-column text-start">
+                            <h5 class="modal-title fw-bold text-white mb-0" id="tituloModalPersonalizado">
+                                Solicitud de Servicio Personalizado
+                            </h5>
+                            <small class="modal-custom-subtitulo">
+                                Cuéntanos qué necesita tu vehículo y te contactamos en menos de 24 h
+                            </small>
+                        </div>
                     </div>
-                    <div class="text-center">
-                        <h5 class="modal-title mb-1" id="tituloModalPersonalizado">Solicitud de Servicio Personalizado
-                        </h5>
-                        <p class="modal-custom-sub mb-0">Cuéntanos qué necesita tu vehículo y te contactamos en menos de 24 h</p>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Cerrar" onclick="this.blur();"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div class="modal-pasos mb-4">
-                        <div class="modal-paso activo">
+                        <div class="modal-paso" id="pasoPersonalizado1" data-paso="1">
                             <div class="modal-paso-num">1</div><span>Datos del vehículo</span>
                         </div>
-                        <div class="modal-paso-linea"></div>
-                        <div class="modal-paso">
+                        <div class="modal-paso-linea" id="pasoLinea1"></div>
+                        <div class="modal-paso" id="pasoPersonalizado2" data-paso="2">
                             <div class="modal-paso-num">2</div><span>Problema y detalles</span>
                         </div>
-                        <div class="modal-paso-linea"></div>
-                        <div class="modal-paso">
+                        <div class="modal-paso-linea" id="pasoLinea2"></div>
+                        <div class="modal-paso" id="pasoPersonalizado3" data-paso="3">
                             <div class="modal-paso-num">3</div><span>Contacto</span>
                         </div>
                     </div>
@@ -427,9 +432,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer modal-custom-footer border-0 justify-content-between">
-                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal"><i class="bi bi-x-lg me-1"></i>Cancelar</button>
-                    <button type="button" class="btn btn-custom-enviar px-5" id="btnEnviarPersonalizado"><i class="bi bi-send-fill me-2"></i>Enviar solicitud</button>
+                <div class="modal-footer modal-custom-footer border-0 d-flex justify-content-end align-items-center gap-2 px-4 pb-4">
+                    <button type="button" class="btn btn-custom-cancelar" data-bs-dismiss="modal" onclick="this.blur();">
+                        <i class="bi bi-x-lg me-1"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-custom-enviar" id="btnEnviarPersonalizado">
+                        <i class="bi bi-send-fill me-2"></i>Enviar solicitud
+                    </button>
                 </div>
             </div>
         </div>

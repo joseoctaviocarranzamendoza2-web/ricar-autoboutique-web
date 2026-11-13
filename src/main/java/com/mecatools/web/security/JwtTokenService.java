@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class JwtTokenService {
 
     public static final Duration TOKEN_LIFETIME = Duration.ofMinutes(20);
+    public static final Duration REFRESH_TOKEN_LIFETIME = Duration.ofDays(7);
     public static final String ISSUER = "ricar-autoboutique";
 
     private final JwtEncoder jwtEncoder;
@@ -35,6 +36,22 @@ public class JwtTokenService {
                 .subject(usuario.getEmail())
                 .claim("uid", usuario.getId())
                 .claim("roles", roles)
+                .claim("type", "access")
+                .build();
+
+        JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
+        return jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
+    }
+
+    public String generarRefreshToken(Usuario usuario) {
+        Instant ahora = Instant.now();
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer(ISSUER)
+                .issuedAt(ahora)
+                .expiresAt(ahora.plus(REFRESH_TOKEN_LIFETIME))
+                .subject(usuario.getEmail())
+                .claim("uid", usuario.getId())
+                .claim("type", "refresh")
                 .build();
 
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();

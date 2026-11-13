@@ -97,7 +97,7 @@ public class ConfigSecurity {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/api/usuarios/registro").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios/registro", "/api/auth/refresh", "/api/usuarios/refresh").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/servicios/**",
                                 "/api/categorias/**", "/api/comentarios/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/roles-disponibles").authenticated()
@@ -124,6 +124,10 @@ public class ConfigSecurity {
 
     private Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter() {
         return jwt -> {
+            String tipo = jwt.getClaimAsString("type");
+            if ("refresh".equalsIgnoreCase(tipo)) {
+                throw new org.springframework.security.oauth2.jwt.BadJwtException("Un refresh token no puede utilizarse como access token");
+            }
             UsuarioDetails usuario = (UsuarioDetails) usuarioDetailsService.loadUserByUsername(jwt.getSubject());
             return new UsernamePasswordAuthenticationToken(usuario, jwt, usuario.getAuthorities());
         };
@@ -131,7 +135,7 @@ public class ConfigSecurity {
 
     @Bean
     public JwtCookieAuthenticationFilter jwtCookieAuthenticationFilter(JwtDecoder jwtDecoder) {
-        return new JwtCookieAuthenticationFilter(jwtDecoder, usuarioDetailsService, webSecurityContextRepository());
+        return new JwtCookieAuthenticationFilter(jwtDecoder, usuarioDetailsService, webSecurityContextRepository(), jwtTokenService);
     }
 
     // Bean que define reglas de acceso, login y logout para las vistas web con sesión.
@@ -150,7 +154,8 @@ public class ConfigSecurity {
                         .requestMatchers("/", "/inicio", "/inicio/login", "/inicio/register", "/servicios",
                                 "/servicios/login", "/servicios/register", "/productos", "/productos/login",
                                 "/productos/register", "/nosotros", "/nosotros/login", "/nosotros/register",
-                                "/contacto", "/contacto/login", "/contacto/register", "/css/**", "/js/**", "/img/**")
+                                "/contacto", "/contacto/login", "/contacto/register", "/css/**", "/js/**", "/img/**",
+                                "/api/auth/refresh", "/api/usuarios/refresh")
                         .permitAll()
                         // Selección de rol: pública para que funcione aunque la sesión HTTP haya
                         // expirado. La autenticación real la gestiona rol.js via sessionStorage.
@@ -179,14 +184,14 @@ public class ConfigSecurity {
                         .usernameParameter("email")
                         // Nombre del parámetro de contraseña en el formulario
                         .passwordParameter("password")
-                        // Handler que devuelve JSON en login exitoso y emite cookie de 20m
+                        // Handler que devuelve JSON en login exitoso y emite cookie de 20m y refresh token
                         .successHandler(successHandler())
                         // Handler que devuelve JSON en login fallido
                         .failureHandler(failureHandler()).permitAll())
                 .logout(logout -> logout
                         // Ruta de logout personalizada
                         .logoutUrl("/logout")
-                        .deleteCookies("JSESSIONID", "access_token", "jwt_token", "rol_activo")
+                        .deleteCookies("JSESSIONID", "access_token", "jwt_token", "refresh_token", "rol_activo")
                         // Redirige a /inicio tras cerrar sesión
                         .logoutSuccessUrl("/inicio").permitAll())
                 // Si no hay sesión ni token válido, responde 401 JSON; si no tiene permisos, responde 403 JSON
@@ -195,7 +200,7 @@ public class ConfigSecurity {
         return http.build();
     }
 
-    // Bean que devuelve JSON cuando el login es exitoso y emite la cookie JWT de 20 minutos
+    // Bean que devuelve JSON cuando el login es exitoso y emite la cookie JWT de 20 minutos y Refresh Token de 7 días
     @Bean
     public AuthenticationSuccessHandler successHandler() {
         return new AuthenticationSuccessHandler() {
@@ -205,6 +210,7 @@ public class ConfigSecurity {
                 UsuarioDetails details = (UsuarioDetails) authentication.getPrincipal();
                 Usuario u = details.getUsuario();
                 String token = jwtTokenService.generarToken(u);
+                String refreshToken = jwtTokenService.generarRefreshToken(u);
 
                 // Emite cookie con el JWT de 20 minutos para que persista la autenticación en todas las vistas web
                 ResponseCookie cookie = ResponseCookie.from("access_token", token)
@@ -214,6 +220,15 @@ public class ConfigSecurity {
                         .sameSite("Lax")
                         .build();
                 response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+                // Emite cookie con el Refresh Token de 7 días para renovación silenciosa por actividad
+                ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", refreshToken)
+                        .path("/")
+                        .maxAge(JwtTokenService.REFRESH_TOKEN_LIFETIME)
+                        .httpOnly(false)
+                        .sameSite("Lax")
+                        .build();
+                response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
                 if (u.getNombresRoles().size() == 1) {
                     ResponseCookie rolCookie = ResponseCookie.from("rol_activo", u.getRol().toLowerCase())
@@ -239,8 +254,10 @@ public class ConfigSecurity {
                 body.put("roles", u.getNombresRoles());
                 body.put("estado", u.getEstado());
                 body.put("token", token);
+                body.put("refreshToken", refreshToken);
                 body.put("tokenType", "Bearer");
                 body.put("expiresIn", JwtTokenService.TOKEN_LIFETIME.toSeconds());
+                body.put("refreshExpiresIn", JwtTokenService.REFRESH_TOKEN_LIFETIME.toSeconds());
                 objectMapper.writeValue(response.getWriter(), body);
             }
         };

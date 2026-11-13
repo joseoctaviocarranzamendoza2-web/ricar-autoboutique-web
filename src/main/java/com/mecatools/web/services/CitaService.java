@@ -1,6 +1,7 @@
 package com.mecatools.web.services;
 
 import com.mecatools.web.models.Cita;
+import com.mecatools.web.models.Servicio;
 import com.mecatools.web.repositories.CitaRepository;
 import com.mecatools.web.repositories.ServicioRepository;
 import com.mecatools.web.repositories.UsuarioRepository;
@@ -145,6 +146,24 @@ public class CitaService {
         return ocupacion;
     }
 
+    // Obtiene o crea automáticamente el servicio "Personalizado" para solicitudes especiales
+    public Servicio obtenerOCrearServicioPersonalizado() {
+        return servicioRepository.findAll().stream()
+                .filter(s -> s.getNombre() != null && s.getNombre().toLowerCase().contains("personalizad"))
+                .findFirst()
+                .orElseGet(() -> {
+                    Servicio nuevo = new Servicio();
+                    nuevo.setNombre("Personalizado");
+                    nuevo.setCategoria("Personalizado");
+                    nuevo.setPrecioBase(0.0);
+                    nuevo.setDuracionMinutos(1);
+                    nuevo.setEstado("Activo");
+                    nuevo.setDescripcion("Servicio a medida según cotización y diagnóstico personalizado.");
+                    nuevo.setImagen("");
+                    return servicioRepository.save(nuevo);
+                });
+    }
+
     // Método para crear una nueva cita. Verifica la validez del usuario y servicio, y que no supere el máximo de 3 vehículos por horario.
     @Transactional
     public Cita crear(Cita cita) {
@@ -153,6 +172,10 @@ public class CitaService {
         }
         if (cita.getUsuario() == null || !usuarioRepository.existsById(cita.getUsuario().getId())) {
             throw new IllegalArgumentException("Usuario no válido");
+        }
+        // Si las notas indican solicitud de servicio personalizado, asignar siempre el servicio "Personalizado"
+        if (cita.getNotas() != null && cita.getNotas().toLowerCase().contains("servicio personalizado")) {
+            cita.setServicio(obtenerOCrearServicioPersonalizado());
         }
         if (cita.getServicio() == null || !servicioRepository.existsById(cita.getServicio().getId())) {
             throw new IllegalArgumentException("Servicio no válido");

@@ -38,13 +38,16 @@ public class JwtCookieAuthenticationFilter extends OncePerRequestFilter {
     private final JwtDecoder jwtDecoder;
     private final UsuarioDetailsService usuarioDetailsService;
     private final SecurityContextRepository securityContextRepository;
+    private final JwtTokenService jwtTokenService;
 
     public JwtCookieAuthenticationFilter(JwtDecoder jwtDecoder,
                                         UsuarioDetailsService usuarioDetailsService,
-                                        SecurityContextRepository securityContextRepository) {
+                                        SecurityContextRepository securityContextRepository,
+                                        JwtTokenService jwtTokenService) {
         this.jwtDecoder = jwtDecoder;
         this.usuarioDetailsService = usuarioDetailsService;
         this.securityContextRepository = securityContextRepository;
+        this.jwtTokenService = jwtTokenService;
     }
 
     @Override
@@ -73,28 +76,90 @@ public class JwtCookieAuthenticationFilter extends OncePerRequestFilter {
             }
         } else if (!yaAutenticado) {
             String token = resolverToken(request);
+            boolean tokenValido = false;
             if (StringUtils.hasText(token)) {
                 try {
                     Jwt jwt = jwtDecoder.decode(token);
-                    String email = jwt.getSubject();
-                    if (StringUtils.hasText(email)) {
-                        UserDetails userDetails = usuarioDetailsService.loadUserByUsername(email);
-                        UsuarioDetails uDetails = (UsuarioDetails) userDetails;
-                        String rolActivo = resolverRolActivo(request);
-                        Collection<? extends GrantedAuthority> authorities = resolverAutoridadesActivas(uDetails, rolActivo);
+                    String tipo = jwt.getClaimAsString("type");
+                    // Asegurar que no sea un refresh token usado como access token
+                    if (tipo == null || !"refresh".equalsIgnoreCase(tipo)) {
+                        String email = jwt.getSubject();
+                        if (StringUtils.hasText(email)) {
+                            UserDetails userDetails = usuarioDetailsService.loadUserByUsername(email);
+                            UsuarioDetails uDetails = (UsuarioDetails) userDetails;
+                            String rolActivo = resolverRolActivo(request);
+                            Collection<? extends GrantedAuthority> authorities = resolverAutoridadesActivas(uDetails, rolActivo);
 
-                        UsernamePasswordAuthenticationToken authentication =
-                                new UsernamePasswordAuthenticationToken(userDetails, jwt, authorities);
+                            UsernamePasswordAuthenticationToken authentication =
+                                    new UsernamePasswordAuthenticationToken(userDetails, jwt, authorities);
 
-                        SecurityContext context = SecurityContextHolder.createEmptyContext();
-                        context.setAuthentication(authentication);
-                        SecurityContextHolder.setContext(context);
-                        if (securityContextRepository != null) {
-                            securityContextRepository.saveContext(context, request, response);
+                            SecurityContext context = SecurityContextHolder.createEmptyContext();
+                            context.setAuthentication(authentication);
+                            SecurityContextHolder.setContext(context);
+                            if (securityContextRepository != null) {
+                                securityContextRepository.saveContext(context, request, response);
+                            }
+                            tokenValido = true;
                         }
                     }
                 } catch (Exception e) {
-                    LOGGER.debug("Token JWT no procesable en {}: {}", request.getRequestURI(), e.getMessage());
+                    LOGGER.debug("Token JWT expirado o no procesable en {}: {}", request.getRequestURI(), e.getMessage());
+                }
+            }
+
+            // Si el access token expiró o no está presente, pero existe un refresh token válido (navegación activa)
+            if (!tokenValido && jwtTokenService != null) {
+                String refreshToken = resolverRefreshToken(request);
+                if (StringUtils.hasText(refreshToken)) {
+                    try {
+                        Jwt refreshJwt = jwtDecoder.decode(refreshToken);
+                        String tipo = refreshJwt.getClaimAsString("type");
+                        if (tipo == null || "refresh".equalsIgnoreCase(tipo)) {
+                            String email = refreshJwt.getSubject();
+                            if (StringUtils.hasText(email)) {
+                                UserDetails userDetails = usuarioDetailsService.loadUserByUsername(email);
+                                UsuarioDetails uDetails = (UsuarioDetails) userDetails;
+                                if (uDetails.isEnabled()) {
+                                    String rolActivo = resolverRolActivo(request);
+                                    Collection<? extends GrantedAuthority> authorities = resolverAutoridadesActivas(uDetails, rolActivo);
+
+                                    UsernamePasswordAuthenticationToken authentication =
+                                            new UsernamePasswordAuthenticationToken(userDetails, refreshJwt, authorities);
+
+                                    SecurityContext context = SecurityContextHolder.createEmptyContext();
+                                    context.setAuthentication(authentication);
+                                    SecurityContextHolder.setContext(context);
+                                    if (securityContextRepository != null) {
+                                        securityContextRepository.saveContext(context, request, response);
+                                    }
+
+                                    // Genera y emite automáticamente nuevos tokens para prolongar la navegación sin interrupciones
+                                    String nuevoAccessToken = jwtTokenService.generarToken(uDetails.getUsuario());
+                                    String nuevoRefreshToken = jwtTokenService.generarRefreshToken(uDetails.getUsuario());
+
+                                    org.springframework.http.ResponseCookie accCookie = org.springframework.http.ResponseCookie.from("access_token", nuevoAccessToken)
+                                            .path("/")
+                                            .maxAge(JwtTokenService.TOKEN_LIFETIME)
+                                            .httpOnly(false)
+                                            .sameSite("Lax")
+                                            .build();
+                                    response.addHeader(HttpHeaders.SET_COOKIE, accCookie.toString());
+
+                                    org.springframework.http.ResponseCookie refCookie = org.springframework.http.ResponseCookie.from("refresh_token", nuevoRefreshToken)
+                                            .path("/")
+                                            .maxAge(JwtTokenService.REFRESH_TOKEN_LIFETIME)
+                                            .httpOnly(false)
+                                            .sameSite("Lax")
+                                            .build();
+                                    response.addHeader(HttpHeaders.SET_COOKIE, refCookie.toString());
+
+                                    LOGGER.info("Sesión web renovada automáticamente mediante Refresh Token para {}", email);
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        LOGGER.debug("Refresh token no procesable en {}: {}", request.getRequestURI(), e.getMessage());
+                    }
                 }
             }
         }
@@ -155,6 +220,22 @@ public class JwtCookieAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
+        return null;
+    }
+
+    private String resolverRefreshToken(HttpServletRequest request) {
+        String refreshHeader = request.getHeader("X-Refresh-Token");
+        if (StringUtils.hasText(refreshHeader)) {
+            return refreshHeader.trim();
+        }
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("refresh_token".equals(cookie.getName()) && StringUtils.hasText(cookie.getValue())) {
+                    return cookie.getValue().trim();
+                }
+            }
+        }
         return null;
     }
 }

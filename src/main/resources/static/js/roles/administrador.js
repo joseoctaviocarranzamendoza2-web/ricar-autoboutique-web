@@ -604,7 +604,9 @@ function renderServicios(servicios) {
     const grid = document.getElementById('gridServicios');
     if (!grid) return;
     const iconos = { 'aceite': 'bi-droplet-fill', 'eléctric': 'bi-battery-charging', 'manten': 'bi-gear-fill', 'diagnós': 'bi-speedometer2', 'alineac': 'bi-arrows-angle-expand', 'freno': 'bi-shield-check', 'aire': 'bi-wind', 'combustible': 'bi-fuel-pump-fill', 'refriger': 'bi-thermometer-half', 'motor': 'bi-wrench-adjustable', 'revisión': 'bi-car-front-fill' };
-    const cards = servicios.map(s => {
+    const cards = servicios
+        .filter(s => !s.nombre.toLowerCase().includes('personalizad'))
+        .map(s => {
         const key = s.nombre.toLowerCase();
         const iconKey = Object.keys(iconos).find(k => key.includes(k));
         const icono = iconKey ? iconos[iconKey] : 'bi-gear-fill';
@@ -815,26 +817,139 @@ function renderCitas(citas) {
     const paginaCitas = _citasFiltradas.slice(inicio, inicio + CITAS_POR_PAGINA);
 
     const estadoBadge = { 'Pendiente': 'status-pending', 'Confirmada': 'status-confirmed', 'Completada': 'status-completed', 'Cancelada': 'status-inactive' };
-    tbody.innerHTML = paginaCitas.map(c => `
+    tbody.innerHTML = paginaCitas.map(c => {
+        const esPersonalizado = (c.servicio?.nombre || c.servicio || '').toLowerCase().includes('personalizad') ||
+                                (c.notas && c.notas.toLowerCase().includes('servicio personalizado'));
+        const nombreServicio = esPersonalizado ? 'Personalizado' : (c.servicio?.nombre || c.servicio || '');
+
+        return `
     <tr>
         <td class="text-muted fw-semibold">#S-${String(c.id).padStart(3, '0')}</td>
         <td>
             <div class="fw-semibold">${c.usuario?.nombres || ''} ${c.usuario?.apellidos || ''}</div>
             <div class="text-muted" style="font-size:.72rem">${c.usuario?.telefono || ''}</div>
         </td>
-        <td>${c.servicio?.nombre || c.servicio || ''}</td>
+        <td>${nombreServicio}</td>
         <td><div>${c.hora || ''}</div><small class="text-muted">${c.fecha || ''}</small></td>
         <td><small>${c.vehiculo || ''}</small></td>
         <td><span class="status-badge ${estadoBadge[c.estado] || ''}">${c.estado}</span></td>
         <td>
-            <div class="d-flex gap-1">
+            <div class="d-flex gap-1 align-items-center">
+                ${esPersonalizado ? `<button type="button" class="btn btn-xs btn-outline-celeste accion-btn" title="Ver detalles de solicitud personalizada" onclick="abrirModalDetallePersonalizado(${c.id}); this.blur();"><i class="bi bi-eye"></i></button>` : ''}
                 ${c.estado === 'Pendiente' ? `<button class="btn btn-xs btn-outline-success accion-btn" title="Confirmar" onclick="cambiarEstadoCita(${c.id},'Confirmada')"><i class="bi bi-check-lg"></i></button>` : ''}
                 ${c.estado === 'Confirmada' ? `<button class="btn btn-xs btn-outline-success accion-btn" title="Marcar como completada" onclick="cambiarEstadoCita(${c.id},'Completada')"><i class="bi bi-check2-all"></i></button>` : ''}
                 ${c.estado !== 'Cancelada' && c.estado !== 'Completada' ? `<button class="btn btn-xs btn-outline-danger accion-btn" title="Cancelar" onclick="cambiarEstadoCita(${c.id},'Cancelada')"><i class="bi bi-x"></i></button>` : ''}
             </div>
         </td>
-    </tr>`).join('');
+    </tr>`;
+    }).join('');
     renderPaginacionCitas(_citasFiltradas.length);
+}
+
+// Extrae campos estructurados de las notas guardadas en una solicitud de servicio personalizado
+function parsearNotasPersonalizado(notas) {
+    if (!notas) return {};
+    const getVal = (label) => {
+        const regex = new RegExp(`(?:${label})\\s*:\\s*([^\\n]+)`, 'i');
+        const match = notas.match(regex);
+        return match ? match[1].trim() : '';
+    };
+
+    let desc = '';
+    const descMatch = notas.match(/Descripción\s*:\s*([\s\S]*?)(?=(?:Contacto preferido|$))/i);
+    if (descMatch) {
+        desc = descMatch[1].trim();
+    } else {
+        desc = getVal('Descripción');
+    }
+
+    if (!desc && notas.trim() && !notas.includes(':')) {
+        desc = notas.replace(/Solicitud de servicio personalizado\.?/gi, '').trim();
+    }
+
+    return {
+        tipoVehiculo: getVal('Tipo'),
+        kilometraje: getVal('Kilometraje'),
+        areas: getVal('Áreas afectadas') || getVal('Areas afectadas') || getVal('Área') || getVal('Area'),
+        cuando: getVal('Ocurre') || getVal('¿Cuándo ocurre el problema\\?') || getVal('Cuando ocurre'),
+        urgencia: getVal('Urgencia'),
+        descripcion: desc,
+        contactoPref: getVal('Contacto preferido') || getVal('Contacto')
+    };
+}
+
+// Abre el modal con los detalles adicionales de una solicitud de servicio personalizado
+function abrirModalDetallePersonalizado(id) {
+    const cita = _todasCitas.find(c => Number(c.id) === Number(id));
+    if (!cita) return;
+
+    const elCodigo = document.getElementById('detCitaCodigo');
+    if (elCodigo) elCodigo.textContent = `#S-${String(cita.id).padStart(3, '0')}`;
+
+    const elCliente = document.getElementById('detCitaCliente');
+    if (elCliente) {
+        const nombreCliente = `${cita.usuario?.nombres || ''} ${cita.usuario?.apellidos || ''}`.trim() || 'Cliente';
+        const vehiculo = cita.vehiculo || 'Vehículo';
+        elCliente.textContent = `${nombreCliente} • ${vehiculo}`;
+    }
+
+    const tel = cita.usuario?.telefono || 'No registrado';
+    const elTel = document.getElementById('detCitaTelefono');
+    if (elTel) elTel.textContent = tel;
+
+    const parsed = parsearNotasPersonalizado(cita.notas || '');
+
+    const elTipo = document.getElementById('detCitaTipoVehiculo');
+    if (elTipo) elTipo.textContent = parsed.tipoVehiculo || 'No especificado';
+
+    const elKm = document.getElementById('detCitaKm');
+    if (elKm) elKm.textContent = parsed.kilometraje || 'No especificado';
+
+    const elAreas = document.getElementById('detCitaAreas');
+    if (elAreas) {
+        if (parsed.areas && parsed.areas !== 'No especificado') {
+            const lista = parsed.areas.split(',').map(a => a.trim()).filter(Boolean);
+            elAreas.innerHTML = lista.map(a => `<span class="badge bg-light text-primary border border-primary-subtle fw-semibold px-2 py-1"><i class="bi bi-check2-circle me-1"></i>${a}</span>`).join('');
+        } else {
+            elAreas.innerHTML = '<span class="badge bg-light text-muted border px-2 py-1">No especificado</span>';
+        }
+    }
+
+    const elCuando = document.getElementById('detCitaCuando');
+    if (elCuando) elCuando.textContent = parsed.cuando || 'No especificado';
+
+    const elUrg = document.getElementById('detCitaUrgencia');
+    if (elUrg) {
+        const urgLower = (parsed.urgencia || '').toLowerCase();
+        if (urgLower.includes('alta') || urgLower.includes('urgente')) {
+            elUrg.innerHTML = '<span class="badge bg-danger px-2 py-1"><i class="bi bi-exclamation-triangle-fill me-1"></i>Urgente</span>';
+        } else if (urgLower.includes('media') || urgLower.includes('semana')) {
+            elUrg.innerHTML = '<span class="badge bg-warning text-dark px-2 py-1"><i class="bi bi-clock me-1"></i>Esta semana</span>';
+        } else if (urgLower.includes('baja') || urgLower.includes('esperar')) {
+            elUrg.innerHTML = '<span class="badge bg-success px-2 py-1"><i class="bi bi-check-circle me-1"></i>Puede esperar</span>';
+        } else {
+            elUrg.innerHTML = `<span class="badge bg-secondary px-2 py-1">${parsed.urgencia || 'No especificado'}</span>`;
+        }
+    }
+
+    const elDesc = document.getElementById('detCitaDescripcion');
+    if (elDesc) elDesc.textContent = parsed.descripcion || 'Sin descripción adicional.';
+
+    const elPref = document.getElementById('detCitaContactoPref');
+    if (elPref) {
+        const prefLower = (parsed.contactoPref || '').toLowerCase();
+        if (prefLower.includes('whats')) {
+            elPref.innerHTML = '<span class="badge bg-success-subtle text-success border border-success-subtle fw-semibold px-2 py-1"><i class="bi bi-whatsapp me-1"></i>WhatsApp</span>';
+        } else if (prefLower.includes('llama') || prefLower.includes('tel')) {
+            elPref.innerHTML = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-semibold px-2 py-1"><i class="bi bi-telephone-fill me-1"></i>Llamada telefónica</span>';
+        } else if (prefLower.includes('email') || prefLower.includes('correo')) {
+            elPref.innerHTML = '<span class="badge bg-info-subtle text-info-emphasis border border-info-subtle fw-semibold px-2 py-1"><i class="bi bi-envelope-fill me-1"></i>Correo electrónico</span>';
+        } else {
+            elPref.innerHTML = `<span class="badge bg-light text-dark border px-2 py-1">${parsed.contactoPref || 'No especificado'}</span>`;
+        }
+    }
+
+    abrirModal('modalDetallePersonalizado');
 }
 
 // Renderiza botones de paginación numerados de 1 en 1 reutilizando el estilo unificado de citas
@@ -1018,7 +1133,9 @@ function filtrarCitasTabla(resetPagina = true) {
     }
     const filtradas = hayFiltro ? _todasCitas.filter(c => {
         const cliente = `${c.usuario?.nombres || ''} ${c.usuario?.apellidos || ''}`.toLowerCase();
-        const servicio = (c.servicio?.nombre || '').toLowerCase();
+        const esPers = (c.servicio?.nombre || c.servicio || '').toLowerCase().includes('personalizad') ||
+                       (c.notas && c.notas.toLowerCase().includes('servicio personalizado'));
+        const servicio = (esPers ? 'personalizado' : (c.servicio?.nombre || '')).toLowerCase();
         const matchBusq = !busqueda || cliente.includes(busqueda) || servicio.includes(busqueda);
         const matchEstado = !estadoFiltro || c.estado === estadoFiltro;
         const matchFecha = !fechaFiltro || String(c.fecha) === fechaFiltro;
@@ -1334,7 +1451,7 @@ function renderClientes(clientes) {
             <td><small>${ultimaCita}</small></td>
             <td><span class="status-badge ${badgeClase}">${textoEstado}</span></td>
             <td>
-                <button class="btn btn-sm btn-outline-primary me-1" title="Ver compras" onclick="verComprasCliente(${c.id}, '${(c.nombres + ' ' + c.apellidos).replace(/'/g, "\\'")}')"><i class="bi bi-bag"></i></button>
+                <button class="btn btn-sm btn-outline-celeste btn-compras-cliente me-1" title="Ver compras" onclick="verComprasCliente(${c.id}, '${(c.nombres + ' ' + c.apellidos).replace(/'/g, "\\'")}')"><i class="bi bi-bag"></i></button>
                 ${btnEstado}
             </td>
         </tr>`;

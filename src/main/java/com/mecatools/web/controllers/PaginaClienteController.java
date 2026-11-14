@@ -94,6 +94,14 @@ public class PaginaClienteController {
         return "roles/cliente";
     }
 
+    @GetMapping("/panel/cliente/{id}/mensajes")
+    public String panelMensajes(@PathVariable Long id, Authentication auth, Model model) {
+        sesionValidator.validarAcceso(auth, ROL, id);
+        model.addAttribute("tabActiva", "tab-mensajes");
+        cargarAtributosCliente(auth, model);
+        return "roles/cliente";
+    }
+
     private void cargarAtributosCliente(Authentication auth, Model model) {
         boolean puedeCambiarRol = false;
         if (auth != null && auth.getPrincipal() instanceof UsuarioDetails uDetails) {

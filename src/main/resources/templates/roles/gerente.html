@@ -11,11 +11,30 @@
     <!-- Bootstrap Icons 1.11.3 CDN: Iconos SVG usados en sidebar, KPIs y botones de acción del panel -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <!-- global.css: Estilos compartidos entre todos los roles; incluye variables de color y utilidades generales -->
-    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <link rel="stylesheet" th:href="@{/css/global.css(v='1.1')}">
     <!-- gerente.css: Define estilos exclusivos del panel gerente, incluidos sidebar, topbar, tarjetas, tablas y layout SPA -->
-    <link rel="stylesheet" th:href="@{/css/roles/gerente.css(v='3.9')}">
+    <link rel="stylesheet" th:href="@{/css/roles/gerente.css(v='6.4')}">
     <!-- Favicon del sitio -->
     <link rel="icon" th:href="@{/img/icono/icon.png}" type="image/png">
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        (function() {
+            try {
+                let sec = /*[[${seccionActiva}]]*/ null;
+                if (!sec || sec === 'dashboard') {
+                    const guardada = localStorage.getItem('ultimaSeccionGerente');
+                    if (guardada) sec = guardada;
+                }
+                if (sec && sec !== 'dashboard') {
+                    const s = document.createElement('style');
+                    s.id = 'style-seccion-preload';
+                    s.textContent = '#sec-dashboard { display: none !important; } #sec-' + sec + ' { display: block !important; opacity: 1 !important; }';
+                    document.head.appendChild(s);
+                }
+            } catch(e) {}
+        })();
+        /*]]>*/
+    </script>
 </head>
 <body>
     <!-- El panel gerente usa un layout de SPA parcial con sidebar fijo y topbar dinámico; el overlay bloquea interacción y cierra el menú en móvil -->
@@ -23,21 +42,22 @@
     <!-- Sidebar utiliza layout personalizado en lugar de fragmento navbar para aislar controles del gerente y acciones seguras de sesión, con navegación SPA interna para secciones del panel -->
     <nav id="sidebar">
         <div class="sidebar-brand">
-            <div class="brand-icon"><i class="bi bi-tools"></i></div>
+            <div class="brand-icon" style="background-color: #56aee8 !important;"><i class="bi bi-tools"></i></div>
             <div class="brand-texts">
                 <span class="brand-name">RICAR AUTOBOUTIQUE</span>
+                <span class="brand-sac">S.A.C.</span>
             </div>
         </div>
         <div class="sidebar-nav">
             <div class="nav-section-label">GENERAL</div>
-            <a href="#" class="sidebar-link active" data-seccion="dashboard" onclick="mostrarSeccion('dashboard', this); return false;">
+            <a href="#" class="sidebar-link" th:classappend="${seccionActiva == 'dashboard' || seccionActiva == null ? 'active' : ''}" data-seccion="dashboard" onclick="mostrarSeccion('dashboard', this); return false;">
                 <i class="bi bi-speedometer2"></i><span class="link-text">Resumen</span>
             </a>
             <div class="nav-section-label">ANÁLISIS</div>
-            <a href="#" class="sidebar-link" data-seccion="ventas" onclick="mostrarSeccion('ventas', this); return false;">
+            <a href="#" class="sidebar-link" th:classappend="${seccionActiva == 'ventas' ? 'active' : ''}" data-seccion="ventas" onclick="mostrarSeccion('ventas', this); return false;">
                 <i class="bi bi-graph-up"></i><span class="link-text">Ventas</span>
             </a>
-            <a href="#" class="sidebar-link" data-seccion="reportes" onclick="mostrarSeccion('reportes', this); return false;">
+            <a href="#" class="sidebar-link" th:classappend="${seccionActiva == 'reportes' ? 'active' : ''}" data-seccion="reportes" onclick="mostrarSeccion('reportes', this); return false;">
                 <i class="bi bi-file-earmark-text"></i><span class="link-text">Reportes</span>
             </a>
         </div>
@@ -60,8 +80,9 @@
         <!-- Breadcrumb fijo para indicar el contexto del panel y ayudar al gerente a confirmar el rol activo mientras navega entre secciones -->
         <div class="topbar-right">
             <!-- Campana de notificaciones: Alterna entre activa (bi-bell) y silenciada (bi-bell-slash) al hacer click -->
-            <button id="btnCampana" class="topbar-icon-btn" title="Notificaciones" onclick="toggleCampana()">
+            <button id="btnCampana" class="topbar-icon-btn position-relative" title="Notificaciones" onclick="toggleCampana()">
                 <i id="iconoCampana" class="bi bi-bell"></i>
+                <span id="badgeCampanaNotif" class="badge-notif-pill d-none">0</span>
             </button>
             <div class="dropdown">
                 <!-- Desplegable Bootstrap para acciones de cuenta del gerente, nombre inyectado por Thymeleaf con valor predeterminado seguro; esto permite editar perfil o cerrar sesión desde el header sin salir del panel -->
@@ -87,11 +108,11 @@
     <!-- Cada sección dentro de main se muestra u oculta en el cliente sin recargar la página, creando una experiencia SPA en el panel del gerente -->
     <main id="mainContent">
         <!-- Sección Dashboard visible por defecto; gerente.js carga métricas, KPIs y gráficos dinámicamente tras inicializar el panel. Cada sección se oculta o muestra sin recarga mediante la función mostrarSeccion() -->
-        <section id="sec-dashboard" class="admin-section active">
+        <section id="sec-dashboard" class="admin-section" th:classappend="${seccionActiva == 'dashboard' || seccionActiva == null ? 'active' : ''}">
             <div class="row g-3 mb-4">
                 <div class="col-6 col-md-3">
                     <div class="kpi-card">
-                        <div class="kpi-icon blue"><i class="bi bi-credit-card"></i></div>
+                        <div class="kpi-icon" style="background-color: #56aee8 !important;"><i class="bi bi-credit-card" style="color: #ffffff !important;"></i></div>
                         <div>
                             <div class="kpi-value">S/ 0</div>
                             <div class="kpi-label">Ventas de este mes</div>
@@ -100,7 +121,7 @@
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="kpi-card">
-                        <div class="kpi-icon blue"><i class="bi bi-calendar-check"></i></div>
+                        <div class="kpi-icon" style="background-color: #56aee8 !important;"><i class="bi bi-calendar-check" style="color: #ffffff !important;"></i></div>
                         <div>
                             <div class="kpi-value">0</div>
                             <div class="kpi-label">Citas de este mes</div>
@@ -109,7 +130,7 @@
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="kpi-card">
-                        <div class="kpi-icon blue"><i class="bi bi-box-seam"></i></div>
+                        <div class="kpi-icon" style="background-color: #56aee8 !important;"><i class="bi bi-box-seam" style="color: #ffffff !important;"></i></div>
                         <div>
                             <div class="kpi-value">0</div>
                             <div class="kpi-label">Productos activos</div>
@@ -118,7 +139,7 @@
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="kpi-card">
-                        <div class="kpi-icon blue"><i class="bi bi-people"></i></div>
+                        <div class="kpi-icon" style="background-color: #56aee8 !important;"><i class="bi bi-people" style="color: #ffffff !important;"></i></div>
                         <div>
                             <div class="kpi-value">0</div>
                             <div class="kpi-label">Clientes registrados</div>
@@ -198,11 +219,11 @@
 
         </section>
         <!-- Esta sección permite al gerente revisar el historial de ventas, aplicar filtros de búsqueda y exportar resultados para análisis contable -->
-        <section id="sec-ventas" class="admin-section">
+        <section id="sec-ventas" class="admin-section" th:classappend="${seccionActiva == 'ventas' ? 'active' : ''}">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-                <div>
-                    <h5 class="fw-bold mb-0">Registro de Ventas</h5>
-                    <small class="text-muted">Historial de transacciones</small>
+                <div class="d-flex flex-column align-items-start gap-2">
+                    <span class="section-tag">ANÁLISIS - VENTAS</span>
+                    <small class="section-subtitle">Historial de transacciones</small>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <button type="button" class="btn btn-exportar-excel fw-semibold" id="btnExportarVentas"><i class="bi bi-file-earmark-excel-fill me-1"></i>Exportar Excel</button>
@@ -270,11 +291,11 @@
             </div>
         </section>
         <!-- Sección Reportes incluye tarjetas por períodos y tabla de reporte de servicios, renderizados por JS del gerente si los datos se cargan; esta sección ofrece estadísticas resumidas para evaluar crecimiento y tendencias de negocio -->
-        <section id="sec-reportes" class="admin-section">
+        <section id="sec-reportes" class="admin-section" th:classappend="${seccionActiva == 'reportes' ? 'active' : ''}">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-                <div>
-                    <h5 class="fw-bold mb-0">Reportes y Estadísticas</h5>
-                    <small class="text-muted">Resumen de rendimiento del negocio</small>
+                <div class="d-flex flex-column align-items-start gap-2">
+                    <span class="section-tag">ANÁLISIS - REPORTES</span>
+                    <small class="section-subtitle">Resumen de rendimiento del negocio</small>
                 </div>
             </div>
             <div class="row g-3 mb-4">
@@ -450,17 +471,26 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <!-- global.js: Utilidades compartidas entre roles; debe cargarse antes de gerente.js -->
-    <script th:src="@{/js/global.js}"></script>
+    <script th:src="@{/js/global.js(v='1.2')}"></script>
     <!-- gerente.js: Lógica principal del panel gerente; gestiona la SPA interna, carga y filtra ventas, reportes, clientes y citas, y controla modales y exportaciones -->
-    <script th:src="@{/js/roles/gerente.js(v='1.2')}"></script>
-    <!-- Activa la sección correspondiente según la URL solicitada al servidor -->
+    <script th:src="@{/js/roles/gerente.js(v='2.2')}"></script>
+    <!-- Activa la sección correspondiente según la URL solicitada al servidor o memoria local -->
     <script th:inline="javascript">
-        const seccionActiva = null;
+        /*<![CDATA[*/
+        const seccionActiva = /*[[${seccionActiva}]]*/ null;
         document.addEventListener('DOMContentLoaded', () => {
-            if (seccionActiva && seccionActiva !== 'dashboard') {
-                mostrarSeccion(seccionActiva);
+            let sec = seccionActiva;
+            if (!sec || sec === 'dashboard') {
+                const guardada = localStorage.getItem('ultimaSeccionGerente');
+                if (guardada) sec = guardada;
             }
+            if (sec && sec !== 'dashboard') {
+                mostrarSeccion(sec);
+            }
+            const preloadStyle = document.getElementById('style-seccion-preload');
+            if (preloadStyle) preloadStyle.remove();
         });
+        /*]]>*/
     </script>
 </body>
 </html>

@@ -13,9 +13,28 @@
     <!-- global.css: Estilos compartidos entre todos los roles; incluye variables CSS (--azul-oscuro, --celeste), navbar, y utilidades de sesión visual -->
     <link rel="stylesheet" th:href="@{/css/global.css}">
     <!-- administrador.css: Estilos exclusivos del panel admin; define sidebar, topbar, admin-card, kpi-card, status-badge, product-admin-card, service-admin-card y admin-table -->
-    <link rel="stylesheet" th:href="@{/css/roles/administrador.css(v='5.5')}">
+    <link rel="stylesheet" th:href="@{/css/roles/administrador.css(v='5.8')}">
     <!-- Favicon del sitio -->
     <link rel="icon" th:href="@{/img/icono/icon.png}" type="image/png">
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        (function() {
+            try {
+                let sec = /*[[${seccionActiva}]]*/ null;
+                if (!sec || sec === 'citas') {
+                    const guardada = localStorage.getItem('ultimaSeccionAdmin');
+                    if (guardada) sec = guardada;
+                }
+                if (sec && sec !== 'citas') {
+                    const s = document.createElement('style');
+                    s.id = 'style-seccion-preload-admin';
+                    s.textContent = '#sec-citas { display: none !important; } #sec-' + sec + ' { display: block !important; opacity: 1 !important; }';
+                    document.head.appendChild(s);
+                }
+            } catch(e) {}
+        })();
+        /*]]>*/
+    </script>
 </head>
 <body>
     <!-- Overlay semitransparente que cubre el contenido principal cuando el sidebar está abierto en móvil; onclick llama a cerrarSidebarMobile() definido en administrador.js -->
@@ -24,9 +43,10 @@
     <nav id="sidebar">
         <!-- Encabezado del sidebar: Muestra el logo y el nombre de la empresa centrado con respecto al logo -->
         <div class="sidebar-brand">
-            <div class="brand-icon"><i class="bi bi-tools"></i></div>
+            <div class="brand-icon" style="background-color: #56aee8 !important;"><i class="bi bi-tools"></i></div>
             <div class="brand-texts">
                 <span class="brand-name">RICAR AUTOBOUTIQUE</span>
+                <span class="brand-sac">S.A.C.</span>
             </div>
         </div>
         <!-- Menú de navegación interna: Agrupa los enlaces por sección funcional (Principal, Catálogo, Gestión); la clase active se gestiona dinámicamente desde mostrarSeccion() en administrador.js -->
@@ -50,6 +70,9 @@
             <a href="#" class="sidebar-link" data-seccion="clientes" onclick="mostrarSeccion('clientes', this); return false;">
                 <i class="bi bi-people"></i><span class="link-text">Clientes</span>
             </a>
+            <a href="#" class="sidebar-link" data-seccion="mensajes" onclick="mostrarSeccion('mensajes', this); return false;">
+                <i class="bi bi-chat-dots"></i><span class="link-text">Mensajes</span><span class="sidebar-badge" id="badgeMensajesPendientes" style="display:none;">0</span>
+            </a>
         </div>
         <!-- Pie del sidebar: Enlaces de acción global; irAInicio() navega al sitio público preservando sesión; cerrarSesionAdmin() elimina la sesión de sessionStorage y redirige a /inicio -->
         <div class="sidebar-footer">
@@ -70,8 +93,9 @@
         <!-- Dropdown de perfil: AdminNombreAvatar e adminNombreMenu se rellenan dinámicamente en el DOMContentLoaded de administrador.js con las iniciales y nombre completo desde sessionStorage -->
         <div class="topbar-right">
             <!-- Campana de notificaciones: Alterna entre activa (bi-bell) y silenciada (bi-bell-slash) al hacer click -->
-            <button id="btnCampana" class="topbar-icon-btn" title="Notificaciones" onclick="toggleCampana()">
+            <button id="btnCampana" class="topbar-icon-btn position-relative" title="Notificaciones" onclick="toggleCampana()">
                 <i id="iconoCampana" class="bi bi-bell"></i>
+                <span id="badgeCampanaNotif" class="badge-notif-pill d-none">0</span>
             </button>
             <div class="dropdown">
                 <div class="admin-avatar dropdown-toggle" data-bs-toggle="dropdown" id="adminNombreAvatar" title="Perfil">AD</div>
@@ -337,6 +361,103 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </section>
+        <!-- Sección de Mensajes y Consultas de Clientes: Permite a los administradores ver las consultas entrantes (FIFO), responderlas en formato chat y coordinar la atención entre administradores -->
+        <section id="sec-mensajes" class="admin-section">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                <div class="d-flex flex-column align-items-start gap-2">
+                    <span class="section-tag">GESTIÓN - BANDEJA DE MENSAJES</span>
+                    <h2 class="section-title mb-0">Consultas de Clientes</h2>
+                    <p class="section-subtitle mb-0">Atiende las consultas recibidas desde "Contáctanos" en orden de llegada (FIFO). La respuesta será visible para el cliente en su perfil.</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="cargarMensajesAdmin(_paginaMensajesActual)" title="Actualizar lista">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panel dividido de Mensajería: Columna izquierda lista de chats (20 por página con paginación abajo) y columna derecha chat de conversación -->
+            <div class="admin-card">
+                <div class="row g-0" style="min-height: 600px;">
+                    <!-- Columna Izquierda: Bandeja de mensajes -->
+                    <div class="col-lg-5 col-xl-4 border-end d-flex flex-column" style="background: #fafcff;">
+                        <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-white">
+                            <span class="fw-bold small text-uppercase" style="color:var(--azul-oscuro); letter-spacing:0.5px;">
+                                <i class="bi bi-inbox me-1 text-primary"></i>Mensajes Recibidos
+                            </span>
+                            <span class="badge" id="badgeMensajesTotalConteo" style="background:rgba(86,174,232,0.15); color:var(--celeste); font-weight:700;">0</span>
+                        </div>
+                        <!-- Lista de mensajes con scroll -->
+                        <div id="listaMensajesBandeja" class="flex-grow-1 p-2" style="overflow-y: auto; max-height: 520px;">
+                            <div class="text-center py-5 text-muted">
+                                <div class="spinner-border spinner-border-sm me-2"></div>Cargando mensajes...
+                            </div>
+                        </div>
+                        <!-- Paginación inferior: Solo 20 mensajes por página -->
+                        <div class="p-2 border-top bg-white d-flex justify-content-center align-items-center" id="paginacionMensajesBandeja">
+                            <!-- Botones de paginación generados dinámicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Columna Derecha: Chat y área de respuesta -->
+                    <div class="col-lg-7 col-xl-8 d-flex flex-column" style="background: #fff;">
+                        <!-- Estado vacío inicial (ningún mensaje seleccionado) -->
+                        <div id="chatAdminVacio" class="d-flex flex-column align-items-center justify-content-center h-100 p-5 text-center text-muted">
+                            <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width:72px; height:72px; border-radius:50%; background:rgba(86,174,232,0.12); color:var(--celeste);">
+                                <i class="bi bi-chat-dots-fill" style="font-size:2rem;"></i>
+                            </div>
+                            <h6 class="fw-bold text-dark mb-1">Selecciona una consulta</h6>
+                            <p class="small text-muted mb-0" style="max-width: 380px;">Elige una consulta de la bandeja izquierda para ver los detalles del cliente y redactar la respuesta del taller.</p>
+                        </div>
+
+                        <!-- Chat activo -->
+                        <div id="chatAdminActivo" class="d-none flex-column h-100">
+                            <!-- Cabecera del chat -->
+                            <div class="p-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2 bg-light">
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <h6 class="fw-bold mb-0" id="chatAdminClienteNombre" style="color:var(--azul-oscuro);">Nombre del Cliente</h6>
+                                        <span id="chatAdminBadgeEstado" class="badge bg-warning text-dark">Pendiente</span>
+                                    </div>
+                                    <div class="small text-muted d-flex gap-3 flex-wrap">
+                                        <span><i class="bi bi-telephone me-1 text-primary"></i><span id="chatAdminClienteTel">---</span></span>
+                                        <span><i class="bi bi-envelope me-1 text-primary"></i><span id="chatAdminClienteEmail">---</span></span>
+                                        <span><i class="bi bi-tag me-1 text-primary"></i><strong id="chatAdminClienteAsunto">---</strong></span>
+                                    </div>
+                                </div>
+                                <div class="text-end small text-muted">
+                                    <i class="bi bi-clock me-1"></i><span id="chatAdminFechaEnvio">---</span>
+                                </div>
+                            </div>
+
+                            <!-- Contenedor del historial tipo Chat -->
+                            <div class="flex-grow-1 p-4" id="chatAdminHistorial" style="overflow-y: auto; max-height: 400px; background-color: #f8fafc;">
+                                <!-- Burbujas renderizadas dinámicamente -->
+                            </div>
+
+                            <!-- Formulario de Respuesta del Administrador -->
+                            <div class="p-3 border-top bg-white" id="chatAdminRespuestaForm">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="small fw-bold text-uppercase" style="color:var(--azul-oscuro); letter-spacing:0.5px;">
+                                        <i class="bi bi-reply-fill me-1 text-primary"></i>Brindar Respuesta al Cliente:
+                                    </span>
+                                    <span class="small text-muted" id="chatAdminNombreFirmante">
+                                        Atendiendo como: Administrador
+                                    </span>
+                                </div>
+                                <textarea class="form-control mb-2" id="txtRespuestaAdmin" rows="3" placeholder="Escribe aquí tu respuesta para el cliente..."></textarea>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="small text-muted"><i class="bi bi-info-circle me-1"></i>El cliente verá esta respuesta reflejada en su perfil.</span>
+                                    <button class="btn btn-primary px-4 fw-bold" id="btnEnviarRespuesta" onclick="enviarRespuestaAdmin()" style="background-color: var(--celeste); border-color: var(--celeste); border-radius: 10px; color:#fff;">
+                                        <i class="bi bi-send-fill me-2"></i>Enviar Respuesta
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -706,17 +827,26 @@
     <!-- Bootstrap 5.3.3 JS Bundle CDN: Incluye Popper.js integrado; requerido para el funcionamiento de modales, dropdowns, toasts y tooltips de Bootstrap usados en todo el panel -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- global.js: Define obtenerSesion(), guardarSesion(), cerrarSesion(), actualizarNavbar(), abrirModal(), limpiarBackdropsSobrantes() y otras utilidades compartidas entre todos los roles; debe cargarse antes de administrador.js -->
-    <script th:src="@{/js/global.js}"></script>
+    <script th:src="@{/js/global.js(v='1.2')}"></script>
     <!-- administrador.js: Lógica principal del panel; valida el rol "administrador" en sessionStorage al cargar, realiza todas las llamadas a la API REST (/api/categorias, /api/productos, /api/servicios, /api/citas, /api/usuarios, /api/compras) y gestiona el estado de la SPA -->
-    <script th:src="@{/js/roles/administrador.js(v='3.3')}"></script>
-    <!-- Activa la sección correspondiente según la URL solicitada al servidor -->
+    <script th:src="@{/js/roles/administrador.js(v='3.6')}"></script>
+    <!-- Activa la sección correspondiente según la URL solicitada al servidor o memoria local -->
     <script th:inline="javascript">
-        const seccionActiva = null;
+        /*<![CDATA[*/
+        const seccionActiva = /*[[${seccionActiva}]]*/ null;
         document.addEventListener('DOMContentLoaded', () => {
-            if (seccionActiva && seccionActiva !== 'citas') {
-                mostrarSeccion(seccionActiva);
+            let sec = seccionActiva;
+            if (!sec || sec === 'citas') {
+                const guardada = localStorage.getItem('ultimaSeccionAdmin');
+                if (guardada) sec = guardada;
             }
+            if (sec && sec !== 'citas') {
+                mostrarSeccion(sec);
+            }
+            const preloadStyle = document.getElementById('style-seccion-preload-admin');
+            if (preloadStyle) preloadStyle.remove();
         });
+        /*]]>*/
     </script>
 </body>
 </html>

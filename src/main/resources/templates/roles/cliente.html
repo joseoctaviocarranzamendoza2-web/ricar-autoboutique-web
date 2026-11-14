@@ -87,6 +87,11 @@
                             <i class="bi bi-clock-history me-2"></i>Historial
                         </button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="perfil-tab-btn" data-bs-toggle="tab" data-bs-target="#tab-mensajes" type="button" role="tab" aria-controls="tab-mensajes" aria-selected="false">
+                            <i class="bi bi-chat-dots me-2"></i>Mis Mensajes
+                        </button>
+                    </li>
                     <li class="nav-item ms-auto" id="item-cambiar-rol" th:classappend="${puedeCambiarRol == true ? '' : 'd-none'}">
                         <a class="perfil-tab-btn text-decoration-none" href="/rol" onclick="irACambiarRol(); return false;">
                             <i class="bi bi-arrow-repeat me-2"></i>Cambiar rol
@@ -256,6 +261,34 @@
                         </div>
                     </div>
                 </div>
+                <!-- Pestaña de Mensajes y Consultas del Cliente -->
+                <div class="tab-pane fade" id="tab-mensajes" role="tabpanel">
+                    <div class="u-card">
+                        <div class="u-card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-chat-dots-fill me-2" style="color:var(--celeste);"></i>Mis Consultas y Mensajes
+                            </div>
+                            <a href="/contacto" class="btn btn-sm btn-outline-primary fw-semibold" style="border-radius: 8px;">
+                                <i class="bi bi-plus-lg me-1"></i>Nueva Consulta
+                            </a>
+                        </div>
+                        <div class="u-card-body">
+                            <div id="listaMisMensajesCliente">
+                                <div class="text-center py-5 text-muted">
+                                    <div class="spinner-border spinner-border-sm me-2"></div>Cargando consultas...
+                                </div>
+                            </div>
+                            <div id="sinMensajesCliente" class="text-center py-5 d-none">
+                                <i class="bi bi-chat-left-dots display-4 text-muted mb-3 d-block"></i>
+                                <h5 class="text-muted">No has enviado ninguna consulta</h5>
+                                <p class="text-muted small">Tus mensajes enviados desde "Envíanos un mensaje" y sus respuestas aparecerán aquí.</p>
+                                <a href="/contacto" class="btn btn-primary btn-sm px-3 fw-bold" style="background:var(--celeste); border-color:var(--celeste); border-radius:8px;">
+                                    Ir a Contacto
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -267,12 +300,14 @@
     <script th:src="@{/js/global.js}"></script>
     <!-- cliente.js: Lógica específica del panel de cliente; carga datos de perfil, compras y servicios, gestiona pestañas y acciones del usuario sin recargar la página -->
     <script th:src="@{/js/roles/cliente.js}"></script>
-    <!-- Activa la pestaña correspondiente según la URL solicitada al servidor (panel/cliente/{id}/perfil|compras|servicios|historial) -->
+    <!-- Activa la pestaña correspondiente según la URL solicitada al servidor (panel/cliente/{id}/perfil|compras|servicios|historial|mensajes) -->
     <script th:inline="javascript">
-        const tabActiva = null;
+        /*<![CDATA[*/
+        const tabActiva = /*[[${tabActiva}]]*/ null;
         document.addEventListener('DOMContentLoaded', () => {
             if (tabActiva) activarTab(tabActiva, false);
         });
+        /*]]>*/
     </script>
 </body>
 </html>

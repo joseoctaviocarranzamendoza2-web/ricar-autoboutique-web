@@ -33,9 +33,10 @@ body {
     border-radius: 10px;
 }
 
-/* Color al pasar el cursor */
-::-webkit-scrollbar-thumb:hover {
-    background: var(--azul-medio);
+/* Mantiene el color celeste institucional incluso al pasar el cursor o hacer click */
+::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:active {
+    background: var(--celeste);
 }
 
 /* Fondo, padding y transiciones del navbar */

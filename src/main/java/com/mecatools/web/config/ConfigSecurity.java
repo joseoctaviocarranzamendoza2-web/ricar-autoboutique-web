@@ -111,7 +111,7 @@ public class ConfigSecurity {
                         .hasAnyAuthority("administrador", "gerente")
                         .requestMatchers(HttpMethod.DELETE, "/api/productos/**", "/api/servicios/**",
                                 "/api/categorias/**").hasAuthority("administrador")
-                        .requestMatchers("/api/citas/**", "/api/compras/**").hasAnyAuthority("cliente", "administrador", "gerente")
+                        .requestMatchers("/api/citas/**", "/api/compras/**", "/api/mensajes/**").hasAnyAuthority("cliente", "administrador", "gerente")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(resourceServer -> resourceServer
                                 .authenticationEntryPoint(authenticationEntryPoint())

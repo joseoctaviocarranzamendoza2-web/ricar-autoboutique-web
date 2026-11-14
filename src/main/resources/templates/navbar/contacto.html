@@ -285,6 +285,27 @@
             </div>
         </section>
     </main>
+    <!-- Modal de confirmación de envío de mensaje de contacto -->
+    <div class="modal fade" id="modalConfirmacionContacto" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 18px; overflow: hidden;">
+                <div class="modal-body text-center p-4">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; border-radius: 50%; background: rgba(86, 174, 232, 0.15); color: var(--celeste);">
+                        <i class="bi bi-check-circle-fill" style="font-size: 2.2rem;"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2" style="color: var(--azul-oscuro);">¡Mensaje Enviado con Éxito!</h5>
+                    <p class="text-muted small mb-4">
+                        Tu consulta ha sido registrada exitosamente. El equipo de administración responderá a tu mensaje a la brevedad y podrás revisar la respuesta directamente en tu perfil de cliente.
+                    </p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="button" class="btn btn-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 600;">Entendido</button>
+                        <a href="/cliente" id="btnIrAPerfilMensajes" class="btn btn-primary px-4 py-2" style="background-color: var(--celeste); border-color: var(--celeste); border-radius: 10px; font-weight: 700; color: #fff;">Ver mis mensajes</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer fragment insertado para incluir el pie de página compartido con enlaces y datos de contacto -->
     <div th:replace="~{fragments/footer :: footer}"></div>
     <!-- Bootstrap 5.3.3 JS Bundle CDN: Habilita modales, dropdowns y tooltips usados en la navegación pública -->

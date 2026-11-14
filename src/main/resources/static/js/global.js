@@ -26,6 +26,17 @@ function registrarActividadUsuario() {
     window.addEventListener(evt, registrarActividadUsuario, { passive: true });
 });
 
+// Escapa caracteres HTML para prevenir XSS en renders dinámicos
+function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 // Función centralizada para renovar el Access Token mediante el Refresh Token
 let _promesaRenovacion = null;
 async function renovarTokenJWT() {
@@ -222,16 +233,47 @@ function irAPerfil() {
     window.location.href = `/cliente/${sesion.id}`;
 }
 
-// Redirige al panel de administración del usuario en sesión
+// Redirige al panel de administración del usuario en sesión respetando la última sección guardada
 function irAAdministracion() {
     const sesion = obtenerSesion();
-    window.location.href = `/administrador/${sesion.id}`;
+    if (!sesion) {
+        window.location.href = '/login';
+        return;
+    }
+    const ultima = localStorage.getItem('ultimaSeccionAdmin');
+    const MAPA = {
+        'citas': 'reservas/citas',
+        'productos': 'catalogo/productos',
+        'servicios': 'catalogo/servicios',
+        'categorias': 'catalogo/categorias',
+        'clientes': 'gestion/clientes',
+        'mensajes': 'gestion/mensajes'
+    };
+    if (ultima && MAPA[ultima]) {
+        window.location.href = `/panel/administrador/${sesion.id}/${MAPA[ultima]}`;
+    } else {
+        window.location.href = `/administrador/${sesion.id}`;
+    }
 }
 
-// Redirige al panel de gerente del usuario en sesión
+// Redirige al panel de gerente del usuario en sesión respetando la última sección guardada
 function irAGestion() {
     const sesion = obtenerSesion();
-    window.location.href = `/gerente/${sesion.id}`;
+    if (!sesion) {
+        window.location.href = '/login';
+        return;
+    }
+    const ultima = localStorage.getItem('ultimaSeccionGerente');
+    const MAPA = {
+        'dashboard': 'general/resumen',
+        'ventas': 'analisis/ventas',
+        'reportes': 'analisis/reportes'
+    };
+    if (ultima && MAPA[ultima]) {
+        window.location.href = `/panel/gerente/${sesion.id}/${MAPA[ultima]}`;
+    } else {
+        window.location.href = `/gerente/${sesion.id}`;
+    }
 }
 
 // Navega a una URL añadiendo el rol y id de la sesión si existe - Útil para rutas que necesitan contexto

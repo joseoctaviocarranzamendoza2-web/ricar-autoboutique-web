@@ -17,6 +17,70 @@ function obtenerNombreCompletoUsuario(sesion) {
     return partes || sesion.nombre || '';
 }
 
+// Inicializa el custom select para el campo Asunto en el formulario de contacto
+function iniciarSelectAsuntoContacto() {
+    const select = document.getElementById('cAsunto');
+    if (!select || select.dataset.customInit === 'true') return;
+    select.dataset.customInit = 'true';
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'custom-select-wrapper';
+    select.parentNode.insertBefore(wrapper, select);
+    wrapper.appendChild(select);
+    select.classList.add('custom-select-native');
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'custom-select-trigger';
+    trigger.innerHTML = `
+        <span class="custom-select-label">${select.options[select.selectedIndex]?.text || 'Seleccionar motivo...'}</span>
+        <i class="bi bi-chevron-down custom-select-arrow"></i>
+    `;
+    wrapper.appendChild(trigger);
+
+    const menu = document.createElement('div');
+    menu.className = 'custom-select-menu';
+
+    Array.from(select.options).forEach((opt, idx) => {
+        if (idx === 0 && !opt.value) return; // Omite el placeholder como opción seleccionable
+        const optDiv = document.createElement('div');
+        optDiv.className = `custom-select-option${opt.selected ? ' selected' : ''}`;
+        optDiv.textContent = opt.text;
+        optDiv.dataset.value = opt.value;
+        optDiv.addEventListener('click', (e) => {
+            e.stopPropagation();
+            select.value = opt.value;
+            trigger.querySelector('.custom-select-label').textContent = opt.text;
+            menu.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+            optDiv.classList.add('selected');
+            wrapper.classList.remove('open');
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        menu.appendChild(optDiv);
+    });
+
+    wrapper.appendChild(menu);
+
+    trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const estaAbierto = wrapper.classList.contains('open');
+        document.querySelectorAll('.custom-select-wrapper.open').forEach(w => w.classList.remove('open'));
+        if (!estaAbierto) wrapper.classList.add('open');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!wrapper.contains(e.target)) {
+            wrapper.classList.remove('open');
+        }
+    });
+
+    select._customReset = () => {
+        select.value = '';
+        trigger.querySelector('.custom-select-label').textContent = select.options[0]?.text || 'Seleccionar motivo...';
+        menu.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+    };
+}
+
 // Autocompleta automáticamente los campos de nombre, teléfono y correo si el usuario ha iniciado sesión
 async function autocompletarDatosContacto() {
     let sesion = (typeof obtenerSesion === 'function') ? obtenerSesion() : null;
@@ -57,11 +121,17 @@ async function autocompletarDatosContacto() {
         if (cEmail && !cEmail.value && sesion.email) {
             cEmail.value = sesion.email;
         }
+
+        // Configura el botón de ver mis mensajes en el modal de confirmación
+        const btnVerMensajes = document.getElementById('btnIrAPerfilMensajes');
+        if (btnVerMensajes) {
+            btnVerMensajes.href = `/panel/cliente/${sesion.id}/mensajes`;
+        }
     }
 }
 
-// Botón enviar contacto: valida sesión requerida y campos; muestra feedback y resetea solo el asunto y mensaje
-document.getElementById('btnContacto')?.addEventListener('click', function () {
+// Botón enviar contacto: valida sesión requerida y campos, envía al backend y abre modal de confirmación
+document.getElementById('btnContacto')?.addEventListener('click', async function () {
     const sesion = (typeof obtenerSesion === 'function') ? obtenerSesion() : null;
     if (!sesion) {
         const loginError = document.getElementById('loginError');
@@ -84,50 +154,101 @@ document.getElementById('btnContacto')?.addEventListener('click', function () {
         { id: 'cMensaje', msg: 'Escribe tu mensaje', test: v => v.trim().length >= 1 }
     ];
 
-    // Validación de campos con feedback en cada input
+    // Validación de campos con feedback visual en cada input
     campos.forEach(({ id, msg, test }) => {
         const el = document.getElementById(id);
         if (!el) return;
-        const fb = el.parentNode.querySelector('.invalid-feedback');
+        const parent = el.closest('.col-sm-6, .col-12');
+        const fb = parent ? parent.querySelector('.invalid-feedback') : null;
+        const trigger = el._customRefs?.trigger || parent?.querySelector('.custom-select-trigger');
         const pasa = test(el.value);
         if (!pasa) {
             el.classList.add('is-invalid');
             el.classList.remove('is-valid');
+            if (trigger) trigger.classList.add('is-invalid');
             if (fb) fb.textContent = msg;
             valido = false;
         } else {
             el.classList.remove('is-invalid');
             el.classList.add('is-valid');
+            if (trigger) trigger.classList.remove('is-invalid');
             if (fb) fb.textContent = '';
         }
     });
 
     if (!valido) return;
 
-    // Simulación de envío: mostrar alerta, deshabilitar botón y limpiar únicamente el mensaje y el asunto
-    document.getElementById('alertaContacto')?.classList.remove('d-none');
     this.disabled = true;
-    this.innerHTML = '<i class="bi bi-check2-circle me-2"></i>Enviado';
-    setTimeout(() => {
-        ['cAsunto', 'cMensaje'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.value = '';
-                el.classList.remove('is-valid', 'is-invalid');
-            }
+    const textoOriginal = this.innerHTML;
+    this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando...';
+
+    try {
+        const payload = {
+            usuarioId: String(sesion.id),
+            nombreCompleto: document.getElementById('cNombre')?.value.trim(),
+            telefono: document.getElementById('cTelefono')?.value.trim(),
+            email: document.getElementById('cEmail')?.value.trim(),
+            asunto: document.getElementById('cAsunto')?.value.trim(),
+            mensaje: document.getElementById('cMensaje')?.value.trim()
+        };
+
+        const resp = await fetch('/api/mensajes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
         });
+
+        if (!resp.ok) {
+            const errData = await resp.json().catch(() => ({}));
+            throw new Error(errData.error || 'No se pudo enviar el mensaje.');
+        }
+
+        // Limpiar solo los campos de asunto y mensaje
+        const selectAsunto = document.getElementById('cAsunto');
+        if (selectAsunto && typeof selectAsunto._customReset === 'function') {
+            selectAsunto._customReset();
+        } else if (selectAsunto) {
+            selectAsunto.value = '';
+        }
+
+        const inputMensaje = document.getElementById('cMensaje');
+        if (inputMensaje) {
+            inputMensaje.value = '';
+            inputMensaje.classList.remove('is-valid', 'is-invalid');
+        }
         document.getElementById('cContador').textContent = '0 / 400 caracteres';
-        document.getElementById('alertaContacto')?.classList.add('d-none');
+
+        // Muestra el modal de confirmación
+        const modalEl = document.getElementById('modalConfirmacionContacto');
+        if (modalEl) {
+            const btnVerMensajes = document.getElementById('btnIrAPerfilMensajes');
+            if (btnVerMensajes) {
+                btnVerMensajes.href = `/panel/cliente/${sesion.id}/mensajes`;
+            }
+            const modalInst = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modalInst.show();
+        } else {
+            alert('¡Mensaje enviado con éxito! Tu consulta ha sido registrada.');
+        }
+
+    } catch (err) {
+        console.error('Error al enviar mensaje:', err);
+        alert(err.message || 'Ocurrió un error al enviar el mensaje. Intenta de nuevo.');
+    } finally {
         this.disabled = false;
-        this.innerHTML = '<i class="bi bi-send-fill me-2"></i>Enviar mensaje';
+        this.innerHTML = textoOriginal;
         autocompletarDatosContacto();
-    }, 2500);
+    }
 });
 
-// Inicialización de autocompletado al cargar y al cerrar login
+// Inicialización de select custom y autocompletado al cargar y al cerrar login
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', autocompletarDatosContacto);
+    document.addEventListener('DOMContentLoaded', () => {
+        iniciarSelectAsuntoContacto();
+        autocompletarDatosContacto();
+    });
 } else {
+    iniciarSelectAsuntoContacto();
     autocompletarDatosContacto();
 }
 document.getElementById('modalLogin')?.addEventListener('hidden.bs.modal', autocompletarDatosContacto);

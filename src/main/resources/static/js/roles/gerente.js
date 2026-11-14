@@ -15,6 +15,8 @@ let _anioVentas = new Date().getFullYear();
 
 // Inicialización: Valida sesión de gerente, carga datos y configura UI
 document.addEventListener('DOMContentLoaded', async () => {
+    inicializarEstadoCampana();
+    inicializarEstadoSidebar();
     const sesion = obtenerSesion();
     if (!sesion || sesion.rol !== 'gerente') {
         window.location.href = '/inicio';
@@ -30,6 +32,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (breadcrumb) breadcrumb.textContent = `Gerente ${nombreCompleto}`;
     await cargarTodos();
     iniciarFiltrosVentas();
+    await actualizarConteoNotificacionesGerente();
+    setInterval(actualizarConteoNotificacionesGerente, 15000);
 });
 
 // Carga en paralelo compras, citas, productos y usuarios
@@ -59,7 +63,7 @@ const MAPA_SECCION_URL = {
     reportes: 'analisis/reportes'
 };
 
-// Cambia la sección activa del sidebar y sincroniza la URL sin recargar
+// Cambia la sección activa del sidebar, sincroniza la URL sin recargar y persiste en localStorage y cookie
 function mostrarSeccion(nombre, link) {
     document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
@@ -72,9 +76,30 @@ function mostrarSeccion(nombre, link) {
     if (sesion && segmento) {
         history.pushState({ seccion: nombre }, '', `/panel/gerente/${sesion.id}/${segmento}`);
     }
+    try {
+        localStorage.setItem('ultimaSeccionGerente', nombre);
+        document.cookie = `ultimaSeccionGerente=${nombre}; path=/; max-age=31536000; SameSite=Lax`;
+    } catch (e) {}
 }
 
-// Alterna el estado del sidebar (móvil vs desktop)
+// Restaura el estado colapsado del sidebar desde localStorage en pantallas desktop
+function inicializarEstadoSidebar() {
+    const isMobile = window.matchMedia('(max-width: 991px)').matches;
+    if (isMobile) return;
+    try {
+        if (localStorage.getItem('sidebarColapsado') === 'true') {
+            document.getElementById('sidebar')?.classList.add('collapsed');
+            document.getElementById('topbar')?.classList.add('collapsed');
+            document.getElementById('mainContent')?.classList.add('collapsed');
+        } else {
+            document.getElementById('sidebar')?.classList.remove('collapsed');
+            document.getElementById('topbar')?.classList.remove('collapsed');
+            document.getElementById('mainContent')?.classList.remove('collapsed');
+        }
+    } catch (e) {}
+}
+
+// Alterna el estado del sidebar (móvil vs desktop) y persiste en localStorage
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const topbar = document.getElementById('topbar');
@@ -85,9 +110,12 @@ function toggleSidebar() {
         sidebar.classList.toggle('mobile-open');
         overlay?.classList.toggle('show');
     } else {
-        sidebar.classList.toggle('collapsed');
-        topbar.classList.toggle('collapsed');
-        mainContent.classList.toggle('collapsed');
+        const estaColapsado = sidebar.classList.toggle('collapsed');
+        topbar?.classList.toggle('collapsed', estaColapsado);
+        mainContent?.classList.toggle('collapsed', estaColapsado);
+        try {
+            localStorage.setItem('sidebarColapsado', estaColapsado ? 'true' : 'false');
+        } catch (e) {}
     }
 }
 
@@ -261,7 +289,7 @@ function renderDashboard() {
                 </td>
                 <td class="text-center align-middle" style="white-space: normal; line-height: 1.35;">
                     <div>${c.fecha || '—'}</div>
-                    ${c.hora ? `<small class="text-muted">${c.hora}</small>` : ''}
+                    <small class="text-muted">${resolverTextoHoraCita(c.hora, c.estado)}</small>
                 </td>
                 <td class="text-center align-middle" style="padding-right: 1.25rem;">
                     <span class="badge ${c.estado === 'Confirmada' ? 'bg-success' : 'bg-warning'} px-2 py-1">${c.estado}</span>
@@ -309,6 +337,8 @@ function cambiarTipoVentas(tipo) {
     if (btnProd && btnServ) {
         btnProd.className = tipo === 'productos' ? 'tab-ventas-btn active' : 'tab-ventas-btn';
         btnServ.className = tipo === 'servicios' ? 'tab-ventas-btn active' : 'tab-ventas-btn';
+        btnProd.blur();
+        btnServ.blur();
     }
     ejecutarFiltroVentas(false);
 }
@@ -434,11 +464,21 @@ function ejecutarFiltroVentas(conToast = false) {
     }
 }
 
+// Resuelve el texto de horario para una cita, sincronizando "Por confirmar" con su estado real
+function resolverTextoHoraCita(hora, estado) {
+    const h = (hora || '').trim();
+    if (!h || h.toLowerCase().includes('confirmar')) {
+        return (estado === 'Pendiente' || !estado) ? 'Por confirmar' : estado;
+    }
+    return h;
+}
+
 // Formatea fechas separando fecha y hora en dos líneas consistentes
-function formatearFechaHora(fechaStr, horaStr = '') {
+function formatearFechaHora(fechaStr, horaStr = '', estado = '') {
     if (!fechaStr) return '—';
-    if (horaStr) {
-        return `<div>${fechaStr}</div><small class="text-muted">${horaStr}</small>`;
+    const hFinal = resolverTextoHoraCita(horaStr, estado);
+    if (hFinal) {
+        return `<div>${fechaStr}</div><small class="text-muted">${hFinal}</small>`;
     }
     if (fechaStr.includes('T')) {
         const [f, h] = fechaStr.split('T');
@@ -534,7 +574,7 @@ function renderVentas() {
                 <td class="fw-semibold text-center align-middle" style="padding-left: 1.25rem;">#V-${String(c.id).padStart(3, '0')}</td>
                 <td class="text-center align-middle" style="white-space: normal; line-height: 1.35;">${c.usuario?.nombres || '—'} ${c.usuario?.apellidos || ''}</td>
                 <td class="text-center align-middle" style="white-space: normal; line-height: 1.35;">${productos}</td>
-                <td class="text-center align-middle" style="white-space: normal; line-height: 1.35;">${formatearFechaHora(c.fecha, c.hora)}</td>
+                <td class="text-center align-middle" style="white-space: normal; line-height: 1.35;">${formatearFechaHora(c.fecha, c.hora, c.estado)}</td>
                 <td class="text-center align-middle"><span class="monto-tabla">S/ ${(c.total || 0).toFixed(2)}</span></td>
                 <td class="text-center align-middle"><span class="badge ${claseEstado} px-2 py-1">${c.estado || '—'}</span></td>
                 <td class="text-center align-middle" style="padding-right: 1.25rem;"><span class="badge bg-info text-dark px-2 py-1">${metodoPago}</span></td>
@@ -588,7 +628,7 @@ function renderVentas() {
                 <td class="fw-semibold text-center align-middle" style="padding-left: 1.25rem;">#S-${String(c.id).padStart(3, '0')}</td>
                 <td class="text-center align-middle" style="white-space: normal; line-height: 1.35;">${c.usuario?.nombres || '—'} ${c.usuario?.apellidos || ''}</td>
                 <td class="text-center align-middle" style="white-space: normal; line-height: 1.35;">${c.servicio?.nombre || '—'}</td>
-                <td class="text-center align-middle" style="white-space: normal; line-height: 1.35;">${formatearFechaHora(c.fecha, c.hora)}</td>
+                <td class="text-center align-middle" style="white-space: normal; line-height: 1.35;">${formatearFechaHora(c.fecha, c.hora, c.estado)}</td>
                 <td class="text-center align-middle"><span class="monto-tabla">S/ ${monto.toFixed(2)}</span></td>
                 <td class="text-center align-middle"><span class="badge ${claseEstado} px-2 py-1">${c.estado || '—'}</span></td>
                 <td class="text-center align-middle" style="padding-right: 1.25rem;"><span class="badge ${badgePago} px-2 py-1">${metodoPago}</span></td>
@@ -1257,8 +1297,10 @@ function renderCharts() {
                 datasets: [{
                     label: 'Ventas (S/)',
                     data: ventasPorMes,
-                    backgroundColor: 'rgba(86,174,232,0.7)',
+                    backgroundColor: '#56aee8',
+                    hoverBackgroundColor: '#0a3d6b',
                     borderColor: '#56aee8',
+                    hoverBorderColor: '#0a3d6b',
                     borderWidth: 1,
                     borderRadius: 6
                 }]
@@ -1269,6 +1311,7 @@ function renderCharts() {
                 plugins: {
                     legend: { display: false },
                     tooltip: {
+                        multiKeyBackground: 'transparent',
                         callbacks: {
                             // Muestra el nombre completo del mes en el tooltip
                             title: function(items) {
@@ -1277,6 +1320,14 @@ function renderCharts() {
                             },
                             label: function(item) {
                                 return ` Ventas (S/): ${item.parsed.y.toFixed(0)}`;
+                            },
+                            labelColor: function(context) {
+                                return {
+                                    borderColor: '#56aee8',
+                                    backgroundColor: '#0a3d6b',
+                                    borderWidth: 1.5,
+                                    borderRadius: 2
+                                };
                             }
                         }
                     }
@@ -1339,6 +1390,7 @@ function renderCharts() {
                             display: false
                         },
                         tooltip: {
+                            multiKeyBackground: 'transparent',
                             callbacks: {
                                 label: function(context) {
                                     const val = context.parsed || 0;
@@ -1452,6 +1504,34 @@ function mostrarToast(mensaje, tipo = 'success') {
     new bootstrap.Toast(toast, { delay: 3500 }).show();
 }
 
+// Inicializa el estado de la campana desde localStorage si fue silenciada previamente
+function inicializarEstadoCampana() {
+    const btn = document.getElementById('btnCampana');
+    const icono = document.getElementById('iconoCampana');
+    const badge = document.getElementById('badgeCampanaNotif');
+    if (!btn || !icono) return;
+
+    let silenciada = false;
+    try {
+        silenciada = localStorage.getItem('notificacionesSilenciadas') === 'true';
+    } catch (e) {}
+
+    if (silenciada) {
+        btn.classList.add('bell-muted');
+        icono.className = 'bi bi-bell-slash';
+        btn.title = 'Notificaciones silenciadas';
+        if (badge) badge.classList.add('d-none');
+    } else {
+        btn.classList.remove('bell-muted');
+        icono.className = 'bi bi-bell';
+        btn.title = 'Notificaciones activas';
+        if (badge) {
+            const count = parseInt(badge.getAttribute('data-count') || '0', 10);
+            if (count > 0) badge.classList.remove('d-none');
+        }
+    }
+}
+
 // Alterna el estado de la campana entre activa (bi-bell) y silenciada (bi-bell-slash)
 function toggleCampana() {
     const btn = document.getElementById('btnCampana');
@@ -1460,4 +1540,46 @@ function toggleCampana() {
     const silenciada = btn.classList.toggle('bell-muted');
     icono.className = silenciada ? 'bi bi-bell-slash' : 'bi bi-bell';
     btn.title = silenciada ? 'Notificaciones silenciadas' : 'Notificaciones activas';
+    try {
+        localStorage.setItem('notificacionesSilenciadas', silenciada ? 'true' : 'false');
+    } catch (e) {}
+
+    btn.classList.add('just-clicked');
+    btn.addEventListener('mouseleave', () => {
+        btn.classList.remove('just-clicked');
+    }, { once: true });
+
+    btn.blur();
+    const badge = document.getElementById('badgeCampanaNotif');
+    if (badge) {
+        if (silenciada) {
+            badge.classList.add('d-none');
+        } else {
+            const count = parseInt(badge.getAttribute('data-count') || '0', 10);
+            if (count > 0) badge.classList.remove('d-none');
+        }
+    }
+}
+
+// Conteo de notificaciones de consultas de clientes pendientes (para rol gerente)
+async function actualizarConteoNotificacionesGerente() {
+    try {
+        const resp = await fetch('/api/mensajes/sin-responder/count');
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const count = data.count || 0;
+        const badge = document.getElementById('badgeCampanaNotif');
+        const btn = document.getElementById('btnCampana');
+        if (!badge) return;
+        badge.setAttribute('data-count', count);
+        badge.textContent = count > 99 ? '+99' : (count > 0 ? String(count) : '0');
+        const silenciada = (btn && btn.classList.contains('bell-muted')) || (localStorage.getItem('notificacionesSilenciadas') === 'true');
+        if (count > 0 && !silenciada) {
+            badge.classList.remove('d-none');
+        } else {
+            badge.classList.add('d-none');
+        }
+    } catch (e) {
+        // Silencioso
+    }
 }

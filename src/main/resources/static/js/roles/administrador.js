@@ -1,5 +1,5 @@
 // Endpoints de la API usados por el panel de administrador
-const API = { categorias: '/api/categorias', productos: '/api/productos', servicios: '/api/servicios', citas: '/api/citas', usuarios: '/api/usuarios', compras: '/api/compras' };
+const API = { categorias: '/api/categorias', productos: '/api/productos', servicios: '/api/servicios', citas: '/api/citas', usuarios: '/api/usuarios', compras: '/api/compras', mensajes: '/api/mensajes' };
 
 // Estado local en memoria: arrays cache y variables de edición
 let categorias = [];
@@ -20,9 +20,15 @@ let _filtroEstadoCompra = null;
 const COMPRAS_MODAL_POR_PAGINA = 5;
 let _comprasModalActuales = [];
 let _paginaComprasModalActual = 1;
+let _mensajesAdmin = [];
+let _paginaMensajesActual = 0;
+let _totalPaginasMensajes = 1;
+let _mensajeAdminSeleccionadoId = null;
 
 // Inicialización al cargar la vista de administrador: valida sesión y carga datos
 document.addEventListener('DOMContentLoaded', async () => {
+    inicializarEstadoCampana();
+    inicializarEstadoSidebar();
     const sesion = obtenerSesion();
     if (!sesion || sesion.rol !== 'administrador') {
         window.location.href = '/inicio';
@@ -51,6 +57,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     await cargarProductos();
     await cargarCitas();
     await cargarClientes();
+    await actualizarConteoNotificaciones();
+    setInterval(actualizarConteoNotificaciones, 15000);
 });
 
 // Iguala el ancho horizontal de los tags de título y subtítulo al tamaño del subtítulo de Servicios
@@ -74,7 +82,8 @@ const MAPA_SECCION_URL = {
     productos: 'catalogo/productos',
     servicios: 'catalogo/servicios',
     categorias: 'catalogo/categorias',
-    clientes: 'gestion/clientes'
+    clientes: 'gestion/clientes',
+    mensajes: 'gestion/mensajes'
 };
 
 // Muestra la sección seleccionada en la UI y carga sus datos si es necesario. Actualiza la URL sin recargar la página.
@@ -90,15 +99,37 @@ function mostrarSeccion(nombre, link) {
     if (nombre === 'servicios') cargarServicios();
     if (nombre === 'citas') cargarCitas();
     if (nombre === 'clientes') cargarClientes();
-    // Sincroniza la URL sin recargar la página
+    if (nombre === 'mensajes') cargarMensajesAdmin();
+    // Sincroniza la URL sin recargar la página y persiste la última sección
     const sesion = obtenerSesion();
     const segmento = MAPA_SECCION_URL[nombre];
     if (sesion && segmento) {
         history.pushState({ seccion: nombre }, '', `/panel/administrador/${sesion.id}/${segmento}`);
     }
+    try {
+        localStorage.setItem('ultimaSeccionAdmin', nombre);
+        document.cookie = `ultimaSeccionAdmin=${nombre}; path=/; max-age=31536000; SameSite=Lax`;
+    } catch (e) {}
 }
 
-// Alterna la visibilidad/estado del sidebar. Soporta comportamiento móvil y desktop
+// Restaura el estado colapsado del sidebar desde localStorage en pantallas desktop
+function inicializarEstadoSidebar() {
+    const isMobile = window.matchMedia('(max-width: 991px)').matches;
+    if (isMobile) return;
+    try {
+        if (localStorage.getItem('sidebarColapsado') === 'true') {
+            document.getElementById('sidebar')?.classList.add('collapsed');
+            document.getElementById('topbar')?.classList.add('collapsed');
+            document.getElementById('mainContent')?.classList.add('collapsed');
+        } else {
+            document.getElementById('sidebar')?.classList.remove('collapsed');
+            document.getElementById('topbar')?.classList.remove('collapsed');
+            document.getElementById('mainContent')?.classList.remove('collapsed');
+        }
+    } catch (e) {}
+}
+
+// Alterna la visibilidad/estado del sidebar. Soporta comportamiento móvil y desktop y persiste en localStorage
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const topbar = document.getElementById('topbar');
@@ -109,9 +140,12 @@ function toggleSidebar() {
         sidebar.classList.toggle('mobile-open');
         overlay?.classList.toggle('show');
     } else {
-        sidebar.classList.toggle('collapsed');
-        topbar.classList.toggle('collapsed');
-        mainContent.classList.toggle('collapsed');
+        const estaColapsado = sidebar.classList.toggle('collapsed');
+        topbar?.classList.toggle('collapsed', estaColapsado);
+        mainContent?.classList.toggle('collapsed', estaColapsado);
+        try {
+            localStorage.setItem('sidebarColapsado', estaColapsado ? 'true' : 'false');
+        } catch (e) {}
     }
 }
 
@@ -799,6 +833,15 @@ function actualizarKPIsCitas(citas) {
     if (info) info.textContent = `${totalPendientes} pendientes de confirmar`;
 }
 
+// Resuelve el texto de horario para una cita, sincronizando "Por confirmar" con su estado real
+function resolverTextoHoraCita(hora, estado) {
+    const h = (hora || '').trim();
+    if (!h || h.toLowerCase().includes('confirmar')) {
+        return (estado === 'Pendiente' || !estado) ? 'Por confirmar' : estado;
+    }
+    return h;
+}
+
 // Renderiza la tabla de citas paginada (10 por página) con acciones condicionales según estado
 function renderCitas(citas) {
     const tbody = document.getElementById('tablaCitas');
@@ -821,6 +864,7 @@ function renderCitas(citas) {
         const esPersonalizado = (c.servicio?.nombre || c.servicio || '').toLowerCase().includes('personalizad') ||
                                 (c.notas && c.notas.toLowerCase().includes('servicio personalizado'));
         const nombreServicio = esPersonalizado ? 'Personalizado' : (c.servicio?.nombre || c.servicio || '');
+        const horaDisplay = resolverTextoHoraCita(c.hora, c.estado);
 
         return `
     <tr>
@@ -830,7 +874,7 @@ function renderCitas(citas) {
             <div class="text-muted" style="font-size:.72rem">${c.usuario?.telefono || ''}</div>
         </td>
         <td>${nombreServicio}</td>
-        <td><div>${c.hora || ''}</div><small class="text-muted">${c.fecha || ''}</small></td>
+        <td><div>${horaDisplay}</div><small class="text-muted">${c.fecha || ''}</small></td>
         <td><small>${c.vehiculo || ''}</small></td>
         <td><span class="status-badge ${estadoBadge[c.estado] || ''}">${c.estado}</span></td>
         <td>
@@ -1701,6 +1745,34 @@ function mostrarToast(mensaje, tipo = 'success') {
     new bootstrap.Toast(toast, { delay: cfg.delay }).show();
 }
 
+// Inicializa el estado de la campana desde localStorage si fue silenciada previamente
+function inicializarEstadoCampana() {
+    const btn = document.getElementById('btnCampana');
+    const icono = document.getElementById('iconoCampana');
+    const badge = document.getElementById('badgeCampanaNotif');
+    if (!btn || !icono) return;
+
+    let silenciada = false;
+    try {
+        silenciada = localStorage.getItem('notificacionesSilenciadas') === 'true';
+    } catch (e) {}
+
+    if (silenciada) {
+        btn.classList.add('bell-muted');
+        icono.className = 'bi bi-bell-slash';
+        btn.title = 'Notificaciones silenciadas';
+        if (badge) badge.classList.add('d-none');
+    } else {
+        btn.classList.remove('bell-muted');
+        icono.className = 'bi bi-bell';
+        btn.title = 'Notificaciones activas';
+        if (badge) {
+            const count = parseInt(badge.getAttribute('data-count') || '0', 10);
+            if (count > 0) badge.classList.remove('d-none');
+        }
+    }
+}
+
 // Alterna el estado de la campana entre activa (bi-bell) y silenciada (bi-bell-slash)
 function toggleCampana() {
     const btn = document.getElementById('btnCampana');
@@ -1709,6 +1781,25 @@ function toggleCampana() {
     const silenciada = btn.classList.toggle('bell-muted');
     icono.className = silenciada ? 'bi bi-bell-slash' : 'bi bi-bell';
     btn.title = silenciada ? 'Notificaciones silenciadas' : 'Notificaciones activas';
+    try {
+        localStorage.setItem('notificacionesSilenciadas', silenciada ? 'true' : 'false');
+    } catch (e) {}
+
+    btn.classList.add('just-clicked');
+    btn.addEventListener('mouseleave', () => {
+        btn.classList.remove('just-clicked');
+    }, { once: true });
+
+    btn.blur();
+    const badge = document.getElementById('badgeCampanaNotif');
+    if (badge) {
+        if (silenciada) {
+            badge.classList.add('d-none');
+        } else {
+            const count = parseInt(badge.getAttribute('data-count') || '0', 10);
+            if (count > 0) badge.classList.remove('d-none');
+        }
+    }
 }
 
 // Abre modal para editar los datos del administrador (nombre, teléfono, ciudad)
@@ -1768,5 +1859,371 @@ async function guardarEdicionDatos() {
     } catch (e) {
         errorEl.textContent = 'Error de conexión';
         errorEl.classList.remove('d-none');
+    }
+}
+
+// -------------------------------------------------------------------------
+// GESTIÓN DE MENSAJES Y CONSULTAS DE CLIENTES (FIFO)
+// -------------------------------------------------------------------------
+
+// Formatea fechas ISO de forma segura
+function formatearFechaMensaje(val) {
+    if (!val) return '---';
+    try {
+        let d;
+        if (Array.isArray(val)) {
+            d = new Date(val[0], val[1] - 1, val[2], val[3] || 0, val[4] || 0);
+        } else {
+            d = new Date(val);
+        }
+        if (isNaN(d.getTime())) return String(val);
+        const dia = String(d.getDate()).padStart(2, '0');
+        const mes = String(d.getMonth() + 1).padStart(2, '0');
+        const anio = d.getFullYear();
+        const horas = String(d.getHours()).padStart(2, '0');
+        const minutos = String(d.getMinutes()).padStart(2, '0');
+        return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
+    } catch (e) {
+        return String(val);
+    }
+}
+
+// Actualiza el conteo de consultas pendientes en la campana (+99 máx) y en el sidebar
+async function actualizarConteoNotificaciones() {
+    try {
+        const resp = await fetch('/api/mensajes/sin-responder/count');
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const count = data.count || 0;
+        const badgeCampana = document.getElementById('badgeCampanaNotif');
+        const badgeSidebar = document.getElementById('badgeMensajesPendientes');
+        const btnCampana = document.getElementById('btnCampana');
+
+        const textoConteo = count > 99 ? '+99' : (count > 0 ? String(count) : '0');
+
+        if (badgeSidebar) {
+            badgeSidebar.textContent = textoConteo;
+            badgeSidebar.style.display = count > 0 ? 'inline-block' : 'none';
+        }
+
+        if (badgeCampana) {
+            badgeCampana.setAttribute('data-count', count);
+            badgeCampana.textContent = textoConteo;
+            const estaSilenciada = (btnCampana && btnCampana.classList.contains('bell-muted')) || (localStorage.getItem('notificacionesSilenciadas') === 'true');
+            if (count > 0 && !estaSilenciada) {
+                badgeCampana.classList.remove('d-none');
+            } else {
+                badgeCampana.classList.add('d-none');
+            }
+        }
+    } catch (e) {
+        // Silencioso
+    }
+}
+
+// Carga consultas paginadas desde la API (20 registros por página, orden FIFO)
+async function cargarMensajesAdmin(pagina = 0) {
+    _paginaMensajesActual = pagina;
+    const listaEl = document.getElementById('listaMensajesBandeja');
+    if (listaEl && _mensajesAdmin.length === 0) {
+        listaEl.innerHTML = `
+            <div class="text-center py-5 text-muted">
+                <div class="spinner-border spinner-border-sm me-2"></div>Cargando mensajes...
+            </div>
+        `;
+    }
+    try {
+        const resp = await fetch(`/api/mensajes?page=${pagina}&size=20`);
+        if (!resp.ok) throw new Error('Error al cargar mensajes');
+        const data = await resp.json();
+        _mensajesAdmin = data.content || [];
+        _totalPaginasMensajes = data.totalPages || 1;
+        const totalElements = data.totalElements || 0;
+
+        const badgeTotal = document.getElementById('badgeMensajesTotalConteo');
+        if (badgeTotal) badgeTotal.textContent = totalElements;
+
+        renderMensajesBandeja(_mensajesAdmin);
+        renderPaginacionMensajes(_totalPaginasMensajes, _paginaMensajesActual);
+
+        if (_mensajeAdminSeleccionadoId) {
+            const cardActiva = document.querySelector(`.mensaje-item-card[data-id="${_mensajeAdminSeleccionadoId}"]`);
+            if (cardActiva) cardActiva.classList.add('active-chat');
+        }
+    } catch (err) {
+        if (listaEl) {
+            listaEl.innerHTML = `<div class="p-3 text-center text-danger small">No se pudieron cargar las consultas de los clientes.</div>`;
+        }
+    }
+}
+
+// Renderiza los mensajes en la bandeja izquierda
+function renderMensajesBandeja(mensajes) {
+    const listaEl = document.getElementById('listaMensajesBandeja');
+    if (!listaEl) return;
+    if (!mensajes || mensajes.length === 0) {
+        listaEl.innerHTML = `
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-chat-square-text text-muted mb-2 d-block" style="font-size: 2rem;"></i>
+                <span class="small">No hay mensajes registrados</span>
+            </div>
+        `;
+        return;
+    }
+
+    listaEl.innerHTML = mensajes.map(m => {
+        const activo = (Number(m.id) === Number(_mensajeAdminSeleccionadoId)) ? 'active-chat' : '';
+        const fechaTxt = formatearFechaMensaje(m.fechaEnvio);
+        const badgeEstado = m.respondido
+            ? `<span class="badge" style="background:#d1fae5; color:#065f46; font-weight:600; font-size:0.72rem;"><i class="bi bi-check2-circle me-1"></i>Respondido</span>`
+            : `<span class="badge" style="background:#fef3c7; color:#92400e; font-weight:600; font-size:0.72rem;"><i class="bi bi-clock me-1"></i>Pendiente</span>`;
+
+        return `
+            <div class="mensaje-item-card ${activo}" data-id="${m.id}" onclick="seleccionarMensajeAdmin(${m.id})">
+                <div class="mensaje-item-header">
+                    <span class="mensaje-item-cliente" title="${escapeHtml(m.nombreCompleto)}">
+                        <i class="bi bi-person me-1 text-primary"></i>${escapeHtml(m.nombreCompleto)}
+                    </span>
+                    ${badgeEstado}
+                </div>
+                <div class="mensaje-item-asunto">
+                    <i class="bi bi-tag-fill me-1" style="font-size:0.72rem; color:var(--celeste);"></i>${escapeHtml(m.asunto)}
+                </div>
+                <div class="mensaje-item-snippet">
+                    ${escapeHtml(m.mensaje)}
+                </div>
+                <div class="mensaje-item-footer">
+                    <span><i class="bi bi-telephone me-1"></i>${escapeHtml(m.telefono)}</span>
+                    <span><i class="bi bi-clock me-1"></i>${fechaTxt}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Renderiza los botones de paginación de la bandeja de mensajes
+function renderPaginacionMensajes(totalPages, currentPage) {
+    const cont = document.getElementById('paginacionMensajesBandeja');
+    if (!cont) return;
+    if (totalPages <= 1) {
+        cont.innerHTML = `<small class="text-muted" style="font-size:0.75rem;">Página 1 de 1 (20 por pág.)</small>`;
+        return;
+    }
+
+    let html = `<div class="d-flex align-items-center gap-1">`;
+    html += `
+        <button class="pag-btn-mensajes" onclick="cambiarPaginaMensajes(${currentPage - 1})" ${currentPage === 0 ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''} title="Anterior">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+    `;
+
+    for (let i = 0; i < totalPages; i++) {
+        const activa = i === currentPage ? 'active' : '';
+        html += `
+            <button class="pag-btn-mensajes ${activa}" onclick="cambiarPaginaMensajes(${i})">
+                ${i + 1}
+            </button>
+        `;
+    }
+
+    html += `
+        <button class="pag-btn-mensajes" onclick="cambiarPaginaMensajes(${currentPage + 1})" ${currentPage >= totalPages - 1 ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''} title="Siguiente">
+            <i class="bi bi-chevron-right"></i>
+        </button>
+    `;
+    html += `</div>`;
+    cont.innerHTML = html;
+}
+
+// Cambia de página en la bandeja de mensajes
+function cambiarPaginaMensajes(nuevaPagina) {
+    if (nuevaPagina < 0 || nuevaPagina >= _totalPaginasMensajes) return;
+    cargarMensajesAdmin(nuevaPagina);
+}
+
+// Selecciona una consulta para ver el chat y responder
+async function seleccionarMensajeAdmin(id) {
+    _mensajeAdminSeleccionadoId = id;
+
+    document.querySelectorAll('.mensaje-item-card').forEach(c => {
+        if (Number(c.getAttribute('data-id')) === Number(id)) {
+            c.classList.add('active-chat');
+        } else {
+            c.classList.remove('active-chat');
+        }
+    });
+
+    const vacioEl = document.getElementById('chatAdminVacio');
+    const activoEl = document.getElementById('chatAdminActivo');
+    if (vacioEl) vacioEl.classList.add('d-none');
+    if (activoEl) activoEl.classList.remove('d-none');
+
+    const sesion = obtenerSesion();
+    const firmanteEl = document.getElementById('chatAdminNombreFirmante');
+    if (firmanteEl && sesion) {
+        firmanteEl.innerHTML = `<i class="bi bi-shield-check text-success me-1"></i>Atendiendo como: <strong>Administrador ${escapeHtml(sesion.nombres || '')} ${escapeHtml(sesion.apellidos || '')}</strong>`;
+    }
+
+    const historialEl = document.getElementById('chatAdminHistorial');
+    if (historialEl) {
+        historialEl.innerHTML = `
+            <div class="text-center py-5 text-muted">
+                <div class="spinner-border spinner-border-sm me-2"></div>Cargando conversación...
+            </div>
+        `;
+    }
+
+    try {
+        const resp = await fetch(`/api/mensajes/${id}`);
+        if (!resp.ok) throw new Error('No se pudo cargar el mensaje');
+        const data = await resp.json();
+        const m = data.mensaje;
+        const respuestas = data.respuestas || [];
+
+        fetch(`/api/mensajes/${id}/leido`, { method: 'PATCH' }).catch(() => {});
+
+        document.getElementById('chatAdminClienteNombre').textContent = m.nombreCompleto;
+        document.getElementById('chatAdminClienteTel').textContent = m.telefono;
+        document.getElementById('chatAdminClienteEmail').textContent = m.email;
+        document.getElementById('chatAdminClienteAsunto').textContent = m.asunto;
+        document.getElementById('chatAdminFechaEnvio').textContent = formatearFechaMensaje(m.fechaEnvio);
+
+        const badgeEstado = document.getElementById('chatAdminBadgeEstado');
+        if (badgeEstado) {
+            if (m.respondido) {
+                badgeEstado.className = 'badge bg-success';
+                badgeEstado.innerHTML = '<i class="bi bi-check2-circle me-1"></i>Respondido';
+            } else {
+                badgeEstado.className = 'badge bg-warning text-dark';
+                badgeEstado.innerHTML = '<i class="bi bi-clock me-1"></i>Pendiente';
+            }
+        }
+
+        let chatHtml = '';
+
+        // 1. Burbuja con la consulta del cliente
+        chatHtml += `
+            <div class="chat-bubble-cliente">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width:36px; height:36px; background:var(--celeste); font-size:0.85rem;">
+                            ${escapeHtml((m.nombreCompleto || 'CL').substring(0, 2).toUpperCase())}
+                        </div>
+                        <div>
+                            <div class="fw-bold" style="font-size:0.9rem; color:var(--azul-oscuro);">${escapeHtml(m.nombreCompleto)}</div>
+                            <div class="text-muted" style="font-size:0.75rem;">Cliente &bull; Consulta enviada</div>
+                        </div>
+                    </div>
+                    <span class="text-muted small"><i class="bi bi-calendar3 me-1"></i>${formatearFechaMensaje(m.fechaEnvio)}</span>
+                </div>
+                <div class="mb-2 p-2 rounded" style="background:#f8fafc; font-size:0.82rem; color:#475569;">
+                    <i class="bi bi-bookmark-fill me-1 text-primary"></i><strong>Asunto:</strong> ${escapeHtml(m.asunto)}
+                </div>
+                <div class="text-dark" style="font-size:0.9rem; line-height:1.6; white-space:pre-wrap;">${escapeHtml(m.mensaje)}</div>
+            </div>
+        `;
+
+        // 2. Respuestas de los administradores
+        if (respuestas.length > 0) {
+            respuestas.forEach(r => {
+                const adminNom = r.administrador ? `${r.administrador.nombres || ''} ${r.administrador.apellidos || ''}`.trim() : 'Administrador';
+                chatHtml += `
+                    <div class="chat-bubble-admin">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width:36px; height:36px; background:var(--azul-oscuro); font-size:0.85rem;">
+                                    AD
+                                </div>
+                                <div>
+                                    <div class="fw-bold" style="font-size:0.9rem; color:var(--azul-oscuro);">
+                                        <i class="bi bi-shield-check text-primary me-1"></i>${escapeHtml(adminNom)}
+                                    </div>
+                                    <div class="text-muted" style="font-size:0.75rem;">Respuesta oficial del Administrador</div>
+                                </div>
+                            </div>
+                            <span class="text-muted small"><i class="bi bi-clock-history me-1"></i>${formatearFechaMensaje(r.fechaRespuesta)}</span>
+                        </div>
+                        <div class="text-dark mt-2" style="font-size:0.9rem; line-height:1.6; white-space:pre-wrap;">${escapeHtml(r.respuesta)}</div>
+                    </div>
+                `;
+            });
+        }
+
+        if (historialEl) {
+            historialEl.innerHTML = chatHtml;
+            historialEl.scrollTop = historialEl.scrollHeight;
+        }
+
+        const txt = document.getElementById('txtRespuestaAdmin');
+        if (txt) {
+            txt.value = '';
+            txt.focus();
+        }
+
+    } catch (e) {
+        if (historialEl) historialEl.innerHTML = `<div class="p-3 text-danger text-center">Error al cargar conversación</div>`;
+    }
+}
+
+// Envía la respuesta redactada por el administrador actual
+async function enviarRespuestaAdmin() {
+    if (!_mensajeAdminSeleccionadoId) {
+        mostrarToast('Selecciona primero una consulta para responder', 'warning');
+        return;
+    }
+    const txt = document.getElementById('txtRespuestaAdmin');
+    const respuesta = txt ? txt.value.trim() : '';
+    if (!respuesta) {
+        mostrarToast('Por favor escribe la respuesta antes de enviar', 'warning');
+        txt?.focus();
+        return;
+    }
+
+    const sesion = obtenerSesion();
+    if (!sesion || !sesion.id) {
+        mostrarToast('Sesión inválida. Vuelve a iniciar sesión.', 'danger');
+        return;
+    }
+
+    const btn = document.getElementById('btnEnviarRespuesta');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Enviando...`;
+    }
+
+    try {
+        const resp = await fetch(`/api/mensajes/${_mensajeAdminSeleccionadoId}/respuesta`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                adminId: String(sesion.id),
+                respuesta: respuesta
+            })
+        });
+
+        if (!resp.ok) {
+            const errData = await resp.json().catch(() => ({}));
+            throw new Error(errData.error || 'Error al enviar respuesta');
+        }
+
+        mostrarToast('Respuesta enviada exitosamente al cliente', 'success');
+        if (txt) txt.value = '';
+
+        // Recargar el chat activo con la nueva respuesta
+        await seleccionarMensajeAdmin(_mensajeAdminSeleccionadoId);
+
+        // Recargar la bandeja (el mensaje pasa al final por respondido = true)
+        await cargarMensajesAdmin(_paginaMensajesActual);
+
+        // Descontar notificación inmediatamente
+        await actualizarConteoNotificaciones();
+
+    } catch (err) {
+        mostrarToast(err.message || 'No se pudo enviar la respuesta', 'danger');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="bi bi-send-fill me-2"></i>Enviar Respuesta`;
+        }
     }
 }

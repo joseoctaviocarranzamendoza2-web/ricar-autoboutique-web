@@ -4,6 +4,7 @@ import com.mecatools.web.controllers.util.SesionValidator;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -53,10 +54,15 @@ public class PaginaGerenteController {
 
     // ---- Sidebar: panel del gerente ----
 
-    // Ruta raíz del panel: redirige al resumen general por defecto
+    // Ruta raíz del panel: redirige a la última sección guardada si existe en cookie, o al resumen por defecto
     @GetMapping("/gerente/{id}")
-    public String panel(@PathVariable Long id, Authentication auth) {
+    public String panel(@PathVariable Long id, @CookieValue(value = "ultimaSeccionGerente", required = false) String ultimaSeccion, Authentication auth) {
         sesionValidator.validarAcceso(auth, ROL, id);
+        if ("reportes".equals(ultimaSeccion)) {
+            return "redirect:/panel/gerente/" + id + "/analisis/reportes";
+        } else if ("ventas".equals(ultimaSeccion)) {
+            return "redirect:/panel/gerente/" + id + "/analisis/ventas";
+        }
         return "redirect:/panel/gerente/" + id + "/general/resumen";
     }
 

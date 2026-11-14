@@ -4,6 +4,7 @@ import com.mecatools.web.controllers.util.SesionValidator;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -53,10 +54,21 @@ public class PaginaAdministradorController {
 
     // ---- Sidebar: panel del administrador ----
 
-    // Ruta raíz del panel: redirige a la sección de citas por defecto
+    // Ruta raíz del panel: redirige a la última sección guardada si existe en cookie, o a citas por defecto
     @GetMapping("/administrador/{id}")
-    public String panel(@PathVariable Long id, Authentication auth) {
+    public String panel(@PathVariable Long id, @CookieValue(value = "ultimaSeccionAdmin", required = false) String ultimaSeccion, Authentication auth) {
         sesionValidator.validarAcceso(auth, ROL, id);
+        if ("productos".equals(ultimaSeccion)) {
+            return "redirect:/panel/administrador/" + id + "/catalogo/productos";
+        } else if ("servicios".equals(ultimaSeccion)) {
+            return "redirect:/panel/administrador/" + id + "/catalogo/servicios";
+        } else if ("categorias".equals(ultimaSeccion)) {
+            return "redirect:/panel/administrador/" + id + "/catalogo/categorias";
+        } else if ("clientes".equals(ultimaSeccion)) {
+            return "redirect:/panel/administrador/" + id + "/gestion/clientes";
+        } else if ("mensajes".equals(ultimaSeccion)) {
+            return "redirect:/panel/administrador/" + id + "/gestion/mensajes";
+        }
         return "redirect:/panel/administrador/" + id + "/reservas/citas";
     }
 
@@ -92,6 +104,13 @@ public class PaginaAdministradorController {
     public String panelClientes(@PathVariable Long id, Authentication auth, Model model) {
         sesionValidator.validarAcceso(auth, ROL, id);
         model.addAttribute("seccionActiva", "clientes");
+        return "roles/administrador";
+    }
+
+    @GetMapping("/panel/administrador/{id}/gestion/mensajes")
+    public String panelMensajes(@PathVariable Long id, Authentication auth, Model model) {
+        sesionValidator.validarAcceso(auth, ROL, id);
+        model.addAttribute("seccionActiva", "mensajes");
         return "roles/administrador";
     }
 

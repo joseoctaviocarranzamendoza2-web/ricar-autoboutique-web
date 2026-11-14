@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     iniciarBuscadorCompras();
     iniciarFiltrosServicios();
     iniciarSincronizacionUrl();
+    await cargarMisMensajesCliente();
 });
 
 // Hace visible el botón de cambiar rol únicamente para cuentas que tienen rol administrador o gerente
@@ -237,7 +238,7 @@ function renderCitas(citas) {
                         <span class="u-badge ${color}">${c.estado}</span>
                     </div>
                     <ul class="u-cita-meta">
-                        <li><i class="bi bi-calendar-event"></i>${c.fecha} · ${c.hora}</li>
+                        <li><i class="bi bi-calendar-event"></i>${c.fecha} · ${(!c.hora || c.hora.toLowerCase().includes('confirmar')) ? (c.estado === 'Pendiente' ? 'Por confirmar' : c.estado) : c.hora}</li>
                         <li><i class="bi bi-car-front"></i>${c.vehiculo}</li>
                         <li><i class="bi bi-geo-alt"></i>Ov. Mochica 123, Trujillo
                         </li>
@@ -384,7 +385,8 @@ function iniciarSincronizacionUrl() {
         'tab-perfil': 'perfil',
         'tab-compras': 'compras',
         'tab-servicios': 'servicios',
-        'tab-historial': 'historial'
+        'tab-historial': 'historial',
+        'tab-mensajes': 'mensajes'
     };
     document.querySelectorAll('[data-bs-toggle="tab"]').forEach(btn => {
         btn.addEventListener('shown.bs.tab', (e) => {
@@ -393,6 +395,9 @@ function iniciarSincronizacionUrl() {
             if (segmento) {
                 const nuevaUrl = `/panel/cliente/${sesion.id}/${segmento}`;
                 history.pushState({ tab: tabId }, '', nuevaUrl);
+            }
+            if (tabId === 'tab-mensajes') {
+                cargarMisMensajesCliente();
             }
         });
     });
@@ -403,20 +408,127 @@ function verDetalleCompra(id) {
     mostrarToast(`Detalle de compra #${id}`, 'info');
 }
 
-// Activa una pestaña del perfil y hace scroll a la sección
-function activarTab(tabTargetId) {
-    const boton = document.querySelector(`[data-bs-target="#${tabTargetId}"]`);
-    if (!boton) return;
-    bootstrap.Tab.getOrCreateInstance(boton).show();
-    document.querySelector('.perfil-tabs-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
 // Activa una pestaña del perfil y hace scroll a la sección (opcional)
 function activarTab(tabTargetId, hacerScroll = true) {
     const boton = document.querySelector(`[data-bs-target="#${tabTargetId}"]`);
     if (!boton) return;
     bootstrap.Tab.getOrCreateInstance(boton).show();
+    if (tabTargetId === 'tab-mensajes') {
+        cargarMisMensajesCliente();
+    }
     if (hacerScroll) {
         document.querySelector('.perfil-tabs-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// Carga las consultas y mensajes enviados por el cliente junto a sus respuestas
+async function cargarMisMensajesCliente() {
+    if (!sesion || !sesion.id) return;
+    const cont = document.getElementById('listaMisMensajesCliente');
+    const sinMsg = document.getElementById('sinMensajesCliente');
+    if (!cont) return;
+
+    try {
+        const resp = await fetch(`/api/mensajes/usuario/${sesion.id}?page=0&size=50`);
+        if (!resp.ok) throw new Error('Error al cargar mensajes');
+        const data = await resp.json();
+        const lista = data.content || [];
+
+        if (lista.length === 0) {
+            cont.innerHTML = '';
+            if (sinMsg) sinMsg.classList.remove('d-none');
+            return;
+        }
+
+        if (sinMsg) sinMsg.classList.add('d-none');
+
+        const mensajesConRespuestas = await Promise.all(lista.map(async (m) => {
+            try {
+                const rDet = await fetch(`/api/mensajes/${m.id}`);
+                if (rDet.ok) {
+                    const dataDet = await rDet.json();
+                    return { ...m, respuestas: dataDet.respuestas || [] };
+                }
+            } catch (e) {}
+            return { ...m, respuestas: [] };
+        }));
+
+        cont.innerHTML = mensajesConRespuestas.map(m => {
+            const fechaEnvio = formatearFechaCliente(m.fechaEnvio);
+            const badge = m.respondido
+                ? `<span class="badge" style="background:#d1fae5; color:#065f46; font-weight:600; font-size:0.75rem;"><i class="bi bi-check2-circle me-1"></i>Respondido</span>`
+                : `<span class="badge" style="background:#fef3c7; color:#92400e; font-weight:600; font-size:0.75rem;"><i class="bi bi-clock me-1"></i>En revisión</span>`;
+
+            let respuestasHtml = '';
+            if (m.respuestas && m.respuestas.length > 0) {
+                respuestasHtml = m.respuestas.map(r => {
+                    const adminNom = r.administrador ? `${r.administrador.nombres || ''} ${r.administrador.apellidos || ''}`.trim() : 'Administrador';
+                    const fechaResp = formatearFechaCliente(r.fechaRespuesta);
+                    return `
+                        <div class="mt-3 p-3 rounded" style="background:#f0f7ff; border-left:4px solid var(--azul-oscuro); box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge" style="background:var(--azul-oscuro); color:#fff; font-size:0.75rem;"><i class="bi bi-shield-check me-1"></i>Administrador</span>
+                                    <span class="fw-bold text-dark small">${escapeHtml(adminNom)}</span>
+                                </div>
+                                <span class="text-muted small"><i class="bi bi-clock-history me-1"></i>${fechaResp}</span>
+                            </div>
+                            <div class="text-dark small" style="white-space:pre-wrap; line-height:1.5;">${escapeHtml(r.respuesta)}</div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                respuestasHtml = `
+                    <div class="mt-3 p-3 rounded bg-light border small text-muted">
+                        <i class="bi bi-info-circle me-1 text-primary"></i>Tu consulta está siendo revisada por el equipo de administración. Recibirás la respuesta en esta sección.
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="card mb-3 border-0 shadow-sm" style="border-radius:12px; background:#fff; border: 1px solid #e2e8f0;">
+                    <div class="card-body p-3 p-md-4">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 border-bottom pb-2 mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge" style="background:rgba(86,174,232,0.15); color:var(--celeste); font-weight:700; font-size:0.8rem;">
+                                    <i class="bi bi-tag-fill me-1"></i>${escapeHtml(m.asunto)}
+                                </span>
+                                ${badge}
+                            </div>
+                            <span class="text-muted small"><i class="bi bi-calendar-event me-1"></i>${fechaEnvio}</span>
+                        </div>
+                        <div class="text-secondary small mb-2 fw-semibold">Tu mensaje:</div>
+                        <div class="text-dark p-3 rounded mb-2" style="background:#f8fafc; font-size:0.88rem; line-height:1.5; white-space:pre-wrap;">${escapeHtml(m.mensaje)}</div>
+                        ${respuestasHtml}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+    } catch (err) {
+        cont.innerHTML = `<div class="p-4 text-center text-danger small">No se pudieron cargar tus mensajes en este momento.</div>`;
+    }
+}
+
+// Formatea fechas para la vista del cliente
+function formatearFechaCliente(val) {
+    if (!val) return '---';
+    try {
+        let d;
+        if (Array.isArray(val)) {
+            d = new Date(val[0], val[1] - 1, val[2], val[3] || 0, val[4] || 0);
+        } else {
+            d = new Date(val);
+        }
+        if (isNaN(d.getTime())) return String(val);
+        const dia = String(d.getDate()).padStart(2, '0');
+        const mes = String(d.getMonth() + 1).padStart(2, '0');
+        const anio = d.getFullYear();
+        const horas = String(d.getHours()).padStart(2, '0');
+        const minutos = String(d.getMinutes()).padStart(2, '0');
+        return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
+    } catch (e) {
+        return String(val);
     }
 }
 

@@ -1836,6 +1836,41 @@ textarea.form-control {
     outline: none !important;
 }
 
+/* Modal Editar Datos: Cabecera con borde celeste corporativo y acento visual */
+#modalEditarDatos .modal-header {
+    border-bottom: 3px solid var(--color-celeste) !important;
+}
+
+#modalEditarDatos .modal-title::before {
+    background-color: var(--color-celeste) !important;
+}
+
+/* Modal Editar Datos: Campos de nombres, apellidos, teléfono y ciudad activan borde celeste (#56aee8) al pasar el cursor (hover) */
+#modalEditarDatos .form-control,
+#editNombres,
+#editApellidos,
+#editTelefono,
+#editCiudad {
+    border: 1.5px solid #dbe5f0 !important;
+    border-radius: 8px !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+#modalEditarDatos .form-control:hover,
+#modalEditarDatos .form-control:focus,
+#editNombres:hover,
+#editNombres:focus,
+#editApellidos:hover,
+#editApellidos:focus,
+#editTelefono:hover,
+#editTelefono:focus,
+#editCiudad:hover,
+#editCiudad:focus {
+    border-color: var(--color-celeste, #56aee8) !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
 /* Modal Editar Datos: Botones alineados matemáticamente con los campos y control estricto de 2 estados */
 .btn-modal-cancelar,
 .btn-modal-guardar {

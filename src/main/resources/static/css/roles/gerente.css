@@ -1100,9 +1100,11 @@ body {
    DISEÑO UI PERSONALIZADO: MÓDULO DE VENTAS (GERENTE)
    ======================================================== */
 
-/* Botones de navegación de año en Ventas Mensuales: mantiene el mismo gris en hover, click (active) y focus */
+/* Botones de navegación de año en Ventas Mensuales y de mes en Ventas por Servicio: mantiene el mismo gris en hover, click (active) y focus */
 #btnAnioPrev,
-#btnAnioNext {
+#btnAnioNext,
+#btnMesServiciosPrev,
+#btnMesServiciosNext {
     --bs-btn-color: var(--color-gris-texto);
     --bs-btn-border-color: #cbd5e1;
     --bs-btn-hover-color: #ffffff;
@@ -1122,12 +1124,20 @@ body {
 
 #btnAnioPrev:hover,
 #btnAnioNext:hover,
+#btnMesServiciosPrev:hover,
+#btnMesServiciosNext:hover,
 #btnAnioPrev:active,
 #btnAnioNext:active,
+#btnMesServiciosPrev:active,
+#btnMesServiciosNext:active,
 #btnAnioPrev:focus,
 #btnAnioNext:focus,
+#btnMesServiciosPrev:focus,
+#btnMesServiciosNext:focus,
 #btnAnioPrev:focus-visible,
-#btnAnioNext:focus-visible {
+#btnAnioNext:focus-visible,
+#btnMesServiciosPrev:focus-visible,
+#btnMesServiciosNext:focus-visible {
     background-color: var(--color-gris-texto) !important;
     border-color: var(--color-gris-texto) !important;
     color: #ffffff !important;
@@ -1136,8 +1146,29 @@ body {
 }
 
 #btnAnioPrev i,
-#btnAnioNext i {
+#btnAnioNext i,
+#btnMesServiciosPrev i,
+#btnMesServiciosNext i {
     color: inherit !important;
+}
+
+/* Fila TOTAL en la tabla de Ventas por Servicio de Reportes: Línea divisoria celeste (#56aee8) y texto azul institucional (#0a3d6b) */
+.table-total-row {
+    background-color: #f1f5f9 !important;
+}
+.table-total-row td {
+    border-top: 2px solid #56aee8 !important;
+    border-bottom: none !important;
+    font-weight: 700 !important;
+    color: #0a3d6b !important;
+}
+.table-total-row td * {
+    color: #0a3d6b !important;
+    font-weight: 700 !important;
+}
+.table-total-row .monto-tabla {
+    color: #0a3d6b !important;
+    font-weight: 700 !important;
 }
 
 /* Botón Exportar Excel con color verde sólido institucional sin cambio de color; solo animación de elevación en hover */
@@ -1531,6 +1562,32 @@ body {
 
 #modalEditarDatos .modal-title::before {
     background-color: var(--color-celeste) !important;
+}
+
+/* Modal Editar Datos: Campos de nombres, apellidos, teléfono y ciudad activan borde celeste (#56aee8) al pasar el cursor (hover) */
+#modalEditarDatos .form-control,
+#editNombres,
+#editApellidos,
+#editTelefono,
+#editCiudad {
+    border: 1.5px solid #dbe5f0 !important;
+    border-radius: 8px !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+#modalEditarDatos .form-control:hover,
+#modalEditarDatos .form-control:focus,
+#editNombres:hover,
+#editNombres:focus,
+#editApellidos:hover,
+#editApellidos:focus,
+#editTelefono:hover,
+#editTelefono:focus,
+#editCiudad:hover,
+#editCiudad:focus {
+    border-color: var(--color-celeste, #56aee8) !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
 
 /* Modal Editar Datos: Botones alineados matemáticamente con los campos y control estricto de 2 estados */

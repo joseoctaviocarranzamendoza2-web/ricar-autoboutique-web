@@ -12,6 +12,9 @@ let _tipoVentasActivo = 'productos';
 let _paginaVentasActual = 1;
 const VENTAS_POR_PAGINA = 20;
 let _anioVentas = new Date().getFullYear();
+const MESES_NOMBRES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+let _mesReporteServicios = new Date().getMonth();
+let _anioReporteServicios = new Date().getFullYear();
 
 // Inicialización: Valida sesión de gerente, carga datos y configura UI
 document.addEventListener('DOMContentLoaded', async () => {
@@ -722,15 +725,22 @@ async function generarExcelProfesional({ titulo, subtitulo, nombreHoja, nombreAr
         });
 
         // Filas de datos (a partir de la fila 5) - TODOS LOS CAMPOS CENTRADOS
+        const yaTieneFilaTotal = filas.some(f => f && f[0] === 'TOTAL');
         filas.forEach((datosFila, idx) => {
             const row = worksheet.addRow(datosFila);
-            row.height = 22;
-            const bgArgb = idx % 2 === 0 ? 'FFFFFFFF' : 'FFF8FAFC';
+            const esFilaTotal = datosFila[0] === 'TOTAL';
+            row.height = esFilaTotal ? 26 : 22;
+            const bgArgb = esFilaTotal ? 'FFE8F1FF' : (idx % 2 === 0 ? 'FFFFFFFF' : 'FFF8FAFC');
 
             row.eachCell((cell, colNumber) => {
-                cell.font = { name: 'Segoe UI', size: 9.5, color: { argb: 'FF1E293B' } };
+                cell.font = { name: 'Segoe UI', size: esFilaTotal ? 10 : 9.5, bold: esFilaTotal || colNumber === 1, color: { argb: (esFilaTotal || colNumber === 1) ? 'FF0A3D6B' : 'FF1E293B' } };
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgArgb } };
-                cell.border = {
+                cell.border = esFilaTotal ? {
+                    top: { style: 'thin', color: { argb: 'FF94A3B8' } },
+                    left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                    bottom: { style: 'double', color: { argb: 'FF0A3D6B' } },
+                    right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+                } : {
                     top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
                     left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
                     bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
@@ -741,16 +751,16 @@ async function generarExcelProfesional({ titulo, subtitulo, nombreHoja, nombreAr
                 cell.alignment = { vertical: 'middle', horizontal: 'center' };
 
                 if (colNumber === 1) {
-                    cell.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF0A3D6B' } };
-                } else if (colNumber === columnaTotalIndex) {
+                    cell.font = { name: 'Segoe UI', size: esFilaTotal ? 10 : 9.5, bold: true, color: { argb: 'FF0A3D6B' } };
+                } else if (colNumber === columnaTotalIndex || (typeof cell.value === 'number' && (colNumber === 3 || colNumber === 5))) {
                     cell.numFmt = '"S/" #,##0.00';
-                    cell.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF0A3D6B' } };
+                    cell.font = { name: 'Segoe UI', size: esFilaTotal ? 10 : 9.5, bold: esFilaTotal || colNumber === columnaTotalIndex, color: { argb: 'FF0A3D6B' } };
                 }
             });
         });
 
-        // Fila resumen de total general centrada
-        if (columnaTotalIndex > 0 && filas.length > 0) {
+        // Fila resumen de total general centrada (solo si no viene ya incluida en las filas)
+        if (columnaTotalIndex > 0 && filas.length > 0 && !yaTieneFilaTotal) {
             const totalRowIndex = worksheet.rowCount + 1;
             const totalRow = worksheet.getRow(totalRowIndex);
             totalRow.height = 26;
@@ -843,7 +853,7 @@ async function exportarVentasExcel() {
 
         if (esServicios) {
             if (!_citasFiltradas || _citasFiltradas.length === 0) {
-                mostrarToast('No hay ventas por servicio registradas para exportar', 'error');
+                mostrarToast('No hay ventas por servicio registradas para exportar a Excel', 'error');
                 return;
             }
             const cabeceras = ['# SERVICIO', 'CLIENTE', 'SERVICIO', 'FECHA Y HORA', 'TOTAL', 'ESTADO', 'MÉTODO DE PAGO'];
@@ -871,7 +881,7 @@ async function exportarVentasExcel() {
             mostrarToast('Reporte de ventas por servicio exportado en Excel exitosamente', 'success');
         } else {
             if (!_comprasFiltradas || _comprasFiltradas.length === 0) {
-                mostrarToast('No hay ventas de productos registradas para exportar', 'error');
+                mostrarToast('No hay ventas de productos registradas para exportar a Excel', 'error');
                 return;
             }
             const cabeceras = ['# VENTA', 'CLIENTE', 'PRODUCTOS ADQUIRIDOS', 'FECHA Y HORA', 'TOTAL', 'ESTADO', 'MÉTODO DE PAGO'];
@@ -903,50 +913,48 @@ async function exportarVentasExcel() {
     }
 }
 
-// Exporta reportes por servicio a Excel usando formato corporativo completo
+// Exporta reportes por servicio a Excel usando formato corporativo completo y reconociendo el mes actual seleccionado
 async function exportarServiciosExcel() {
     if (_exportandoExcel) return;
     _exportandoExcel = true;
 
     try {
-        const porServicio = {};
-        const citasCompletadas = _citas.filter(c => c.estado === 'Completada' && c.servicio?.precioBase);
-        citasCompletadas.forEach(c => {
-            const nombre = c.servicio?.nombre || 'Sin nombre';
-            const precio = c.servicio.precioBase || 0;
-            if (!porServicio[nombre]) porServicio[nombre] = { citas: 0, ingresos: 0 };
-            porServicio[nombre].citas++;
-            porServicio[nombre].ingresos += precio;
-        });
-        const totalIngresos = Object.values(porServicio).reduce((acc, s) => acc + s.ingresos, 0);
-        const serviciosOrdenados = Object.entries(porServicio).sort((a, b) => b[1].citas - a[1].citas);
+        const datosMes = obtenerDatosServiciosMes(_mesReporteServicios, _anioReporteServicios);
+        const nombreMes = MESES_NOMBRES[_mesReporteServicios];
 
-        if (serviciosOrdenados.length === 0) {
-            mostrarToast('No hay datos en el reporte para exportar a Excel', 'error');
+        if (datosMes.servicios.length === 0) {
+            mostrarToast('No hay ventas por servicio registradas en este mes para exportar a Excel', 'error');
             return;
         }
 
         const ahora = new Date().toLocaleString('es-PE');
-        const fechaISO = new Date().toISOString().slice(0, 10);
         const cabeceras = ['SERVICIO', 'CITAS ATENDIDAS', 'INGRESOS', '% DEL TOTAL', 'TENDENCIA'];
-        const filas = serviciosOrdenados.map(([nombre, d]) => [
-            nombre,
-            d.citas,
-            Number(d.ingresos || 0),
-            totalIngresos > 0 ? `${Math.round((d.ingresos / totalIngresos) * 100)}%` : '0%',
-            `${d.citas} en este período`
+        const filas = datosMes.servicios.map(s => [
+            s.nombre,
+            s.citas,
+            Number(s.ingresos || 0),
+            `${s.pct}%`,
+            s.tendencia
+        ]);
+
+        filas.push([
+            'TOTAL',
+            datosMes.totalCitas,
+            Number(datosMes.totalIngresos || 0),
+            `${datosMes.promedioPct}%`,
+            `${datosMes.maxTendencia} este período`
         ]);
 
         await generarExcelProfesional({
             titulo: 'RICAR AUTOBOUTIQUE - REPORTE DE VENTAS POR SERVICIO',
-            subtitulo: `Exportado el ${ahora} | Servicios evaluados: ${filas.length}`,
-            nombreHoja: 'Resumen por Servicio',
-            nombreArchivo: `reporte_ventas_servicio_${fechaISO}.xlsx`,
+            subtitulo: `Período: ${nombreMes} ${_anioReporteServicios} | Exportado el ${ahora} | Servicios evaluados: ${datosMes.servicios.length}`,
+            nombreHoja: `Ventas ${nombreMes} ${_anioReporteServicios}`,
+            nombreArchivo: `reporte_ventas_servicio_${nombreMes.toLowerCase()}_${_anioReporteServicios}.xlsx`,
             cabeceras,
             filas,
             columnaTotalIndex: 3
         });
-        mostrarToast('Reporte de servicios exportado en Excel exitosamente', 'success');
+        mostrarToast(`Reporte de ventas por servicio de ${nombreMes} exportado en Excel exitosamente`, 'success');
     } catch (e) {
         console.error('Error al exportar reporte de servicios:', e);
         mostrarToast('Error al exportar reporte a Excel', 'error');
@@ -993,15 +1001,16 @@ async function generarPdfProfesional({ titulo, subtitulo, nombreArchivo, cabecer
 
     // 2. Mapeo de datos con formato monetario y valores limpios
     const bodyFilas = filas.map(fila => fila.map((val, idx) => {
-        if (idx === columnaTotalIndex - 1 && typeof val === 'number') {
+        if ((idx === 2 || idx === columnaTotalIndex - 1) && typeof val === 'number') {
             return `S/ ${val.toFixed(2)}`;
         }
         return String(val ?? '—');
     }));
 
-    // Fila resumen total al pie de tabla si aplica
+    // Fila resumen total al pie de tabla si aplica (solo si no viene ya incluida en filas)
+    const yaTieneFilaTotal = filas.some(f => f && f[0] === 'TOTAL');
     let footFilas = [];
-    if (columnaTotalIndex > 0 && filas.length > 0) {
+    if (columnaTotalIndex > 0 && filas.length > 0 && !yaTieneFilaTotal) {
         const sumaTotal = filas.reduce((acc, f) => acc + (Number(f[columnaTotalIndex - 1]) || 0), 0);
         const footFila = cabeceras.map((_, i) => {
             if (i === columnaTotalIndex - 2) return 'TOTAL:';
@@ -1019,6 +1028,13 @@ async function generarPdfProfesional({ titulo, subtitulo, nombreArchivo, cabecer
         startY: 68,
         margin: { top: 68, left: 32, right: 32, bottom: 34 },
         theme: 'grid',
+        didParseCell: (data) => {
+            if (data.section === 'body' && data.row.raw && data.row.raw[0] === 'TOTAL') {
+                data.cell.styles.fontStyle = 'bold';
+                data.cell.styles.fillColor = [232, 241, 255];
+                data.cell.styles.textColor = [10, 61, 107];
+            }
+        },
         styles: {
             font: 'helvetica',
             fontSize: 8,
@@ -1132,49 +1148,47 @@ async function exportarVentasPdf() {
     }
 }
 
-// Exporta reportes por servicio a PDF usando formato corporativo completo
+// Exporta reportes por servicio a PDF usando formato corporativo completo y reconociendo el mes actual seleccionado
 async function exportarServiciosPdf() {
     if (_exportandoPdf) return;
     _exportandoPdf = true;
 
     try {
-        const porServicio = {};
-        const citasCompletadas = _citas.filter(c => c.estado === 'Completada' && c.servicio?.precioBase);
-        citasCompletadas.forEach(c => {
-            const nombre = c.servicio?.nombre || 'Sin nombre';
-            const precio = c.servicio.precioBase || 0;
-            if (!porServicio[nombre]) porServicio[nombre] = { citas: 0, ingresos: 0 };
-            porServicio[nombre].citas++;
-            porServicio[nombre].ingresos += precio;
-        });
-        const totalIngresos = Object.values(porServicio).reduce((acc, s) => acc + s.ingresos, 0);
-        const serviciosOrdenados = Object.entries(porServicio).sort((a, b) => b[1].citas - a[1].citas);
+        const datosMes = obtenerDatosServiciosMes(_mesReporteServicios, _anioReporteServicios);
+        const nombreMes = MESES_NOMBRES[_mesReporteServicios];
 
-        if (serviciosOrdenados.length === 0) {
-            mostrarToast('No hay datos en el reporte para exportar a PDF', 'error');
+        if (datosMes.servicios.length === 0) {
+            mostrarToast('No hay ventas por servicio registradas en este mes para exportar a PDF', 'error');
             return;
         }
 
         const ahora = new Date().toLocaleString('es-PE');
-        const fechaISO = new Date().toISOString().slice(0, 10);
         const cabeceras = ['SERVICIO', 'CITAS ATENDIDAS', 'INGRESOS', '% DEL TOTAL', 'TENDENCIA'];
-        const filas = serviciosOrdenados.map(([nombre, d]) => [
-            nombre,
-            d.citas,
-            Number(d.ingresos || 0),
-            totalIngresos > 0 ? `${Math.round((d.ingresos / totalIngresos) * 100)}%` : '0%',
-            `${d.citas} en este período`
+        const filas = datosMes.servicios.map(s => [
+            s.nombre,
+            s.citas,
+            Number(s.ingresos || 0),
+            `${s.pct}%`,
+            s.tendencia
+        ]);
+
+        filas.push([
+            'TOTAL',
+            datosMes.totalCitas,
+            Number(datosMes.totalIngresos || 0),
+            `${datosMes.promedioPct}%`,
+            `${datosMes.maxTendencia} este período`
         ]);
 
         await generarPdfProfesional({
             titulo: 'RICAR AUTOBOUTIQUE — REPORTE DE VENTAS POR SERVICIO',
-            subtitulo: `Generado el ${ahora} | Servicios evaluados: ${filas.length} | Panel de Gerente`,
-            nombreArchivo: `reporte_ventas_servicio_${fechaISO}.pdf`,
+            subtitulo: `Período: ${nombreMes} ${_anioReporteServicios} | Generado el ${ahora} | Servicios evaluados: ${datosMes.servicios.length} | Panel de Gerente`,
+            nombreArchivo: `reporte_ventas_servicio_${nombreMes.toLowerCase()}_${_anioReporteServicios}.pdf`,
             cabeceras,
             filas,
             columnaTotalIndex: 3
         });
-        mostrarToast('Reporte de servicios exportado en PDF exitosamente', 'success');
+        mostrarToast(`Reporte de ventas por servicio de ${nombreMes} exportado en PDF exitosamente`, 'success');
     } catch (e) {
         console.error('Error al exportar reporte de servicios a PDF:', e);
         mostrarToast('Error al generar el documento PDF', 'error');
@@ -1183,21 +1197,69 @@ async function exportarServiciosPdf() {
     }
 }
 
-// Calcula y renderiza reportes/resúmenes por servicio y métricas
-function renderReportes() {
+// Obtiene el agrupado de ventas por servicio para un mes y año específicos
+function obtenerDatosServiciosMes(mes, anio) {
     const porServicio = {};
-    const citasCompletadas = _citas.filter(c => c.estado === 'Completada' && c.servicio?.precioBase);
+    const citasCompletadas = _citas.filter(c => {
+        if ((c.estado !== 'Completada' && c.estado !== 'Atendida') || !c.servicio?.precioBase || !c.fecha) return false;
+        const a = parseInt((c.fecha || '').substring(0, 4));
+        const m = parseInt((c.fecha || '').substring(5, 7)) - 1;
+        return a === anio && m === mes;
+    });
+
     citasCompletadas.forEach(c => {
         const nombre = c.servicio?.nombre || 'Sin nombre';
-        const precio = c.servicio.precioBase || 0;
+        const precio = Number(c.servicio.precioBase || 0);
         if (!porServicio[nombre]) {
             porServicio[nombre] = { citas: 0, ingresos: 0 };
         }
         porServicio[nombre].citas++;
         porServicio[nombre].ingresos += precio;
     });
-    const totalCitasIngresos = Object.values(porServicio).reduce((acc, s) => acc + s.ingresos, 0);
 
+    const serviciosOrdenados = Object.entries(porServicio).sort((a, b) => b[1].citas - a[1].citas);
+    const totalCitas = serviciosOrdenados.reduce((acc, [, d]) => acc + d.citas, 0);
+    const totalIngresos = serviciosOrdenados.reduce((acc, [, d]) => acc + d.ingresos, 0);
+    const maxTendencia = serviciosOrdenados.length > 0 ? Math.max(...serviciosOrdenados.map(([, d]) => d.citas)) : 0;
+
+    const serviciosConPct = serviciosOrdenados.map(([nombre, d]) => {
+        const pct = totalIngresos > 0 ? Math.round((d.ingresos / totalIngresos) * 100) : 0;
+        return {
+            nombre,
+            citas: d.citas,
+            ingresos: d.ingresos,
+            pct,
+            tendencia: `${d.citas} este período`
+        };
+    });
+
+    const sumaPcts = serviciosConPct.reduce((acc, s) => acc + s.pct, 0);
+    const promedioPct = serviciosConPct.length > 0 ? Math.round(sumaPcts / serviciosConPct.length) : 0;
+
+    return {
+        servicios: serviciosConPct,
+        totalCitas,
+        totalIngresos,
+        promedioPct,
+        maxTendencia
+    };
+}
+
+// Navega mes a mes en la tabla de Ventas por Servicio
+function cambiarMesReporteServicios(delta) {
+    _mesReporteServicios += delta;
+    if (_mesReporteServicios < 0) {
+        _mesReporteServicios = 11;
+        _anioReporteServicios--;
+    } else if (_mesReporteServicios > 11) {
+        _mesReporteServicios = 0;
+        _anioReporteServicios++;
+    }
+    renderReportes();
+}
+
+// Calcula y renderiza reportes/resúmenes por servicio y métricas
+function renderReportes() {
     const metricasSemana = calcularMetricasPeriodo(fechaEstaSemana);
     const metricasMes = calcularMetricasPeriodo(fechaEsteMes);
     const metricasAnio = calcularMetricasPeriodo(fechaEsteAnio);
@@ -1224,27 +1286,42 @@ function renderReportes() {
         if (valores[2]) valores[2].textContent = `${metricasAnio.productosVendidos} uds.`;
         if (valores[3]) valores[3].textContent = metricasAnio.nuevosClientes;
     }
+
+    const nombreMes = MESES_NOMBRES[_mesReporteServicios];
+    const lblTitulo = document.getElementById('lblTituloVentasServicio');
+    if (lblTitulo) {
+        lblTitulo.textContent = `Ventas por Servicio en ${nombreMes} del ${_anioReporteServicios}`;
+    }
+
     const tbodyServ = document.querySelector('#sec-reportes tbody');
     if (!tbodyServ) return;
-    const serviciosOrdenados = Object.entries(porServicio).sort((a, b) => b[1].citas - a[1].citas);
-    if (serviciosOrdenados.length === 0) {
-        tbodyServ.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4 align-middle">No hay datos de servicios aún.</td></tr>`;
+
+    const datosMes = obtenerDatosServiciosMes(_mesReporteServicios, _anioReporteServicios);
+    if (datosMes.servicios.length === 0) {
+        tbodyServ.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4 align-middle">No hay ventas por servicio registradas en ${nombreMes} del ${_anioReporteServicios}.</td></tr>`;
         return;
     }
-    tbodyServ.innerHTML = serviciosOrdenados.map(([nombre, datos]) => {
-        const pct = totalCitasIngresos > 0 ? Math.round((datos.ingresos / totalCitasIngresos) * 100) : 0;
-        return `
+
+    const filasHtml = datosMes.servicios.map(s => `
         <tr>
-            <td class="fw-semibold text-center align-middle" style="padding-left: 1.25rem; white-space: normal; line-height: 1.35;">${nombre}</td>
-            <td class="text-center align-middle">${datos.citas}</td>
-            <td class="text-center align-middle"><span class="monto-tabla">S/ ${datos.ingresos.toFixed(2)}</span></td>
-            <td class="text-center align-middle">${pct}%</td>
-            <td class="text-center align-middle" style="padding-right: 1.25rem;"><span class="text-muted">${datos.citas} este período</span></td>
+            <td class="fw-semibold text-center align-middle" style="padding-left: 1.25rem; white-space: normal; line-height: 1.35;">${s.nombre}</td>
+            <td class="text-center align-middle">${s.citas}</td>
+            <td class="text-center align-middle"><span class="monto-tabla">S/ ${s.ingresos.toFixed(2)}</span></td>
+            <td class="text-center align-middle">${s.pct}%</td>
+            <td class="text-center align-middle" style="padding-right: 1.25rem;"><span class="text-muted">${s.tendencia}</span></td>
+        </tr>`).join('');
+
+    const filaTotalHtml = `
+        <tr class="table-total-row" style="background-color: #f1f5f9;">
+            <td class="fw-bold text-center align-middle" style="padding-left: 1.25rem; border-top: 2px solid #56aee8 !important; color: #0a3d6b !important;">TOTAL</td>
+            <td class="fw-bold text-center align-middle" style="border-top: 2px solid #56aee8 !important; color: #0a3d6b !important;">${datosMes.totalCitas}</td>
+            <td class="fw-bold text-center align-middle" style="border-top: 2px solid #56aee8 !important; color: #0a3d6b !important;"><span class="monto-tabla" style="color: #0a3d6b !important; font-weight: 700;">S/ ${datosMes.totalIngresos.toFixed(2)}</span></td>
+            <td class="fw-bold text-center align-middle" style="border-top: 2px solid #56aee8 !important; color: #0a3d6b !important;">${datosMes.promedioPct}%</td>
+            <td class="fw-bold text-center align-middle" style="padding-right: 1.25rem; border-top: 2px solid #56aee8 !important; color: #0a3d6b !important;">${datosMes.maxTendencia} este período</td>
         </tr>`;
-    }).join('');
+
+    tbodyServ.innerHTML = filasHtml + filaTotalHtml;
 }
-
-
 
 // Cambia el año del gráfico de ventas mensuales
 function cambiarAnioVentas(delta) {

@@ -692,6 +692,11 @@ body {
     transition: border-color .2s, box-shadow .2s;
 }
 
+/* Hover en campos de modales: Resalta con borde celeste institucional */
+.modal-body .form-control:hover {
+    border-color: var(--celeste);
+}
+
 /* Resalta borde y añade sombra de enfoque */
 .modal-body .form-control:focus {
     border-color: var(--celeste);

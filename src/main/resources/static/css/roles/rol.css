@@ -31,33 +31,60 @@
 .setup-role-marca {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.65rem;
     margin-bottom: 1.25rem;
-    padding: 0.45rem 1rem;
-    border: 1px solid #e7edf3;
+    padding: 0.35rem 1.15rem 0.35rem 0.45rem;
+    border: 1px solid #0a3d6b;
     border-radius: 999px;
-    background: #f8fafc;
-    color: var(--azul-medio, #1565c0);
+    background: #0a3d6b !important;
+    color: #ffffff !important;
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.07em;
+    box-shadow: none !important;
+}
+
+.setup-role-marca-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: #56aee8 !important;
+    color: #ffffff !important;
+    flex-shrink: 0;
+}
+
+.setup-role-marca-icon i,
+.setup-role-marca i {
+    color: #ffffff !important;
+    font-size: 0.82rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.setup-role-marca-texto {
+    color: #ffffff !important;
+    line-height: 1;
 }
 
 .saludo-titulo {
     margin-bottom: 0.35rem;
-    color: var(--oscuro, #1a2332);
+    color: #000000 !important;
     font-size: 1.25rem;
     font-weight: 500;
 }
 
 .saludo-titulo .nombre-destacado {
-    color: var(--azul-oscuro, #0a3d6b);
+    color: #000000 !important;
     font-weight: 800;
 }
 
 .pregunta-subtitulo {
     margin: 0;
-    color: var(--azul-oscuro, #0a3d6b);
+    color: #000000 !important;
     font-size: 1.85rem;
     font-weight: 800;
     letter-spacing: -0.025em;
@@ -93,9 +120,10 @@
     transform: translateY(-3px);
 }
 
-.rol-card-item:focus-visible .rol-avatar-circle {
-    outline: 3px solid rgba(21, 101, 192, 0.28);
-    outline-offset: 4px;
+.rol-card-item:focus-visible .rol-avatar-circle,
+.rol-card-item:focus .rol-avatar-circle {
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .rol-avatar-circle {
@@ -109,13 +137,19 @@
     border: 2px solid #d9e2eb;
     border-radius: 50%;
     background: #fff;
-    box-shadow: 0 5px 18px rgba(10, 61, 107, 0.06);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: none !important;
+    outline: none !important;
+    transition: border-color 0.2s ease;
 }
 
-.rol-card-item:hover .rol-avatar-circle {
-    border-color: #8bb9e5;
-    box-shadow: 0 8px 22px rgba(10, 61, 107, 0.1);
+.rol-card-item:hover:not(.selected) .rol-avatar-circle {
+    border-color: #56aee8 !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.rol-card-item:hover:not(.selected) .rol-label {
+    color: #56aee8 !important;
 }
 
 .rol-svg-wrapper {
@@ -146,13 +180,18 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: var(--azul-medio, #1565c0);
-    box-shadow: 0 2px 7px rgba(21, 101, 192, 0.3);
-    color: #fff;
+    background: #56aee8 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    color: #ffffff !important;
     font-size: 15px;
     opacity: 0;
     transform: scale(0.6);
     transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.rol-check-badge i {
+    color: #ffffff !important;
 }
 
 .rol-label {
@@ -164,18 +203,27 @@
 }
 
 .rol-card-item.selected .rol-avatar-circle {
-    border: 3px solid var(--azul-medio, #1565c0);
-    box-shadow: 0 0 0 4px rgba(21, 101, 192, 0.1), 0 9px 22px rgba(10, 61, 107, 0.12);
+    border: 3px solid #0a3d6b !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.rol-card-item.selected:hover .rol-avatar-circle {
+    border: 3px solid #0a3d6b !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
 
 .rol-card-item.selected .rol-check-badge {
-    opacity: 1;
-    transform: scale(1);
+    opacity: 1 !important;
+    transform: scale(1) !important;
+    background: #56aee8 !important;
 }
 
-.rol-card-item.selected .rol-label {
-    color: var(--azul-medio, #1565c0);
-    font-weight: 700;
+.rol-card-item.selected .rol-label,
+.rol-card-item.selected:hover .rol-label {
+    color: #0a3d6b !important;
+    font-weight: 700 !important;
 }
 
 .setup-role-actions {
@@ -184,6 +232,26 @@
 
 .setup-role-actions .hover-primary {
     font-weight: 600;
+    color: #64748b;
+    transition: color 0.2s ease;
+}
+
+.setup-role-actions .hover-primary:hover,
+.setup-role-actions .hover-primary:active,
+.setup-role-actions .hover-primary:focus,
+.hover-primary:hover,
+.hover-primary:active,
+.hover-primary:focus {
+    color: #56aee8 !important;
+}
+
+.setup-role-actions .hover-primary:hover i,
+.setup-role-actions .hover-primary:active i,
+.setup-role-actions .hover-primary:focus i,
+.hover-primary:hover i,
+.hover-primary:active i,
+.hover-primary:focus i {
+    color: #56aee8 !important;
 }
 
 .btn-continuar {
@@ -191,19 +259,23 @@
     padding: 0.7rem 2.5rem;
     border: 0;
     border-radius: 8px;
-    background: var(--azul-medio, #1565c0);
-    box-shadow: 0 5px 14px rgba(21, 101, 192, 0.2);
-    color: #fff;
+    background: #56aee8 !important;
+    box-shadow: none !important;
+    color: #ffffff !important;
     font-size: 0.98rem;
     font-weight: 700;
-    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
-.btn-continuar:hover:not(:disabled) {
+.btn-continuar:hover:not(:disabled),
+.btn-continuar:active:not(:disabled),
+.btn-continuar:focus:not(:disabled),
+.btn-continuar:focus-visible:not(:disabled) {
     transform: translateY(-2px);
-    background: var(--azul-oscuro, #0a3d6b);
-    box-shadow: 0 8px 18px rgba(10, 61, 107, 0.22);
-    color: #fff;
+    background: #0a3d6b !important;
+    box-shadow: none !important;
+    outline: none !important;
+    color: #ffffff !important;
 }
 
 .btn-continuar:active:not(:disabled) {
@@ -212,12 +284,11 @@
 
 .btn-continuar:disabled {
     cursor: not-allowed;
-    opacity: 0.55;
-    box-shadow: none;
-}
-
-.hover-primary:hover {
-    color: var(--azul-medio, #1565c0) !important;
+    background: #e2e8f0 !important;
+    color: #94a3b8 !important;
+    opacity: 0.75 !important;
+    box-shadow: none !important;
+    transform: none !important;
 }
 
 @media (max-width: 640px) {
@@ -231,7 +302,18 @@
 
     .setup-role-marca {
         margin-bottom: 1rem;
-        font-size: 0.68rem;
+        font-size: 0.7rem;
+        padding: 0.28rem 0.95rem 0.28rem 0.35rem;
+        gap: 0.5rem;
+    }
+
+    .setup-role-marca-icon {
+        width: 24px;
+        height: 24px;
+    }
+
+    .setup-role-marca-icon i {
+        font-size: 0.72rem;
     }
 
     .saludo-titulo {

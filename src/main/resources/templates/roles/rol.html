@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Estilos globales y específicos de rol -->
-    <link th:href="@{/css/global.css}" rel="stylesheet">
-    <link th:href="@{/css/roles/rol.css}" rel="stylesheet">
+    <link th:href="@{/css/global.css(v='1.2')}" rel="stylesheet">
+    <link th:href="@{/css/roles/rol.css(v='2.3')}" rel="stylesheet">
     <!-- Favicon -->
     <link rel="icon" th:href="@{/img/icono/icon.png}" type="image/png">
 </head>
@@ -28,7 +28,10 @@
             <!-- Saludo personalizado dinámico -->
             <header class="setup-role-header text-center">
                 <div class="setup-role-marca">
-                    <i class="bi bi-tools"></i> RICAR AUTOBOUTIQUE S.A.C.
+                    <span class="setup-role-marca-icon">
+                        <i class="bi bi-tools"></i>
+                    </span>
+                    <span class="setup-role-marca-texto">RICAR AUTOBOUTIQUE S.A.C.</span>
                 </div>
                 <h2 class="saludo-titulo">
                     ¡Hola, <span class="nombre-destacado" id="usuarioNombre" th:text="${usuario != null ? usuario.nombres : 'Usuario'}">Usuario</span>!

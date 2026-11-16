@@ -4,6 +4,17 @@ const API = { usuarios: '/api/usuarios', compras: '/api/compras', citas: '/api/c
 // Estado local: Sesión del usuario
 let sesion = null;
 
+// Sanitiza cadenas de texto para prevenir inyecciones HTML en el renderizado dinámico
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // Inicialización: Valida sesión y carga compras/citas y componentes UI
 document.addEventListener('DOMContentLoaded', async () => {
     sesion = obtenerSesion();

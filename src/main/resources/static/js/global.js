@@ -11,6 +11,17 @@ function obtenerCookie(nombre) {
     return matches ? decodeURIComponent(matches[1]) : null;
 }
 
+// Sanitiza cadenas de texto para prevenir inyecciones HTML en el renderizado dinámico
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // Registro de actividad del usuario: detecta interacción activa en la página
 let _ultimaActividadLocal = Date.now();
 function registrarActividadUsuario() {
@@ -25,17 +36,6 @@ function registrarActividadUsuario() {
 ['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove', 'click'].forEach(evt => {
     window.addEventListener(evt, registrarActividadUsuario, { passive: true });
 });
-
-// Escapa caracteres HTML para prevenir XSS en renders dinámicos
-function escapeHtml(str) {
-    if (str == null) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
 
 // Función centralizada para renovar el Access Token mediante el Refresh Token
 let _promesaRenovacion = null;
@@ -113,7 +113,10 @@ window.fetch = async (input, init = {}) => {
     }
 
     const headers = new Headers(init.headers || (input instanceof Request ? input.headers : undefined));
-    let token = sessionStorage.getItem(JWT_KEY);
+    let token = sessionStorage.getItem(JWT_KEY) || (typeof obtenerCookie === 'function' ? obtenerCookie('access_token') : null);
+    if (token && !sessionStorage.getItem(JWT_KEY)) {
+        try { sessionStorage.setItem(JWT_KEY, token); } catch (e) {}
+    }
     const method = String(init.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
     const esLecturaPublica = method === 'GET'
         && /^\/api\/(productos|servicios|categorias|comentarios)(\/|$)/.test(url.pathname);
@@ -158,6 +161,7 @@ function guardarSesion(usuario) {
 
     if (token) {
         sessionStorage.setItem(JWT_KEY, token);
+        sessionStorage.setItem(TOKEN_TIMESTAMP_KEY, String(ahora));
         sessionStorage.setItem(TOKEN_TIMESTAMP_KEY, String(ahora));
         // Persistir en cookie de 20 minutos para todas las navegaciones entre vistas y cambios de rol
         document.cookie = `access_token=${token}; path=/; max-age=${20 * 60}; SameSite=Lax`;
@@ -276,7 +280,6 @@ function irAGestion() {
     }
 }
 
-// Navega a una URL añadiendo el rol y id de la sesión si existe - Útil para rutas que necesitan contexto
 function navegarConParametro(url) {
     const sesion = obtenerSesion();
     if (sesion) {
@@ -513,7 +516,7 @@ window.addEventListener('scroll', () => {
 let rolPendienteVerificacion = null;
 
 // Contraseñas de verificación simples para cuentas empresariales (solo UI, no seguras)
-const PASS_EMPRESARIAL = { administrador: '123456789', gerente: '987654321' };
+const PASS_EMPRESARIAL = { administrador: 'admin123', gerente: 'gerente123' };
 
 // Prepara y muestra el modal para confirmar creación de cuentas empresariales
 function abrirModalEmpresarial(rol) {
@@ -648,6 +651,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('modalLogin')?.addEventListener('show.bs.modal', () => limpiarModal('modalLogin'));
     document.getElementById('modalRegister')?.addEventListener('show.bs.modal', () => limpiarModal('modalRegister'));
+    ['loginEmail', 'loginPassword'].forEach(id => {
+        document.getElementById(id)?.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                manejarLogin();
+            }
+        });
+    });
+    ['regNombres', 'regApellidos', 'regEmail', 'regTel', 'regPassword', 'regConfirm'].forEach(id => {
+        document.getElementById(id)?.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                manejarRegister();
+            }
+        });
+    });
     document.getElementById('btnLogin')?.addEventListener('click', manejarLogin);
     document.getElementById('btnRegister')?.addEventListener('click', manejarRegister);
     document.getElementById('btnConfirmarEmpresarial')?.addEventListener('click', confirmarEmpresarial);
@@ -686,7 +705,6 @@ async function manejarLogin() {
     const btnLogin = document.getElementById('btnLogin');
     divExito?.classList.add('d-none');
     divError?.classList.add('d-none');
-    // Se evalúan ambos campos (sin cortocircuito) para mostrar todos los mensajes de error a la vez
     const emailValido = validarEmail(emailInput);
     const passwordValido = validarRequerido(passwordInput, 'La contraseña es obligatoria');
     if (!emailValido || !passwordValido) return;
@@ -699,11 +717,27 @@ async function manejarLogin() {
         const resp = await fetch('/login', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: formData });
         if (!resp.ok) {
             const errData = await resp.json().catch(() => ({}));
+
+            // Si la cuenta se encuentra inhabilitada y las credenciales fueron correctas
+            if (errData.inhabilitado === true) {
+                emailInput.classList.remove('is-invalid');
+                passwordInput.classList.remove('is-invalid');
+                const fbEmail = emailInput.parentElement?.querySelector('.invalid-feedback') || emailInput.closest('.mb-3')?.querySelector('.invalid-feedback');
+                if (fbEmail) fbEmail.textContent = '';
+                const fbPass = passwordInput.parentElement?.querySelector('.invalid-feedback') || passwordInput.closest('.mb-3')?.querySelector('.invalid-feedback');
+                if (fbPass) fbPass.textContent = '';
+
+                window._datosInhabilitado = errData;
+                renderizarAlertaInhabilitado(errData);
+                return;
+            }
+
+            window._datosInhabilitado = null;
             const msg = errData.message || 'Correo o contraseña incorrectos';
             marcarInvalido(emailInput, msg);
             marcarInvalido(passwordInput, msg);
             if (divError) {
-                divError.textContent = msg;
+                divError.innerHTML = `<i class="bi bi-exclamation-circle me-2"></i>${msg}`;
                 divError.classList.remove('d-none');
             }
             return;
@@ -732,6 +766,337 @@ async function manejarLogin() {
     } finally {
         btnLogin.disabled = false;
         btnLogin.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Ingresar';
+    }
+}
+
+// Formatea fechas ISO de forma segura para los modales de clientes
+function formatearFechaSimple(val) {
+    if (!val) return '---';
+    try {
+        let d;
+        if (Array.isArray(val)) {
+            d = new Date(val[0], val[1] - 1, val[2], val[3] || 0, val[4] || 0);
+        } else {
+            d = new Date(val);
+        }
+        if (isNaN(d.getTime())) return String(val);
+        const dia = String(d.getDate()).padStart(2, '0');
+        const mes = String(d.getMonth() + 1).padStart(2, '0');
+        const anio = d.getFullYear();
+        const horas = String(d.getHours()).padStart(2, '0');
+        const minutos = String(d.getMinutes()).padStart(2, '0');
+        return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
+    } catch (e) {
+        return String(val);
+    }
+}
+
+// Renderiza el mensaje de alerta para usuarios inhabilitados con los botones de acción requeridos
+function renderizarAlertaInhabilitado(errData) {
+    const divError = document.getElementById('loginError');
+    if (!divError) return;
+    divError.classList.remove('d-none', 'alert-info', 'alert-success');
+    divError.classList.add('alert-danger');
+
+    const tieneRespuesta = Boolean(errData.respuestaApelacion || errData.estadoApelacion === 'RECHAZADA' || errData.estadoApelacion === 'ACEPTADA' || errData.mensajeHabilitacion);
+    const esPendiente = (errData.estadoApelacion || '').toUpperCase() === 'PENDIENTE';
+    const puedeApelar = errData.puedeApelar !== false;
+
+    let btnApelarHtml = '';
+    if (esPendiente) {
+        btnApelarHtml = `
+            <div class="badge bg-warning text-dark py-2 px-2 fw-semibold text-wrap text-center" style="font-size:0.78rem;">
+                <i class="bi bi-hourglass-split me-1"></i>Apelación enviada en revisión por administración
+            </div>
+        `;
+    } else if (puedeApelar) {
+        btnApelarHtml = `
+            <button type="button" class="btn btn-sm btn-danger fw-semibold w-100 text-white" onclick="abrirModalEnviarApelacion()">
+                <i class="bi bi-shield-exclamation me-1"></i>Solicitar apelación
+            </button>
+        `;
+    } else {
+        const dias = errData.diasRestantes || 1;
+        btnApelarHtml = `
+            <button type="button" class="btn btn-sm btn-secondary fw-semibold w-100 text-white opacity-75" disabled title="Solo puedes apelar una vez cada 7 días">
+                <i class="bi bi-clock-history me-1"></i>Nueva apelación disponible en ${dias} día(s)
+            </button>
+        `;
+    }
+
+    divError.innerHTML = `
+        <div class="text-center mb-2" style="line-height: 1.4;">
+            <strong class="d-block text-danger">Tu cuenta se encuentra inhabilitada.</strong>
+            <span class="small text-danger text-opacity-75">Contacta con administración.</span>
+        </div>
+        <div class="d-flex flex-column gap-2 mt-2 pt-2 border-top border-danger border-opacity-25">
+            <button type="button" class="btn btn-sm btn-outline-danger fw-semibold w-100" onclick="abrirModalVerMotivoBloqueo()">
+                <i class="bi bi-info-circle me-1"></i>Ver motivo de suspensión
+            </button>
+            ${tieneRespuesta ? `
+                <button type="button" class="btn btn-sm btn-outline-danger fw-semibold w-100" onclick="abrirModalVerRespuestaAdmin()">
+                    <i class="bi bi-chat-right-quote me-1"></i>Ver respuesta de administración
+                </button>
+            ` : ''}
+            ${btnApelarHtml}
+        </div>
+    `;
+}
+
+// Cierra modal secundario y regresa fluidamente al modal de Login
+function volverALoginDesdeModal(idModalCerrar) {
+    const el = document.getElementById(idModalCerrar);
+    if (el) {
+        bootstrap.Modal.getInstance(el)?.hide();
+    }
+    setTimeout(() => {
+        const modalLogin = document.getElementById('modalLogin');
+        if (modalLogin) {
+            const err = window._datosInhabilitado || {};
+            const fueAceptada = (err.estadoApelacion || '').toUpperCase() === 'ACEPTADA' || err.estado === 'Activo';
+            if (fueAceptada) {
+                const loginError = document.getElementById('loginError');
+                if (loginError) {
+                    loginError.classList.add('d-none');
+                }
+            }
+            bootstrap.Modal.getOrCreateInstance(modalLogin).show();
+        }
+    }, 200);
+}
+
+// Abre el modal para ver el motivo de suspensión y evidencia adjunta
+function abrirModalVerMotivoBloqueo() {
+    const err = window._datosInhabilitado || {};
+    const modalLogin = document.getElementById('modalLogin');
+    if (modalLogin) {
+        bootstrap.Modal.getInstance(modalLogin)?.hide();
+    }
+
+    const nombreEl = document.getElementById('motivoBloqueoClienteNombre');
+    const fechaEl = document.getElementById('motivoBloqueoFecha');
+    const textoEl = document.getElementById('motivoBloqueoTexto');
+    const imgCont = document.getElementById('motivoBloqueoEvidenciaContenedor');
+    const imgEl = document.getElementById('motivoBloqueoEvidenciaImg');
+
+    if (nombreEl) nombreEl.textContent = err.nombres ? `Cuenta de ${err.nombres} inhabilitada` : 'Cuenta inhabilitada';
+    if (fechaEl) fechaEl.textContent = `Fecha de suspensión: ${formatearFechaSimple(err.fechaBloqueo)}`;
+    if (textoEl) textoEl.textContent = err.motivoBloqueo || 'Sin motivo especificado.';
+
+    if (imgCont && imgEl) {
+        if (err.evidenciaBloqueo) {
+            imgEl.src = err.evidenciaBloqueo;
+            imgCont.classList.remove('d-none');
+        } else {
+            imgEl.src = '';
+            imgCont.classList.add('d-none');
+        }
+    }
+
+    const modal = document.getElementById('modalVerMotivoBloqueo');
+    if (modal) {
+        bootstrap.Modal.getOrCreateInstance(modal).show();
+    }
+}
+
+// Abre el modal para redactar y enviar una apelación a la administración
+function abrirModalEnviarApelacion() {
+    const err = window._datosInhabilitado || {};
+    const modalLogin = document.getElementById('modalLogin');
+    if (modalLogin) {
+        bootstrap.Modal.getInstance(modalLogin)?.hide();
+    }
+
+    const txtArea = document.getElementById('txtMensajeApelacionCliente');
+    const counter = document.getElementById('contadorCharsApelacion');
+    const alertaCd = document.getElementById('alertaCooldownApelacion');
+    const alertaOk = document.getElementById('alertaExitoApelacion');
+    const diasTxt = document.getElementById('diasRestantesApelacionTxt');
+    const btnSubmit = document.getElementById('btnEnviarApelacionSubmit');
+    const errorMsg = document.getElementById('errorMensajeApelacion');
+
+    if (txtArea) {
+        txtArea.value = '';
+        txtArea.classList.remove('is-invalid');
+    }
+    if (counter) counter.textContent = '0';
+    if (errorMsg) errorMsg.textContent = '';
+    alertaOk?.classList.add('d-none');
+
+    const puedeApelar = err.puedeApelar !== false;
+    if (!puedeApelar) {
+        if (diasTxt) diasTxt.textContent = String(err.diasRestantes || 1);
+        alertaCd?.classList.remove('d-none');
+        if (txtArea) txtArea.disabled = true;
+        if (btnSubmit) btnSubmit.disabled = true;
+    } else {
+        alertaCd?.classList.add('d-none');
+        if (txtArea) txtArea.disabled = false;
+        if (btnSubmit) btnSubmit.disabled = false;
+    }
+
+    // Listener para actualizar el contador de caracteres en tiempo real
+    if (txtArea && !txtArea._hasCounterListener) {
+        txtArea._hasCounterListener = true;
+        txtArea.addEventListener('input', () => {
+            const cnt = document.getElementById('contadorCharsApelacion');
+            if (cnt) cnt.textContent = String(txtArea.value.length);
+            if (txtArea.value.trim().length > 0) {
+                txtArea.classList.remove('is-invalid');
+            }
+        });
+    }
+
+    const modal = document.getElementById('modalEnviarApelacion');
+    if (modal) {
+        bootstrap.Modal.getOrCreateInstance(modal).show();
+    }
+}
+
+// Envía la solicitud de apelación del cliente a /api/usuarios/apelar
+async function enviarApelacionCliente() {
+    const txtArea = document.getElementById('txtMensajeApelacionCliente');
+    const btnSubmit = document.getElementById('btnEnviarApelacionSubmit');
+    const alertaOk = document.getElementById('alertaExitoApelacion');
+    const errorMsg = document.getElementById('errorMensajeApelacion');
+    const err = window._datosInhabilitado || {};
+
+    const mensaje = txtArea ? txtArea.value.trim() : '';
+    if (!mensaje) {
+        if (txtArea) txtArea.classList.add('is-invalid');
+        if (errorMsg) errorMsg.textContent = 'Por favor escribe un mensaje detallando tu apelación.';
+        return;
+    }
+
+    if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enviando...';
+    }
+
+    try {
+        const resp = await fetch('/api/usuarios/apelar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: err.email, mensaje: mensaje })
+        });
+        const data = await resp.json().catch(() => ({}));
+
+        if (!resp.ok) {
+            if (txtArea) txtArea.classList.add('is-invalid');
+            if (errorMsg) errorMsg.textContent = data.message || 'No se pudo enviar la apelación.';
+            if (btnSubmit) {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = '<i class="bi bi-send me-1"></i>Enviar apelación';
+            }
+            return;
+        }
+
+        // Éxito al enviar la apelación
+        if (alertaOk) {
+            alertaOk.textContent = data.message || '¡Apelación enviada con éxito! La administración evaluará tu solicitud.';
+            alertaOk.classList.remove('d-none');
+        }
+        if (txtArea) txtArea.disabled = true;
+        if (btnSubmit) {
+            btnSubmit.innerHTML = '<i class="bi bi-check2 me-1"></i>Enviado';
+        }
+
+        // Actualizar el estado en memoria para reflejarlo en el login
+        if (window._datosInhabilitado) {
+            window._datosInhabilitado.estadoApelacion = 'PENDIENTE';
+            window._datosInhabilitado.puedeApelar = false;
+            window._datosInhabilitado.mensajeApelacion = mensaje;
+            renderizarAlertaInhabilitado(window._datosInhabilitado);
+        }
+
+        setTimeout(() => {
+            volverALoginDesdeModal('modalEnviarApelacion');
+        }, 1500);
+
+    } catch (e) {
+        console.error('Error al enviar apelación:', e);
+        if (errorMsg) errorMsg.textContent = 'Error de conexión. Intenta de nuevo.';
+        if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<i class="bi bi-send me-1"></i>Enviar apelación';
+        }
+    }
+}
+
+// Abre el modal para visualizar la respuesta / resolución de la administración
+function abrirModalVerRespuestaAdmin() {
+    const err = window._datosInhabilitado || {};
+    const modalLogin = document.getElementById('modalLogin');
+    if (modalLogin) {
+        bootstrap.Modal.getInstance(modalLogin)?.hide();
+    }
+
+    const header = document.getElementById('headerModalVerRespuesta');
+    const icono = document.getElementById('iconoRespuestaAdmin');
+    const titulo = document.getElementById('estadoResolucionTitulo');
+    const fechaEl = document.getElementById('fechaRespuestaAdmin');
+    const textoEl = document.getElementById('textoRespuestaAdminDetalle');
+    const imgCont = document.getElementById('evidenciaRespuestaAdminContenedor');
+    const imgEl = document.getElementById('evidenciaRespuestaAdminImg');
+    const avisoReactivada = document.getElementById('avisoReactivacionCuenta');
+    const btnAccion = document.getElementById('btnAccionRespuestaAdmin');
+
+    const fueAceptada = (err.estadoApelacion || '').toUpperCase() === 'ACEPTADA' || err.estado === 'Activo';
+
+    if (fueAceptada) {
+        if (header) header.style.background = '#198754';
+        if (icono) {
+            icono.style.background = '#dcfce7';
+            icono.style.color = '#15803d';
+            icono.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
+        }
+        if (titulo) {
+            titulo.textContent = '¡Apelación Aprobada!';
+            titulo.className = 'fw-bold mb-1 text-success';
+        }
+        avisoReactivada?.classList.remove('d-none');
+        if (btnAccion) {
+            btnAccion.className = 'btn btn-success py-2 fw-semibold';
+            btnAccion.innerHTML = '<i class="bi bi-box-arrow-in-right me-1"></i>Iniciar Sesión';
+        }
+    } else {
+        if (header) header.style.background = 'var(--azul-oscuro, #0a3d6b)';
+        if (icono) {
+            icono.style.background = '#fee2e2';
+            icono.style.color = '#dc3545';
+            icono.innerHTML = '<i class="bi bi-x-circle-fill"></i>';
+        }
+        if (titulo) {
+            titulo.textContent = 'Apelación Revisada - Cuenta Inhabilitada';
+            titulo.className = 'fw-bold mb-1 text-danger';
+        }
+        avisoReactivada?.classList.add('d-none');
+        if (btnAccion) {
+            btnAccion.className = 'btn btn-primary py-2 fw-semibold';
+            btnAccion.innerHTML = '<i class="bi bi-arrow-left me-1"></i>Volver al inicio de sesión';
+        }
+    }
+
+    const fechaResp = err.fechaRespuestaApelacion || err.fechaHabilitacion || err.fechaBloqueo;
+    if (fechaEl) fechaEl.textContent = `Fecha de respuesta: ${formatearFechaSimple(fechaResp)}`;
+
+    const mensajeRespuesta = err.respuestaApelacion || err.mensajeHabilitacion || 'La administración ha revisado el caso y determinó mantener el estado actual de la cuenta.';
+    if (textoEl) textoEl.textContent = mensajeRespuesta;
+
+    const evidencia = err.evidenciaRespuesta || err.evidenciaHabilitacion;
+    if (imgCont && imgEl) {
+        if (evidencia) {
+            imgEl.src = evidencia;
+            imgCont.classList.remove('d-none');
+        } else {
+            imgEl.src = '';
+            imgCont.classList.add('d-none');
+        }
+    }
+
+    const modal = document.getElementById('modalVerRespuestaAdmin');
+    if (modal) {
+        bootstrap.Modal.getOrCreateInstance(modal).show();
     }
 }
 
@@ -779,9 +1144,9 @@ async function ejecutarRegistro(rol) {
         divExito?.classList.remove('d-none');
         limpiarCamposRegister();
         return true;
-    } catch (err) {
-        console.error('Error al registrar:', err);
-        if (msgError) msgError.textContent = 'Error de conexión. Intenta de nuevo.';
+    } catch (e) {
+        console.error('Error al registrar usuario:', e);
+        if (msgError) msgError.textContent = 'Error del servidor al registrar usuario.';
         divError?.classList.remove('d-none');
         return false;
     } finally {
@@ -792,7 +1157,7 @@ async function ejecutarRegistro(rol) {
     }
 }
 
-// Validaciones de formulario: Campos obligatorios
+// Validación de campo requerido genérico
 function validarRequerido(campo, mensaje) {
     if (!campo.value.trim()) {
         marcarInvalido(campo, mensaje);
@@ -821,37 +1186,33 @@ function validarTexto(campo, mensaje) {
 function validarEmail(campo) {
     const v = campo.value.trim();
     if (!v) {
-        marcarInvalido(campo, 'El correo es obligatorio');
+        marcarInvalido(campo, 'El correo electrónico es obligatorio');
         return false;
     }
-    if (!/^[^\s@]+@gmail\.com$/.test(v)) {
-        marcarInvalido(campo, 'Ingresa un correo válido con @gmail.com');
+    if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(v)) {
+        marcarInvalido(campo, 'Ingresa un correo @gmail.com válido');
         return false;
     }
     marcarValido(campo);
     return true;
 }
 
-// Validación de teléfono que exige formato nacional (9 dígitos empezando en 9 y diferente de 987654321)
+// Validación de teléfono: Debe tener exactamente 9 dígitos numéricos y comenzar en 9
 function validarTel(campo) {
     const v = campo.value.trim();
     if (!v) {
         marcarInvalido(campo, 'El teléfono es obligatorio');
         return false;
     }
-    if (v === '987654321') {
-        marcarInvalido(campo, 'No te creas payaso');
-        return false;
-    }
-    if (!/^9[0-9]{8}$/.test(v)) {
-        marcarInvalido(campo, 'El teléfono debe empezar con 9 y tener 9 dígitos');
+    if (!/^9\d{8}$/.test(v)) {
+        marcarInvalido(campo, 'El teléfono debe tener 9 dígitos y empezar con 9');
         return false;
     }
     marcarValido(campo);
     return true;
 }
 
-// Validación de contraseña con reglas mínimas de complejidad
+// Validación de contraseña con longitud mínima de 8 caracteres
 function validarPassword(campo) {
     const v = campo.value;
     if (!v) {
@@ -859,56 +1220,55 @@ function validarPassword(campo) {
         return false;
     }
     if (v.length < 8) {
-        marcarInvalido(campo, 'Mínimo 8 caracteres');
-        return false;
-    }
-    if (!/[A-Z]/.test(v)) {
-        marcarInvalido(campo, 'Debe tener al menos una mayúscula');
-        return false;
-    }
-    if (!/[0-9]/.test(v)) {
-        marcarInvalido(campo, 'Debe tener al menos un número');
+        marcarInvalido(campo, 'La contraseña debe tener al menos 8 caracteres');
         return false;
     }
     marcarValido(campo);
     return true;
 }
 
-// Valida que la confirmación de contraseña coincida con la contraseña
-function validarConfirm(pass, confirm) {
-    if (!confirm.value) {
-        marcarInvalido(confirm, 'Confirma tu contraseña');
+// Validación de confirmación de contraseña
+function validarConfirm(passCampo, confirmCampo) {
+    const c = confirmCampo.value;
+    if (!c) {
+        marcarInvalido(confirmCampo, 'Confirma tu contraseña');
         return false;
     }
-    if (pass.value !== confirm.value) {
-        marcarInvalido(confirm, 'Las contraseñas no coinciden');
+    if (c !== passCampo.value) {
+        marcarInvalido(confirmCampo, 'Las contraseñas no coinciden');
         return false;
     }
-    marcarValido(confirm);
+    marcarValido(confirmCampo);
     return true;
 }
 
-// Valida que el checkbox de aceptación de términos esté marcado
+// Validación para la casilla de aceptación de términos y condiciones
 function validarCheckbox(checkbox) {
-    const feedback = checkbox.closest('.form-check')?.querySelector('.invalid-feedback');
     if (!checkbox.checked) {
-        checkbox.classList.add('is-invalid');
-        if (feedback) feedback.textContent = 'Debes aceptar los términos y condiciones';
-        checkbox.addEventListener('change', () => {
-            checkbox.classList.remove('is-invalid');
-            if (feedback) feedback.textContent = '';
-        }, { once: true });
+        marcarInvalido(checkbox, 'Debes aceptar los términos y condiciones');
         return false;
     }
-    checkbox.classList.remove('is-invalid');
+    marcarValido(checkbox);
     return true;
 }
 
-// Aplica estilos y mensaje de validación para un campo inválido
+// Alterna la visibilidad de la contraseña (tipo password <-> text) y conmuta el icono del ojito
+function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const esPassword = input.type === 'password';
+    input.type = esPassword ? 'text' : 'password';
+    const icon = btn ? btn.querySelector('i') : null;
+    if (icon) {
+        icon.className = esPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+    }
+}
+
+// Aplica estilos de campo inválido y muestra el mensaje de error correspondiente
 function marcarInvalido(campo, mensaje) {
-    campo.classList.add('is-invalid');
     campo.classList.remove('is-valid');
-    const fb = campo.parentNode.querySelector('.invalid-feedback');
+    campo.classList.add('is-invalid');
+    const fb = campo.parentNode.querySelector('.invalid-feedback') || campo.closest('.mb-3, .col-sm-6, .col-12')?.querySelector('.invalid-feedback');
     if (fb) fb.textContent = mensaje;
 }
 
@@ -916,17 +1276,24 @@ function marcarInvalido(campo, mensaje) {
 function marcarValido(campo) {
     campo.classList.remove('is-invalid');
     campo.classList.add('is-valid');
-    const fb = campo.parentNode.querySelector('.invalid-feedback');
+    const fb = campo.parentNode.querySelector('.invalid-feedback') || campo.closest('.mb-3, .col-sm-6, .col-12')?.querySelector('.invalid-feedback');
     if (fb) fb.textContent = '';
 }
 
-// Limpia los campos y estados de un modal específico (inputs, feedback, checkboxes)
+// Limpia los campos y estados de un modal específico (inputs, feedback, checkboxes, ojitos)
 function limpiarModal(modalId) {
     document.querySelectorAll(`#${modalId} .form-control`).forEach(campo => {
         campo.classList.remove('is-invalid', 'is-valid');
         campo.value = '';
-        const fb = campo.parentNode.querySelector('.invalid-feedback');
+        const fb = campo.parentNode.querySelector('.invalid-feedback') || campo.closest('.mb-3, .col-sm-6, .col-12')?.querySelector('.invalid-feedback');
         if (fb) fb.textContent = '';
+    });
+    // Restablece los campos de contraseña a tipo password y el icono del ojito a bi-eye
+    document.querySelectorAll(`#${modalId} input[id$="Password"], #${modalId} input[id$="Confirm"]`).forEach(input => {
+        input.type = 'password';
+    });
+    document.querySelectorAll(`#${modalId} .btn-toggle-password i`).forEach(icon => {
+        icon.className = 'bi bi-eye';
     });
     const checkbox = document.getElementById('aceptaTerminos');
     if (checkbox) {
@@ -946,7 +1313,16 @@ function limpiarCamposRegister() {
         if (campo) {
             campo.value = '';
             campo.classList.remove('is-valid', 'is-invalid');
+            const fb = campo.parentNode.querySelector('.invalid-feedback') || campo.closest('.mb-3, .col-sm-6, .col-12')?.querySelector('.invalid-feedback');
+            if (fb) fb.textContent = '';
         }
+    });
+    ['regPassword', 'regConfirm'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.type = 'password';
+    });
+    document.querySelectorAll('#modalRegister .btn-toggle-password i').forEach(icon => {
+        icon.className = 'bi bi-eye';
     });
     const checkbox = document.getElementById('aceptaTerminos');
     if (checkbox) {
@@ -986,19 +1362,10 @@ function posicionarMenuPortal(trigger, menu) {
     menu.style.left = `${rect.left}px`;
     menu.style.width = `${rect.width}px`;
     menu.classList.add('open');
-
-    const espacioAbajo = window.innerHeight - rect.bottom - 12;
-    const espacioArriba = rect.top - 12;
-    const desplegarAbajo = espacioAbajo >= 150 || espacioAbajo >= espacioArriba;
-    const altoMax = Math.min(240, Math.max(120, desplegarAbajo ? espacioAbajo : espacioArriba));
-    menu.style.maxHeight = `${altoMax}px`;
-
-    if (desplegarAbajo) {
-        menu.style.top = `${rect.bottom + 2}px`;
-    } else {
-        const topPos = Math.max(8, rect.top - menu.offsetHeight - 2);
-        menu.style.top = `${topPos}px`;
-    }
+    const altoMenu = menu.offsetHeight || 120;
+    const cabeAbajo = rect.bottom + 2 + altoMenu <= window.innerHeight - 12;
+    const topPos = cabeAbajo ? rect.bottom + 2 : Math.max(8, rect.top - altoMenu - 2);
+    menu.style.top = `${topPos}px`;
 }
 
 // Sincroniza el estado visual de un select personalizado con el <select> nativo
@@ -1142,4 +1509,3 @@ function iniciarSelectPersonalizado(selectTarget, opciones = {}) {
         }, true);
     }
 }
-

@@ -52,7 +52,7 @@ public class Producto {
     private String etiqueta;
 
     // Nombre de archivo o URL de la imagen del producto
-    @Column
+    @Column(columnDefinition = "MEDIUMTEXT")
     private String imagen;
 
     // Estado del producto: Activo o Inactivo

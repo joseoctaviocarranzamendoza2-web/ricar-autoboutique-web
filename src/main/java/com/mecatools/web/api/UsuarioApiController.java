@@ -95,7 +95,7 @@ public class UsuarioApiController {
         }
     }
 
-    // Endpoint para habilitar o inhabilitar un usuario (cambio de estado Activo/Inactivo)
+    // Endpoint para habilitar o inhabilitar un usuario (cambio de estado Activo/Inactivo) con motivo y evidencia opcional
     @PatchMapping("/{id}/estado")
     public ResponseEntity<?> cambiarEstado(@PathVariable Long id, @RequestBody Map<String, String> body, Authentication auth) {
         if (auth == null || !auth.isAuthenticated() || !(auth.getPrincipal() instanceof UsuarioDetails details)) {
@@ -105,8 +105,10 @@ public class UsuarioApiController {
         if (nuevoEstado == null || (!nuevoEstado.equalsIgnoreCase("Activo") && !nuevoEstado.equalsIgnoreCase("Inactivo"))) {
             return ResponseEntity.badRequest().body(Map.of("error", "El estado debe ser Activo o Inactivo"));
         }
+        String motivo = body != null ? body.get("motivo") : null;
+        String evidencia = body != null ? body.get("evidencia") : null;
         try {
-            Usuario actualizado = usuarioService.cambiarEstado(details.getUsuario(), id, nuevoEstado);
+            Usuario actualizado = usuarioService.cambiarEstado(details.getUsuario(), id, nuevoEstado, motivo, evidencia);
             return ResponseEntity.ok(Map.of(
                     "mensaje", "Estado del usuario actualizado a " + actualizado.getEstado(),
                     "id", actualizado.getId(),
@@ -116,6 +118,66 @@ public class UsuarioApiController {
             return ResponseEntity.notFound().build();
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // Endpoint para que la administración responda a una apelación (aprobar/habilitar o rechazar/mantener inactivo)
+    @PostMapping("/{id}/responder-apelacion")
+    public ResponseEntity<?> responderApelacion(@PathVariable Long id, @RequestBody Map<String, String> body, Authentication auth) {
+        if (auth == null || !auth.isAuthenticated() || !(auth.getPrincipal() instanceof UsuarioDetails details)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "No autenticado"));
+        }
+        String respuesta = body != null ? body.get("respuesta") : null;
+        String evidencia = body != null ? body.get("evidencia") : null;
+        String decision = body != null ? body.get("decision") : "MANTENER_INACTIVO";
+        try {
+            Usuario actualizado = usuarioService.responderApelacion(details.getUsuario(), id, respuesta, evidencia, decision);
+            return ResponseEntity.ok(Map.of(
+                    "mensaje", "Resolución de apelación guardada correctamente",
+                    "id", actualizado.getId(),
+                    "estado", actualizado.getEstado(),
+                    "estadoApelacion", actualizado.getEstadoApelacion()
+            ));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // Endpoint público para que un cliente inhabilitado envíe una apelación (máximo 1 cada 7 días)
+    @PostMapping("/apelar")
+    public ResponseEntity<?> apelar(@RequestBody Map<String, String> body) {
+        String email = body != null ? body.get("email") : null;
+        String mensaje = body != null ? body.get("mensaje") : null;
+        try {
+            Usuario usuario = usuarioService.apelar(email, mensaje);
+            return ResponseEntity.ok(Map.of(
+                    "mensaje", "Tu solicitud de apelación ha sido enviada con éxito. El equipo de administración revisará tu caso.",
+                    "id", usuario.getId(),
+                    "estadoApelacion", usuario.getEstadoApelacion()
+            ));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Error al procesar la apelación"));
+        }
+    }
+
+    // Endpoint público para consultar el estado de cuenta y datos de apelación de un usuario por email
+    @GetMapping("/estado-cuenta")
+    public ResponseEntity<?> consultarEstadoCuenta(@RequestParam String email) {
+        try {
+            Map<String, Object> estado = usuarioService.obtenerEstadoCuenta(email);
+            return ResponseEntity.ok(estado);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

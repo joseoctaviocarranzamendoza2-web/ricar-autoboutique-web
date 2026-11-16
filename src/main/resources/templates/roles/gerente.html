@@ -13,7 +13,7 @@
     <!-- global.css: Estilos compartidos entre todos los roles; incluye variables de color y utilidades generales -->
     <link rel="stylesheet" th:href="@{/css/global.css(v='1.2')}">
     <!-- gerente.css: Define estilos exclusivos del panel gerente, incluidos sidebar, topbar, tarjetas, tablas y layout SPA -->
-    <link rel="stylesheet" th:href="@{/css/roles/gerente.css(v='6.7')}">
+    <link rel="stylesheet" th:href="@{/css/roles/gerente.css(v='6.9')}">
     <!-- Favicon del sitio -->
     <link rel="icon" th:href="@{/img/icono/icon.png}" type="image/png">
     <script th:inline="javascript">
@@ -234,17 +234,20 @@
                 <div class="admin-card-body py-3">
                     <!-- Filtros de ventas para búsqueda y rango de fechas; en el archivo gerente.js se espera manejar la lógica de filtrado y actualización de la tabla sin recargar la página, usando estas entradas para buscar texto y fechas -->
                     <div class="row g-2 align-items-center">
-                        <div class="col-sm-5">
-                            <input type="text" class="form-control" id="filtroVentasBuscar" placeholder="Buscar cliente...">
+                        <div class="col-12 col-md-4">
+                            <input type="text" class="form-control" id="filtroVentasBuscar" placeholder="Buscar cliente, producto o servicio...">
                         </div>
-                        <div class="col-sm-2">
+                        <div class="col-6 col-md-2">
                             <input type="date" class="form-control" id="filtroVentasDesde" title="Fecha inicial">
                         </div>
-                        <div class="col-sm-2">
+                        <div class="col-6 col-md-2">
                             <input type="date" class="form-control" id="filtroVentasHasta" title="Fecha final">
                         </div>
-                        <div class="col-sm-3">
-                            <button class="btn btn-filtrar-ventas w-100" id="btnFiltrarVentas"><i class="bi bi-funnel-fill me-1"></i>FILTRAR</button>
+                        <div class="col-6 col-md-2">
+                            <button type="button" class="btn btn-sm btn-filtrar-ventas w-100" id="btnFiltrarVentas"><i class="bi bi-funnel-fill me-1"></i>Filtrar</button>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <button type="button" class="btn btn-sm btn-limpiar-filtros w-100" id="btnLimpiarFiltrosVentas" onclick="limpiarFiltrosVentas(); this.blur();"><i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar filtros</button>
                         </div>
                     </div>
                 </div>
@@ -477,7 +480,7 @@
     <!-- global.js: Utilidades compartidas entre roles; debe cargarse antes de gerente.js -->
     <script th:src="@{/js/global.js(v='1.2')}"></script>
     <!-- gerente.js: Lógica principal del panel gerente; gestiona la SPA interna, carga y filtra ventas, reportes, clientes y citas, y controla modales y exportaciones -->
-    <script th:src="@{/js/roles/gerente.js(v='2.5')}"></script>
+    <script th:src="@{/js/roles/gerente.js(v='2.6')}"></script>
     <!-- Activa la sección correspondiente según la URL solicitada al servidor o memoria local -->
     <script th:inline="javascript">
         /*<![CDATA[*/

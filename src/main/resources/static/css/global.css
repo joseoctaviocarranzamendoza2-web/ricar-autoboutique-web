@@ -710,6 +710,61 @@ body {
     font-size: 0.85rem;
 }
 
+/* Input-group con botón para alternar visibilidad de contraseña (ojito) */
+.modal-body .input-group .form-control {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+.modal-body .input-group .btn-toggle-password {
+    border: 1.5px solid #dce6f0;
+    border-left: none;
+    border-top-right-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+    background-color: #ffffff;
+    color: #64748b;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color .2s, color .2s, background-color .2s;
+}
+
+.modal-body .input-group .btn-toggle-password:hover,
+.modal-body .input-group .btn-toggle-password:focus {
+    color: var(--azul-institucional, #0a3d6b);
+    background-color: #f8fafc;
+    border-color: var(--celeste);
+}
+
+.modal-body .input-group:hover .btn-toggle-password {
+    border-color: var(--celeste);
+}
+
+.modal-body .input-group:hover .form-control {
+    border-color: var(--celeste);
+}
+
+.modal-body .input-group:focus-within .btn-toggle-password {
+    border-color: var(--celeste);
+}
+
+.modal-body .input-group .form-control.is-invalid + .btn-toggle-password {
+    border-color: #dc3545;
+}
+
+.modal-body .input-group .form-control.is-valid + .btn-toggle-password {
+    border-color: #198754;
+}
+
+.modal-body .input-group > .invalid-feedback {
+    display: none;
+    width: 100%;
+    margin-top: 0.25rem;
+}
+
 /* Color de marca y bordes suavizados */
 .modal-body .btn-primary {
     background-color: var(--azul-medio);

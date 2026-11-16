@@ -609,10 +609,10 @@ body {
     transition: border-color 0.2s ease;
 }
 
-/* Hover KPI: Sin sombreado, borde celeste del icono del sidebar */
+/* Hover KPI: Borde celeste institucional (#56aee8) idéntico a gerente */
 .kpi-card:hover {
-    border-color: var(--color-celeste);
-    box-shadow: none;
+    border-color: var(--color-celeste) !important;
+    box-shadow: 0 0 0 0.5px var(--color-celeste) !important;
 }
 
 /* Contenedor de icono KPI: Background por variante y tamaño fijo */
@@ -684,7 +684,7 @@ body {
 /* Hover en tarjetas de administración (filtros y tablas de citas, clientes y productos): Borde celeste */
 .admin-card:hover {
     border-color: var(--color-celeste) !important;
-    box-shadow: none !important;
+    box-shadow: 0 0 0 0.5px var(--color-celeste) !important;
 }
 
 /* Card de categoría: Transición suave para elevación y borde */
@@ -822,8 +822,8 @@ body {
 
 /* Hover product card: Borde celeste sólido de 1.5px equivalente al modo lista (1px + 0.5px sin desenfoque) */
 .product-admin-card:hover {
-    border-color: var(--color-celeste);
-    box-shadow: 0 0 0 0.5px var(--color-celeste);
+    border-color: var(--color-celeste) !important;
+    box-shadow: 0 0 0 0.5px var(--color-celeste) !important;
     transform: translateY(-3px);
 }
 
@@ -1101,8 +1101,8 @@ body {
 
 /* Hover servicio: Borde celeste sólido de 1.5px sin sombreado idéntico a productos */
 .service-admin-card:hover {
-    border-color: var(--color-celeste);
-    box-shadow: 0 0 0 0.5px var(--color-celeste);
+    border-color: var(--color-celeste) !important;
+    box-shadow: 0 0 0 0.5px var(--color-celeste) !important;
     transform: translateY(-3px);
 }
 
@@ -1442,14 +1442,31 @@ body {
     height: 38px;
 }
 
-/* Focus en formularios y modales (Editar mis datos, filtros de citas y productos): Solo borde celeste (#56aee8) sin sombreado */
+/* Hover y Focus en formularios, filtros y modales: Borde celeste institucional (#56aee8) sin sombreado */
+.form-control:hover,
 .form-control:focus,
+.form-select:hover,
 .form-select:focus,
+.custom-select-trigger:hover,
+.custom-select-trigger:focus,
+.custom-select-wrapper.open .custom-select-trigger,
+.modal-body .form-control:hover,
 .modal-body .form-control:focus,
-.modal-body .form-select:focus {
-    border-color: var(--color-celeste) !important;
+.modal-body .form-select:hover,
+.modal-body .form-select:focus,
+.modal-body .custom-select-trigger:hover,
+.modal-body .custom-select-trigger:focus {
+    border-color: var(--color-celeste, #56aee8) !important;
     box-shadow: none !important;
     outline: none !important;
+}
+
+/* Efecto hover coordinado para grupos de entrada (.input-group) */
+.input-group:hover .form-control,
+.input-group:hover .input-group-text,
+.input-group:focus-within .form-control,
+.input-group:focus-within .input-group-text {
+    border-color: var(--color-celeste, #56aee8) !important;
 }
 
 /* Overlay del sidebar en móviles: Fondo semitransparente para foco modal */
@@ -1598,6 +1615,7 @@ textarea.form-control {
     transition: border-color 0.2s ease;
 }
 
+.custom-select-trigger:hover,
 .custom-select-trigger:focus,
 .custom-select-wrapper.open .custom-select-trigger {
     border-color: var(--color-celeste) !important;
@@ -2046,15 +2064,13 @@ textarea.form-control {
 }
 
 /* ========================================================
-   BOTONES DE FILTRO DE COMPRAS EN GESTIÓN - CLIENTES
-   (Por entregar, Entregado, Sin pagar)
-   Estado 1 (Reposo): Fondo blanco, borde neutro, texto gris oscuro
-   Hover: Borde celeste de marca (#56aee8) y texto azul oscuro
-   Estado 2 (.active): Fondo y borde según estado (ámbar, verde, rojo), texto blanco
+   BOTONES DE FILTRO DE CLIENTES POR COMPRA (Por entregar, Entregado, Sin pagar)
+   Hover: Borde celeste institucional (#56aee8)
+   Seleccionado / Clic (.active, :active): Fondo celeste institucional (#56aee8), borde celeste, letra e icono blanco (#ffffff)
    ======================================================== */
 .btn-filtro-compra {
     background-color: #ffffff !important;
-    border: 1.5px solid #d1d5db !important;
+    border: 1.5px solid #dce6f0 !important;
     color: #374151 !important;
     font-size: 0.88rem !important;
     font-weight: 600 !important;
@@ -2068,44 +2084,272 @@ textarea.form-control {
     outline: none !important;
     transform: none !important;
     cursor: pointer !important;
-    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
     white-space: nowrap;
 }
 
-.btn-filtro-compra:hover {
-    border-color: var(--color-celeste) !important;
-    color: var(--color-azul-oscuro) !important;
+.btn-filtro-compra i {
+    color: inherit;
+    transition: color 0.18s ease;
 }
 
-.btn-filtro-compra.btn-filtro-por-entregar.active,
-.btn-filtro-compra.btn-filtro-por-entregar.active:hover,
-.btn-filtro-compra.btn-filtro-por-entregar.active:active,
-.btn-filtro-compra.btn-filtro-por-entregar.active:focus {
-    background-color: #d97706 !important;
-    border-color: #d97706 !important;
+.btn-filtro-compra:hover,
+.btn-filtro-compra:focus {
+    background-color: #ffffff !important;
+    border-color: var(--color-celeste, #56aee8) !important;
+    color: var(--color-azul-oscuro, #0a3d6b) !important;
+    box-shadow: 0 0 0 0.5px var(--color-celeste, #56aee8) !important;
+}
+
+.btn-filtro-compra:hover i,
+.btn-filtro-compra:focus i {
+    color: var(--color-azul-oscuro, #0a3d6b) !important;
+}
+
+.btn-filtro-compra:active,
+.btn-filtro-compra.active,
+.btn-filtro-compra.active:hover,
+.btn-filtro-compra.active:focus,
+.btn-filtro-compra.active:active {
+    background-color: var(--color-celeste, #56aee8) !important;
+    border-color: var(--color-celeste, #56aee8) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+.btn-filtro-compra:active i,
+.btn-filtro-compra.active i,
+.btn-filtro-compra.active:hover i,
+.btn-filtro-compra.active:focus i,
+.btn-filtro-compra.active:active i {
     color: #ffffff !important;
 }
 
-.btn-filtro-compra.btn-filtro-entregado.active,
-.btn-filtro-compra.btn-filtro-entregado.active:hover,
-.btn-filtro-compra.btn-filtro-entregado.active:active,
-.btn-filtro-compra.btn-filtro-entregado.active:focus {
-    background-color: #198754 !important;
-    border-color: #198754 !important;
+/* Botón de filtro de Apelaciones en Gestión - Clientes:
+   Reposo: Letra e icono blanco, fondo azul institucional (#0a3d6b).
+   Hover / Clic / Activo: Fondo y borde pasan al celeste institucional (#56aee8), letra e icono blanco. */
+.btn-filtro-compra.btn-filtro-apelacion {
+    background-color: var(--color-azul-oscuro, #0a3d6b) !important;
+    border-color: var(--color-azul-oscuro, #0a3d6b) !important;
     color: #ffffff !important;
 }
 
-.btn-filtro-compra.btn-filtro-sin-pagar.active,
-.btn-filtro-compra.btn-filtro-sin-pagar.active:hover,
-.btn-filtro-compra.btn-filtro-sin-pagar.active:active,
-.btn-filtro-compra.btn-filtro-sin-pagar.active:focus {
-    background-color: #dc3545 !important;
+.btn-filtro-compra.btn-filtro-apelacion i {
+    color: #ffffff !important;
+}
+
+.btn-filtro-compra.btn-filtro-apelacion:hover,
+.btn-filtro-compra.btn-filtro-apelacion:focus,
+.btn-filtro-compra.btn-filtro-apelacion:active,
+.btn-filtro-compra.btn-filtro-apelacion.active,
+.btn-filtro-compra.btn-filtro-apelacion.active:hover,
+.btn-filtro-compra.btn-filtro-apelacion.active:focus,
+.btn-filtro-compra.btn-filtro-apelacion.active:active {
+    background-color: var(--color-celeste, #56aee8) !important;
+    border-color: var(--color-celeste, #56aee8) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+.btn-filtro-compra.btn-filtro-apelacion:hover i,
+.btn-filtro-compra.btn-filtro-apelacion:focus i,
+.btn-filtro-compra.btn-filtro-apelacion:active i,
+.btn-filtro-compra.btn-filtro-apelacion.active i {
+    color: #ffffff !important;
+}
+
+/* Campos de motivo y evidencia en modal de confirmación según acción:
+   Inhabilitar: borde rojo al pasar cursor (#dc3545)
+   Habilitar: borde verde al pasar cursor (#198754) */
+.campo-estado-rojo:hover,
+.campo-estado-rojo:focus,
+.input-group-rojo:hover .form-control,
+.input-group-rojo:hover .btn-archivo-accion,
+.input-group-rojo:focus-within .form-control,
+.input-group-rojo:focus-within .btn-archivo-accion {
     border-color: #dc3545 !important;
+}
+
+.campo-estado-verde:hover,
+.campo-estado-verde:focus,
+.input-group-verde:hover .form-control,
+.input-group-verde:hover .btn-archivo-accion,
+.input-group-verde:focus-within .form-control,
+.input-group-verde:focus-within .btn-archivo-accion {
+    border-color: #198754 !important;
+}
+
+.modal-confirmacion-ext {
+    --bs-modal-width: 480px !important;
+}
+
+/* Botón de acción para ver apelación en tabla de clientes */
+.btn-accion-apelacion {
+    border-radius: 6px !important;
+    padding: 4px 8px !important;
+    transition: all 0.15s ease !important;
+}
+
+/* ========================================================
+   BOTONES DE FILTRO Y ACCIÓN DE MENSAJES (Pendiente, Respondido, Actualizar)
+   Hover: Borde celeste institucional (#56aee8)
+   Seleccionado / Clic (.active, :active): Fondo celeste institucional (#56aee8), borde celeste, letra e icono blanco (#ffffff)
+   ======================================================== */
+.btn-filtro-mensaje {
+    background-color: #ffffff !important;
+    border: 1.5px solid #dce6f0 !important;
+    color: #374151 !important;
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    border-radius: 9px !important;
+    height: 40px !important;
+    padding: 0 1.15rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+    cursor: pointer !important;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    white-space: nowrap;
+}
+
+.btn-filtro-mensaje i {
+    color: inherit;
+    transition: color 0.18s ease;
+}
+
+.btn-filtro-mensaje:hover,
+.btn-filtro-mensaje:focus {
+    background-color: #ffffff !important;
+    border-color: var(--color-celeste, #56aee8) !important;
+    color: var(--color-azul-oscuro, #0a3d6b) !important;
+    box-shadow: 0 0 0 0.5px var(--color-celeste, #56aee8) !important;
+}
+
+.btn-filtro-mensaje:hover i,
+.btn-filtro-mensaje:focus i {
+    color: var(--color-azul-oscuro, #0a3d6b) !important;
+}
+
+.btn-filtro-mensaje:active,
+.btn-filtro-mensaje.active,
+.btn-filtro-mensaje.active:hover,
+.btn-filtro-mensaje.active:focus,
+.btn-filtro-mensaje.active:active {
+    background-color: var(--color-celeste, #56aee8) !important;
+    border-color: var(--color-celeste, #56aee8) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+.btn-filtro-mensaje:active i,
+.btn-filtro-mensaje.active i,
+.btn-filtro-mensaje.active:hover i,
+.btn-filtro-mensaje.active:focus i,
+.btn-filtro-mensaje.active:active i {
     color: #ffffff !important;
 }
 
-.btn-filtro-compra.active i {
-    color: #ffffff !important;
+/* Input de búsqueda en Clientes: Borde celeste al pasar cursor */
+#sec-clientes #searchCliente {
+    border: 1.5px solid #dce6f0 !important;
+    border-radius: 8px !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+#sec-clientes #searchCliente:hover,
+#sec-clientes #searchCliente:focus {
+    border-color: var(--color-celeste, #56aee8) !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* ========================================================
+   BOTONES DE ACCIÓN PARA IMPORTAR IMAGEN (Seleccionar archivo y Limpiar)
+   Estilo idéntico a .input-group-text (S/ y hrs):
+   Fondo #f8fafc, borde 1.5px solid #dce6f0, texto var(--color-gris-texto).
+   Tipografía idéntica a "hrs": font-size 1rem, font-weight 400 (normal), color y line-height.
+   Conserva estos estilos en reposo, hover y clic (:active / :focus).
+   ======================================================== */
+.btn-archivo-accion,
+.btn-archivo-accion:hover,
+.btn-archivo-accion:focus,
+.btn-archivo-accion:active,
+:is(#modalProducto, #modalServicio) .btn-archivo-accion,
+:is(#modalProducto, #modalServicio) .btn-archivo-accion:hover,
+:is(#modalProducto, #modalServicio) .btn-archivo-accion:focus,
+:is(#modalProducto, #modalServicio) .btn-archivo-accion:active {
+    background-color: #f8fafc !important;
+    border: 1.5px solid #dce6f0 !important;
+    color: var(--color-gris-texto, #4a5568) !important;
+    font-size: 1rem !important;
+    font-weight: 400 !important;
+    line-height: 1.5 !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+    font-family: inherit !important;
+    padding: 0 0.85rem !important;
+    height: 38px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    box-shadow: none !important;
+    outline: none !important;
+    user-select: none !important;
+    transition: border-color 0.2s ease !important;
+}
+
+.btn-archivo-accion i,
+.btn-archivo-accion:hover i,
+.btn-archivo-accion:focus i,
+.btn-archivo-accion:active i,
+:is(#modalProducto, #modalServicio) .btn-archivo-accion i,
+:is(#modalProducto, #modalServicio) .btn-archivo-accion:hover i,
+:is(#modalProducto, #modalServicio) .btn-archivo-accion:focus i,
+:is(#modalProducto, #modalServicio) .btn-archivo-accion:active i {
+    color: var(--color-gris-texto, #4a5568) !important;
+    font-size: 1rem !important;
+    font-weight: 400 !important;
+}
+
+/* Bordes redondeados correspondientes en el input-group */
+:is(#modalProducto, #modalServicio) .input-group > .btn-archivo-accion:first-child {
+    border-radius: 8px 0 0 8px !important;
+}
+
+:is(#modalProducto, #modalServicio) .input-group > .btn-archivo-accion:last-child {
+    border-radius: 0 8px 8px 0 !important;
+    margin-left: -1.5px !important;
+}
+
+/* El input central readonly (donde se muestra el nombre del archivo seleccionado) */
+:is(#modalProducto, #modalServicio) .input-group > .form-control[readonly] {
+    background-color: #ffffff !important;
+    border: 1.5px solid #dce6f0 !important;
+    border-radius: 0 !important;
+    margin-left: -1.5px !important;
+    cursor: default;
+    color: var(--color-gris-texto, #4a5568) !important;
+    transition: border-color 0.2s ease !important;
+}
+
+/* Activación de borde celeste (#56aee8) coordinado al pasar el cursor o hacer foco */
+.btn-archivo-accion:hover,
+.btn-archivo-accion:focus,
+.btn-archivo-accion:active,
+:is(#modalProducto, #modalServicio) .btn-archivo-accion:hover,
+:is(#modalProducto, #modalServicio) .btn-archivo-accion:focus,
+:is(#modalProducto, #modalServicio) .btn-archivo-accion:active,
+:is(#modalProducto, #modalServicio) .input-group:hover .btn-archivo-accion,
+:is(#modalProducto, #modalServicio) .input-group:hover .form-control[readonly],
+:is(#modalProducto, #modalServicio) .input-group:focus-within .btn-archivo-accion,
+:is(#modalProducto, #modalServicio) .input-group:focus-within .form-control[readonly] {
+    border-color: var(--color-celeste, #56aee8) !important;
+    z-index: 3 !important;
 }
 
 /* ========================================================
@@ -2287,7 +2531,8 @@ textarea.form-control {
 }
 
 .mensaje-item-card:hover {
-    border-color: var(--color-celeste);
+    border-color: var(--color-celeste) !important;
+    box-shadow: 0 0 0 0.5px var(--color-celeste) !important;
     background-color: #f8fafc;
     transform: translateY(-1px);
 }

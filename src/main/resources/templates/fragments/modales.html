@@ -23,8 +23,13 @@
                         <!-- Formulario de inicio de sesión: Solicita contraseña para la autenticación de usuario -->
                         <div class="mb-3">
                             <label class="form-label" for="loginPassword">Contraseña</label>
-                            <input type="password" id="loginPassword" class="form-control" placeholder="Tu contraseña" autocomplete="current-password">
-                            <div class="invalid-feedback"></div>
+                            <div class="input-group">
+                                <input type="password" id="loginPassword" class="form-control" placeholder="Tu contraseña" autocomplete="current-password">
+                                <button type="button" class="btn btn-outline-secondary btn-toggle-password" onclick="togglePasswordVisibility('loginPassword', this)" tabindex="-1" title="Mostrar/ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <div class="invalid-feedback"></div>
+                            </div>
                         </div>
                         <!-- Mensaje de error visible cuando las credenciales del login son incorrectas -->
                         <div id="loginError" class="alert alert-danger text-center py-2 d-none">
@@ -86,14 +91,24 @@
                             <!-- Campo de contraseña con validación de longitud mínima de 8 caracteres -->
                             <div class="col-sm-6">
                                 <label class="form-label" for="regPassword">Contraseña</label>
-                                <input type="password" id="regPassword" class="form-control" placeholder="Mínimo 8 caracteres" maxlength="30" autocomplete="new-password">
-                                <div class="invalid-feedback"></div>
+                                <div class="input-group">
+                                    <input type="password" id="regPassword" class="form-control" placeholder="Mínimo 8 caracteres" maxlength="30" autocomplete="new-password">
+                                    <button type="button" class="btn btn-outline-secondary btn-toggle-password" onclick="togglePasswordVisibility('regPassword', this)" tabindex="-1" title="Mostrar/ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <div class="invalid-feedback"></div>
+                                </div>
                             </div>
                             <!-- Campo de confirmación de contraseña con validación de coincidencia -->
                             <div class="col-sm-6">
                                 <label class="form-label" for="regConfirm">Confirmar contraseña</label>
-                                <input type="password" id="regConfirm" class="form-control" placeholder="Repite tu contraseña" maxlength="30" autocomplete="new-password">
-                                <div class="invalid-feedback"></div>
+                                <div class="input-group">
+                                    <input type="password" id="regConfirm" class="form-control" placeholder="Repite tu contraseña" maxlength="30" autocomplete="new-password">
+                                    <button type="button" class="btn btn-outline-secondary btn-toggle-password" onclick="togglePasswordVisibility('regConfirm', this)" tabindex="-1" title="Mostrar/ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <div class="invalid-feedback"></div>
+                                </div>
                             </div>
                             <!-- Selector de tipo de Cuenta: Permite elegir el rol del usuario al registrarse -->
                             <div class="col-12 d-flex justify-content-center">
@@ -165,6 +180,133 @@
                         <!-- Botón para confirmar la verificación empresarial -->
                         <div class="d-grid">
                             <button class="btn btn-primary fw-semibold" id="btnConfirmarEmpresarial"><i class="bi bi-check-lg me-2"></i>Confirmar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Ver motivo de inhabilitación / suspensión para el cliente -->
+        <div class="modal fade" id="modalVerMotivoBloqueo" tabindex="-1" aria-labelledby="tituloModalVerMotivo" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header justify-content-center position-relative" style="background:#dc3545; color:#fff;">
+                        <h5 class="modal-title fw-bold" id="tituloModalVerMotivo">
+                            <i class="bi bi-shield-x me-2"></i>Motivo de Suspensión
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body p-4 text-center">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 58px; height: 58px; background: #fee2e2; color: #dc3545; font-size: 1.6rem;">
+                            <i class="bi bi-person-x-fill"></i>
+                        </div>
+                        <h6 class="fw-bold mb-1" id="motivoBloqueoClienteNombre">Cuenta inhabilitada</h6>
+                        <small class="text-muted d-block mb-3" id="motivoBloqueoFecha">Fecha: —</small>
+
+                        <div class="card border-0 text-start p-3 mb-3" style="background:#f8fafc; border-left: 4px solid #dc3545 !important;">
+                            <span class="small fw-bold text-danger mb-1"><i class="bi bi-card-text me-1"></i>Detalle del motivo:</span>
+                            <p class="small text-dark mb-0" id="motivoBloqueoTexto" style="white-space: pre-wrap;">Sin motivo registrado.</p>
+                        </div>
+
+                        <div id="motivoBloqueoEvidenciaContenedor" class="d-none text-start mb-3">
+                            <span class="small fw-semibold text-muted d-block mb-1"><i class="bi bi-image me-1"></i>Evidencia adjunta por el taller:</span>
+                            <div class="text-center bg-light p-2 rounded border">
+                                <img id="motivoBloqueoEvidenciaImg" src="" alt="Evidencia de suspensión" class="img-fluid rounded" style="max-height: 220px; object-fit: contain;">
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-outline-secondary py-2" onclick="volverALoginDesdeModal('modalVerMotivoBloqueo')">
+                                <i class="bi bi-arrow-left me-1"></i>Volver al inicio de sesión
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Formulario para solicitar apelación de cuenta -->
+        <div class="modal fade" id="modalEnviarApelacion" tabindex="-1" aria-labelledby="tituloModalEnviarApelacion" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header justify-content-center position-relative" style="background:var(--azul-oscuro,#0a3d6b); color:#fff;">
+                        <h5 class="modal-title fw-bold" id="tituloModalEnviarApelacion">
+                            <i class="bi bi-shield-exclamation me-2 text-warning"></i>Solicitud de Apelación
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <p class="small text-muted mb-3">
+                            Explica a la administración las razones por las que solicitas reactivar tu cuenta. Ten en cuenta que <strong>solo puedes enviar una solicitud de apelación cada 7 días</strong>.
+                        </p>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold" for="txtMensajeApelacionCliente">Mensaje o justificación</label>
+                            <textarea id="txtMensajeApelacionCliente" class="form-control" rows="4" maxlength="500" placeholder="Explica detalladamente por qué consideras que tu cuenta debería ser reactivada..."></textarea>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted"><span id="contadorCharsApelacion">0</span>/500 caracteres</small>
+                            </div>
+                            <div class="invalid-feedback" id="errorMensajeApelacion"></div>
+                        </div>
+
+                        <div id="alertaCooldownApelacion" class="alert alert-warning py-2 small d-none">
+                            <i class="bi bi-clock-history me-1"></i>Ya has enviado una apelación recientemente. Podrás enviar una nueva en <strong id="diasRestantesApelacionTxt">X</strong> día(s).
+                        </div>
+
+                        <div id="alertaExitoApelacion" class="alert alert-success py-2 small d-none text-center">
+                            <i class="bi bi-check-circle me-1"></i>¡Apelación enviada con éxito! La administración evaluará tu solicitud.
+                        </div>
+
+                        <div class="d-flex justify-content-between gap-2 mt-3">
+                            <button type="button" class="btn btn-outline-secondary px-3" onclick="volverALoginDesdeModal('modalEnviarApelacion')">
+                                Cancelar
+                            </button>
+                            <button type="button" class="btn btn-primary px-4 fw-semibold" id="btnEnviarApelacionSubmit" onclick="enviarApelacionCliente()">
+                                <i class="bi bi-send me-1"></i>Enviar apelación
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Ver respuesta y resolución de administración -->
+        <div class="modal fade" id="modalVerRespuestaAdmin" tabindex="-1" aria-labelledby="tituloModalVerRespuesta" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header justify-content-center position-relative" id="headerModalVerRespuesta" style="background:var(--azul-oscuro,#0a3d6b); color:#fff;">
+                        <h5 class="modal-title fw-bold" id="tituloModalVerRespuesta">
+                            <i class="bi bi-chat-right-quote me-2"></i>Respuesta de Administración
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body p-4 text-center">
+                        <div id="iconoRespuestaAdmin" class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 58px; height: 58px; background: #e0f2fe; color: #0284c7; font-size: 1.6rem;">
+                            <i class="bi bi-chat-dots"></i>
+                        </div>
+                        <h6 class="fw-bold mb-1" id="estadoResolucionTitulo">Resolución del Caso</h6>
+                        <small class="text-muted d-block mb-3" id="fechaRespuestaAdmin">Fecha: —</small>
+
+                        <div class="card border-0 text-start p-3 mb-3" id="cardRespuestaAdminTexto" style="background:#f8fafc; border-left: 4px solid var(--celeste,#56aee8) !important;">
+                            <span class="small fw-bold mb-1" style="color:var(--azul-oscuro);"><i class="bi bi-card-text me-1"></i>Mensaje de la administración:</span>
+                            <p class="small text-dark mb-0" id="textoRespuestaAdminDetalle" style="white-space: pre-wrap;">Sin mensaje.</p>
+                        </div>
+
+                        <div id="evidenciaRespuestaAdminContenedor" class="d-none text-start mb-3">
+                            <span class="small fw-semibold text-muted d-block mb-1"><i class="bi bi-image me-1"></i>Evidencia adjunta por el taller:</span>
+                            <div class="text-center bg-light p-2 rounded border">
+                                <img id="evidenciaRespuestaAdminImg" src="" alt="Evidencia de respuesta" class="img-fluid rounded" style="max-height: 220px; object-fit: contain;">
+                            </div>
+                        </div>
+
+                        <div id="avisoReactivacionCuenta" class="alert alert-success py-2 small d-none mb-3">
+                            <i class="bi bi-check2-all me-1"></i><strong>¡Tu cuenta ha sido reactivada!</strong> Ya puedes iniciar sesión con tus credenciales.
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-primary py-2 fw-semibold" id="btnAccionRespuestaAdmin" onclick="volverALoginDesdeModal('modalVerRespuestaAdmin')">
+                                Volver al inicio de sesión
+                            </button>
                         </div>
                     </div>
                 </div>

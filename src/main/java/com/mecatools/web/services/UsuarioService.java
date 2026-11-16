@@ -12,6 +12,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -88,6 +90,12 @@ public class UsuarioService {
     // - Ningún usuario puede inhabilitar su propia cuenta.
     @Transactional
     public Usuario cambiarEstado(Usuario usuarioAutenticado, Long idTarget, String nuevoEstado) {
+        return cambiarEstado(usuarioAutenticado, idTarget, nuevoEstado, null, null);
+    }
+
+    // Cambia el estado del usuario registrando motivo y evidencia opcional de inhabilitación o habilitación
+    @Transactional
+    public Usuario cambiarEstado(Usuario usuarioAutenticado, Long idTarget, String nuevoEstado, String motivo, String evidencia) {
         if (usuarioAutenticado != null && usuarioAutenticado.getId().equals(idTarget)) {
             throw new IllegalArgumentException("No puedes inhabilitar o cambiar el estado de tu propia cuenta");
         }
@@ -115,7 +123,145 @@ public class UsuarioService {
         }
 
         target.setEstado(nuevoEstado);
+        LocalDateTime ahora = LocalDateTime.now();
+
+        if ("Inactivo".equalsIgnoreCase(nuevoEstado)) {
+            target.setMotivoBloqueo(motivo != null && !motivo.isBlank() ? motivo.trim() : "Cuenta inhabilitada por administración");
+            if (evidencia != null && !evidencia.isBlank()) {
+                target.setEvidenciaBloqueo(evidencia.trim());
+            } else {
+                target.setEvidenciaBloqueo(null);
+            }
+            target.setFechaBloqueo(ahora);
+            // Si tenía apelación previa se reinicia para este nuevo bloqueo
+            target.setEstadoApelacion(null);
+            target.setMensajeApelacion(null);
+            target.setFechaApelacion(null);
+            target.setRespuestaApelacion(null);
+            target.setEvidenciaRespuesta(null);
+            target.setFechaRespuestaApelacion(null);
+        } else if ("Activo".equalsIgnoreCase(nuevoEstado)) {
+            target.setMensajeHabilitacion(motivo != null && !motivo.isBlank() ? motivo.trim() : "Cuenta habilitada por administración");
+            if (evidencia != null && !evidencia.isBlank()) {
+                target.setEvidenciaHabilitacion(evidencia.trim());
+            } else {
+                target.setEvidenciaHabilitacion(null);
+            }
+            target.setFechaHabilitacion(ahora);
+            // Si existía apelación pendiente, se marca como respondida
+            if ("PENDIENTE".equalsIgnoreCase(target.getEstadoApelacion())) {
+                target.setEstadoApelacion("RESPONDIDO");
+                target.setRespuestaApelacion(motivo != null && !motivo.isBlank() ? motivo.trim() : "Tu cuenta ha sido reactivada satisfactoriamente.");
+                target.setFechaRespuestaApelacion(ahora);
+            }
+        }
+
         return usuarioRepository.save(target);
+    }
+
+    // Responde a la apelación de un cliente inhabilitado
+    @Transactional
+    public Usuario responderApelacion(Usuario usuarioAutenticado, Long idTarget, String respuesta, String evidencia, String decision) {
+        if (usuarioAutenticado == null || (!usuarioAutenticado.tieneRol("administrador") && !usuarioAutenticado.tieneRol("gerente"))) {
+            throw new SecurityException("No tienes permisos para resolver apelaciones");
+        }
+        Usuario target = usuarioRepository.findById(idTarget)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+
+        LocalDateTime ahora = LocalDateTime.now();
+        target.setRespuestaApelacion(respuesta != null ? respuesta.trim() : "");
+        target.setEvidenciaRespuesta(evidencia != null && !evidencia.isBlank() ? evidencia.trim() : null);
+        target.setFechaRespuestaApelacion(ahora);
+        target.setEstadoApelacion("RESPONDIDO");
+
+        if ("HABILITAR".equalsIgnoreCase(decision)) {
+            target.setEstado("Activo");
+            target.setMensajeHabilitacion(respuesta != null ? respuesta.trim() : "Cuenta habilitada tras evaluación de apelación");
+            target.setEvidenciaHabilitacion(evidencia != null && !evidencia.isBlank() ? evidencia.trim() : null);
+            target.setFechaHabilitacion(ahora);
+        }
+
+        return usuarioRepository.save(target);
+    }
+
+    // Registra una solicitud de apelación enviada por un cliente inhabilitado (máximo 1 cada 7 días)
+    @Transactional
+    public Usuario apelar(String email, String mensaje) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("El correo es obligatorio");
+        }
+        if (mensaje == null || mensaje.trim().length() < 5) {
+            throw new IllegalArgumentException("Debes redactar un motivo de apelación detallado (mínimo 5 caracteres)");
+        }
+        Usuario usuario = usuarioRepository.findByEmail(email.trim().toLowerCase())
+                .orElseThrow(() -> new NoSuchElementException("No se encontró ningún usuario con ese correo"));
+
+        if (!"Inactivo".equalsIgnoreCase(usuario.getEstado())) {
+            throw new IllegalStateException("Tu cuenta ya se encuentra activa");
+        }
+
+        // Validación de 7 días entre apelaciones
+        if (usuario.getFechaApelacion() != null) {
+            LocalDateTime proximaFecha = usuario.getFechaApelacion().plusDays(7);
+            LocalDateTime ahora = LocalDateTime.now();
+            if (ahora.isBefore(proximaFecha)) {
+                long dias = Duration.between(ahora, proximaFecha).toDays() + 1;
+                throw new IllegalStateException("Solo puedes enviar una apelación cada 7 días. Podrás apelar nuevamente en " + dias + " día(s)");
+            }
+        }
+
+        usuario.setMensajeApelacion(mensaje.trim());
+        usuario.setFechaApelacion(LocalDateTime.now());
+        usuario.setEstadoApelacion("PENDIENTE");
+        usuario.setRespuestaApelacion(null);
+        usuario.setEvidenciaRespuesta(null);
+        usuario.setFechaRespuestaApelacion(null);
+
+        return usuarioRepository.save(usuario);
+    }
+
+    // Consulta el estado de cuenta y datos de apelación de forma pública por email
+    @Transactional(readOnly = true)
+    public Map<String, Object> obtenerEstadoCuenta(String email) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("El correo es obligatorio");
+        }
+        Usuario u = usuarioRepository.findByEmail(email.trim().toLowerCase())
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+
+        boolean inactivo = "Inactivo".equalsIgnoreCase(u.getEstado());
+        boolean puedeApelar = true;
+        long diasRestantes = 0;
+        if (u.getFechaApelacion() != null) {
+            LocalDateTime proxima = u.getFechaApelacion().plusDays(7);
+            LocalDateTime ahora = LocalDateTime.now();
+            if (ahora.isBefore(proxima)) {
+                puedeApelar = false;
+                diasRestantes = Duration.between(ahora, proxima).toDays() + 1;
+            }
+        }
+
+        Map<String, Object> map = new java.util.LinkedHashMap<>();
+        map.put("id", u.getId());
+        map.put("nombres", u.getNombres() + " " + u.getApellidos());
+        map.put("email", u.getEmail());
+        map.put("estado", u.getEstado());
+        map.put("inactivo", inactivo);
+        map.put("motivoBloqueo", u.getMotivoBloqueo());
+        map.put("evidenciaBloqueo", u.getEvidenciaBloqueo());
+        map.put("fechaBloqueo", u.getFechaBloqueo() != null ? u.getFechaBloqueo().toString() : null);
+        map.put("mensajeApelacion", u.getMensajeApelacion());
+        map.put("fechaApelacion", u.getFechaApelacion() != null ? u.getFechaApelacion().toString() : null);
+        map.put("estadoApelacion", u.getEstadoApelacion());
+        map.put("respuestaApelacion", u.getRespuestaApelacion());
+        map.put("evidenciaRespuesta", u.getEvidenciaRespuesta());
+        map.put("fechaRespuestaApelacion", u.getFechaRespuestaApelacion() != null ? u.getFechaRespuestaApelacion().toString() : null);
+        map.put("mensajeHabilitacion", u.getMensajeHabilitacion());
+        map.put("evidenciaHabilitacion", u.getEvidenciaHabilitacion());
+        map.put("fechaHabilitacion", u.getFechaHabilitacion() != null ? u.getFechaHabilitacion().toString() : null);
+        map.put("puedeApelar", puedeApelar);
+        map.put("diasRestantes", diasRestantes);
+        return map;
     }
 
     // Correlaciona los roles de un usuario según la jerarquía establecida por los requerimientos

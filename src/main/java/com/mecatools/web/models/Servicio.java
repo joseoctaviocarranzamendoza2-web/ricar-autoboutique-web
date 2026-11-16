@@ -75,7 +75,7 @@ public class Servicio {
     private String estado;
 
     // Nombre de archivo o URL de la imagen del servicio
-    @Column
+    @Column(columnDefinition = "MEDIUMTEXT")
     private String imagen;
 
 }

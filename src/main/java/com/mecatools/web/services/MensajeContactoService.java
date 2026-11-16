@@ -44,6 +44,17 @@ public class MensajeContactoService {
         return mensajeRepo.findAllOrdenados(PageRequest.of(pagina, tamano));
     }
 
+    // Listar mensajes paginados filtrados por estado:
+    // Pendientes -> fecha asc (primero en llegar se muestra primero)
+    // Respondidos -> fecha desc (último en ser respondido en la cabecera)
+    public Page<MensajeContacto> listarPorEstado(boolean respondido, int pagina, int tamano) {
+        if (!respondido) {
+            return mensajeRepo.findByRespondidoFalseOrderByFechaEnvioAsc(PageRequest.of(pagina, tamano));
+        } else {
+            return mensajeRepo.findByRespondidoTrueOrderByFechaEnvioDesc(PageRequest.of(pagina, tamano));
+        }
+    }
+
     // Obtener un mensaje por ID
     public MensajeContacto obtenerPorId(Long id) {
         return mensajeRepo.findById(id).orElseThrow(() -> new RuntimeException("Mensaje no encontrado"));

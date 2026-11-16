@@ -34,12 +34,15 @@ public class MensajeApiController {
         }
     }
 
-    // GET /api/mensajes?page=0&size=20 - Listar mensajes (admin/gerente)
+    // GET /api/mensajes?page=0&size=20&respondido=true/false - Listar mensajes (admin/gerente)
     @GetMapping
     public ResponseEntity<?> listar(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        Page<MensajeContacto> pagina = mensajeService.listarPaginado(page, size);
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) Boolean respondido) {
+        Page<MensajeContacto> pagina = (respondido != null)
+                ? mensajeService.listarPorEstado(respondido, page, size)
+                : mensajeService.listarPaginado(page, size);
         Map<String, Object> resp = new LinkedHashMap<>();
         resp.put("content", pagina.getContent());
         resp.put("totalPages", pagina.getTotalPages());

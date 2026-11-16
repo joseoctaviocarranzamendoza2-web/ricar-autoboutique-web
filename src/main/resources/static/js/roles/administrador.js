@@ -24,6 +24,18 @@ let _mensajesAdmin = [];
 let _paginaMensajesActual = 0;
 let _totalPaginasMensajes = 1;
 let _mensajeAdminSeleccionadoId = null;
+let _filtroEstadoMensajes = null;
+
+// Sanitiza cadenas de texto para prevenir inyecciones HTML en el renderizado dinámico
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 // Inicialización al cargar la vista de administrador: valida sesión y carga datos
 document.addEventListener('DOMContentLoaded', async () => {
@@ -49,6 +61,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     iniciarSelectPersonalizado('filtroEstadoCita');
     iniciarSelectPersonalizado('filterCategoria');
     iniciarSelectPersonalizado('filterEstado');
+    iniciarSelectPersonalizado('filterCategoriaServicio');
+    iniciarSelectPersonalizado('filterEstadoServicio');
+    iniciarSelectPersonalizado('filterPrecioServicio');
     iniciarSelectPersonalizado('prodCategoria');
     iniciarSelectPersonalizado('prodEtiqueta');
     iniciarSelectPersonalizado('prodEstado');
@@ -57,6 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await cargarProductos();
     await cargarCitas();
     await cargarClientes();
+    await cargarServicios();
     await actualizarConteoNotificaciones();
     setInterval(actualizarConteoNotificaciones, 15000);
 });
@@ -307,7 +323,7 @@ function escaparHtml(texto) {
 }
 
 // Muestra modal genérico de confirmación/acción adaptando icono, color, título y botones
-function mostrarModalAccion({ titulo, mensaje, icono = 'bi-trash3', colorIcono = 'red', textoBtn = 'Eliminar', claseBtn = 'btn-danger', textoBtnCancelar = 'Cancelar', onConfirmar }) {
+function mostrarModalAccion({ titulo, mensaje, icono = 'bi-trash3', colorIcono = 'red', textoBtn = 'Eliminar', claseBtn = 'btn-danger', textoBtnCancelar = 'Cancelar', mostrarCamposEstado = false, onConfirmar }) {
     const modalEl = document.getElementById('modalEliminar');
     const iconoCont = document.getElementById('iconoModalEliminarContenedor');
     const iconoEl = document.getElementById('iconoModalEliminar');
@@ -315,6 +331,13 @@ function mostrarModalAccion({ titulo, mensaje, icono = 'bi-trash3', colorIcono =
     const mensajeEl = document.getElementById('nombreEliminar');
     const btn = document.getElementById('btnConfirmarEliminar');
     const btnCancelar = modalEl?.querySelector('[data-bs-dismiss="modal"]');
+    const contCampos = document.getElementById('contenedorCamposEstadoUsuario');
+    const dialogEl = document.getElementById('dialogModalEliminar');
+
+    if (!mostrarCamposEstado) {
+        if (contCampos) contCampos.classList.add('d-none');
+        if (dialogEl) dialogEl.classList.remove('modal-confirmacion-ext');
+    }
 
     if (iconoCont) iconoCont.className = `kpi-icon ${colorIcono} mx-auto mb-3`;
     if (iconoEl) iconoEl.className = `bi ${icono}`;
@@ -460,6 +483,7 @@ function abrirNuevoProducto() {
     productoEdit = null;
     document.getElementById('modalProductoTitulo').textContent = 'Nuevo Producto';
     document.getElementById('formProducto').reset();
+    limpiarImagenArchivo('prod');
     document.getElementById('prodCategoria').value = '';
     const estadoEl = document.getElementById('prodEstado');
     if (estadoEl) estadoEl.value = 'Activo';
@@ -482,6 +506,7 @@ async function abrirEditarProducto(id) {
         const estadoEl = document.getElementById('prodEstado');
         if (estadoEl) estadoEl.value = producto.estado || 'Activo';
         document.getElementById('prodImagen').value = producto.imagen || '';
+        limpiarImagenArchivo('prod');
         if (producto.categoria && producto.categoria.id) {
             document.getElementById('prodCategoria').value = String(producto.categoria.id);
         } else {
@@ -502,12 +527,31 @@ async function guardarProducto() {
     const descripcion = document.getElementById('prodDescripcion').value.trim();
     const etiqueta = document.getElementById('prodEtiqueta').value;
     const estado = document.getElementById('prodEstado')?.value || 'Activo';
-    const imagen = document.getElementById('prodImagen').value.trim();
     const catId = document.getElementById('prodCategoria').value;
+    const urlImagen = document.getElementById('prodImagen').value.trim();
+    const archivoInput = document.getElementById('prodImagenArchivo');
+    const tieneArchivo = Boolean(archivoInput && archivoInput.files && archivoInput.files.length > 0);
+
+    if (urlImagen && tieneArchivo) {
+        mostrarToast('Solo debes seleccionar una opción de imagen: URL o importar imagen local', 'error');
+        return;
+    }
+
     if (!nombre || isNaN(precio) || isNaN(stock) || !catId) {
         mostrarToast('Completa todos los campos obligatorios, incluyendo la categoría', 'error');
         return;
     }
+
+    let imagen = urlImagen;
+    if (tieneArchivo) {
+        try {
+            imagen = await subirArchivoLocal(archivoInput.files[0]);
+        } catch (err) {
+            mostrarToast('Error al procesar la imagen importada', 'error');
+            return;
+        }
+    }
+
     const body = {
         nombre, precio, stock, descripcion, etiqueta, estado, imagen, categoria: { id: parseInt(catId) }
     };
@@ -604,16 +648,33 @@ function setVista(tipo) {
     filtrarProductos();
 }
 
-// Carga servicios desde la API y renderiza
+// Carga servicios desde la API, sincroniza su filtro de categorías y renderiza
 async function cargarServicios() {
     try {
         const resp = await fetch(API.servicios);
         const data = await resp.json();
         const servicios = ordenarPorIdDesc(data);
+        actualizarSelectCategoriasServicio(servicios);
         renderServicios(servicios);
     } catch (e) {
         console.error('Error cargando servicios:', e);
     }
+}
+
+// Extrae dinámicamente las categorías únicas presentes en los servicios y actualiza el select desplegable
+function actualizarSelectCategoriasServicio(servicios) {
+    if (!Array.isArray(servicios)) return;
+    const catSet = new Set();
+    servicios
+        .filter(s => s && s.nombre && !s.nombre.toLowerCase().includes('personalizad'))
+        .forEach(s => {
+            const cat = (s.categoria || '').trim();
+            if (cat) catSet.add(cat);
+        });
+    const categoriasOrdenadas = Array.from(catSet).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+    const opcionesHtml = '<option value="">Todas las categorías</option>' +
+        categoriasOrdenadas.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    actualizarOpcionesSelect('filterCategoriaServicio', opcionesHtml);
 }
 
 // Obtiene la duración en horas de un servicio (maneja registros en horas o heredados en minutos)
@@ -633,7 +694,7 @@ function formatearDuracionServicio(s) {
     return horas === 1 ? '1 hr' : `${horas} hrs`;
 }
 
-// Renderiza tarjetas de servicios en el panel de admin
+// Renderiza tarjetas de servicios en el panel de admin (sin tarjeta de agregar servicio duplicada)
 function renderServicios(servicios) {
     const grid = document.getElementById('gridServicios');
     if (!grid) return;
@@ -648,7 +709,7 @@ function renderServicios(servicios) {
         const imgThumb = s.imagen
             ? `<div class="service-admin-thumb"><img src="${s.imagen}" alt="${s.nombre}"></div>`
             : `<div class="service-admin-thumb service-admin-thumb-empty"><i class="bi ${icono}"></i></div>`;
-        return `<div class="col-sm-6 col-xl-4 d-flex">
+        return `<div class="col-sm-6 col-xl-4 d-flex serv-item" data-nombre="${s.nombre.toLowerCase()}" data-categoria="${(s.categoria || '').trim().toLowerCase()}" data-estado="${s.estado}" data-precio="${s.precioBase}">
             <div class="service-admin-card h-100 d-flex flex-column w-100">
                 ${imgThumb}
                 <div class="d-flex align-items-start gap-3 mb-3">
@@ -671,14 +732,123 @@ function renderServicios(servicios) {
             </div>
         </div>`;
     }).join('');
-    const cardNuevo = `<div class="col-sm-6 col-xl-4">
-        <div class="service-admin-card h-100 d-flex flex-column align-items-center justify-content-center text-center" style="border-style:dashed;cursor:pointer;" onclick="abrirNuevoServicio()">
-            <div class="service-icon mb-3" style="width:56px;height:56px;font-size:1.5rem;"><i class="bi bi-plus-lg"></i></div>
-            <h6 class="fw-bold text-primary">Agregar Servicio</h6>
-            <small class="text-muted">Crea un nuevo tipo de servicio</small>
-        </div>
-    </div>`;
-    grid.innerHTML = cards + cardNuevo;
+    grid.innerHTML = cards || '<div class="col-12 text-center py-5 text-muted"><i class="bi bi-info-circle me-2"></i>No hay servicios registrados.</div>';
+    filtrarServicios();
+}
+
+// Filtra la grilla de servicios por búsqueda, categoría (reconocida dinámicamente de las cards), estado y rango de precio
+function filtrarServicios() {
+    const busqueda = (document.getElementById('searchServicio')?.value || '').toLowerCase().trim();
+    const catFiltro = (document.getElementById('filterCategoriaServicio')?.value || '').toLowerCase().trim();
+    const estadoFiltro = document.getElementById('filterEstadoServicio')?.value || '';
+    const precioFiltro = document.getElementById('filterPrecioServicio')?.value || '';
+
+    let minPrecio = 0;
+    let maxPrecio = Infinity;
+    if (precioFiltro) {
+        if (precioFiltro.includes('+')) {
+            minPrecio = parseFloat(precioFiltro) || 400;
+        } else if (precioFiltro.includes('-')) {
+            const partes = precioFiltro.split('-').map(Number);
+            minPrecio = partes[0] || 0;
+            maxPrecio = partes[1] || Infinity;
+        }
+    }
+
+    const items = document.querySelectorAll('#gridServicios .serv-item');
+    let visibles = 0;
+    items.forEach(item => {
+        const nombre = item.dataset.nombre || '';
+        const cat = item.dataset.categoria || '';
+        const estado = item.dataset.estado || 'Activo';
+        const precio = parseFloat(item.dataset.precio || '0');
+
+        const matchBusq = !busqueda || nombre.includes(busqueda);
+        const matchCat = !catFiltro || cat === catFiltro || cat.includes(catFiltro);
+        const matchEstado = !estadoFiltro || estado === estadoFiltro;
+        const matchPrecio = precio >= minPrecio && precio <= maxPrecio;
+
+        const esVisible = matchBusq && matchCat && matchEstado && matchPrecio;
+        item.style.setProperty('display', esVisible ? 'flex' : 'none', 'important');
+        if (esVisible) visibles++;
+    });
+
+    let emptyMsg = document.getElementById('gridServiciosVacio');
+    if (visibles === 0 && items.length > 0) {
+        if (!emptyMsg) {
+            emptyMsg = document.createElement('div');
+            emptyMsg.id = 'gridServiciosVacio';
+            emptyMsg.className = 'col-12 text-center py-5 text-muted';
+            emptyMsg.innerHTML = '<i class="bi bi-search me-2"></i>No se encontraron servicios con los filtros seleccionados.';
+            document.getElementById('gridServicios')?.appendChild(emptyMsg);
+        } else {
+            emptyMsg.style.display = '';
+        }
+    } else if (emptyMsg) {
+        emptyMsg.style.display = 'none';
+    }
+}
+window.filtrarServicios = filtrarServicios;
+
+// Limpia el input de archivo de imagen importada y su campo de texto visible
+function limpiarImagenArchivo(tipo) {
+    if (tipo === 'prod') {
+        const input = document.getElementById('prodImagenArchivo');
+        if (input) input.value = '';
+        const textoEl = document.getElementById('prodImagenArchivoTexto');
+        if (textoEl) textoEl.value = '';
+    } else if (tipo === 'serv') {
+        const input = document.getElementById('servImagenArchivo');
+        if (input) input.value = '';
+        const textoEl = document.getElementById('servImagenArchivoTexto');
+        if (textoEl) textoEl.value = '';
+    } else if (tipo === 'estado') {
+        const input = document.getElementById('estadoImagenArchivo');
+        if (input) input.value = '';
+        const textoEl = document.getElementById('estadoImagenArchivoTexto');
+        if (textoEl) textoEl.value = '';
+    } else if (tipo === 'respApelacion') {
+        const input = document.getElementById('respApelacionImagenArchivo');
+        if (input) input.value = '';
+        const textoEl = document.getElementById('respApelacionImagenArchivoTexto');
+        if (textoEl) textoEl.value = '';
+    }
+}
+window.limpiarImagenArchivo = limpiarImagenArchivo;
+
+// Actualiza el texto visible del archivo seleccionado al importar
+function actualizarNombreArchivo(input, tipo) {
+    const nombre = (input && input.files && input.files[0]) ? input.files[0].name : '';
+    const textoEl = document.getElementById(`${tipo}ImagenArchivoTexto`);
+    if (textoEl) {
+        textoEl.value = nombre;
+    }
+}
+window.actualizarNombreArchivo = actualizarNombreArchivo;
+
+// Sube una imagen local al endpoint /api/upload o genera Data URL como respaldo
+async function subirArchivoLocal(file) {
+    if (!file) return '';
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const resp = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        });
+        if (resp.ok) {
+            const data = await resp.json();
+            if (data && data.url) return data.url;
+        }
+    } catch (e) {
+        console.warn('Endpoint /api/upload no disponible, usando lectura local:', e);
+    }
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('No se pudo leer el archivo de imagen'));
+        reader.readAsDataURL(file);
+    });
 }
 
 // Abre modal para crear un nuevo servicio
@@ -686,6 +856,7 @@ function abrirNuevoServicio() {
     servicioEdit = null;
     document.getElementById('modalServicioTitulo').textContent = 'Nuevo Servicio';
     document.getElementById('formServicio').reset();
+    limpiarImagenArchivo('serv');
     document.getElementById('servDuracion').value = '1';
     document.getElementById('servEstado').value = 'Activo';
     document.getElementById('servImagen').value = '';
@@ -713,6 +884,7 @@ async function abrirEditarServicio(id) {
         document.getElementById('servDescripcion').value = servicio.descripcion || '';
         document.getElementById('servEstado').value = servicio.estado || 'Activo';
         document.getElementById('servImagen').value = servicio.imagen || '';
+        limpiarImagenArchivo('serv');
         sincronizarSelectPersonalizado('servEstado');
         new bootstrap.Modal(document.getElementById('modalServicio')).show();
     } catch (e) {
@@ -729,11 +901,30 @@ async function guardarServicio() {
     const duracion = parseInt(document.getElementById('servDuracion').value);
     const desc = document.getElementById('servDescripcion').value.trim();
     const estado = document.getElementById('servEstado').value;
-    const imagen = document.getElementById('servImagen')?.value.trim() || '';
+    const urlImagen = document.getElementById('servImagen')?.value.trim() || '';
+    const archivoInput = document.getElementById('servImagenArchivo');
+    const tieneArchivo = Boolean(archivoInput && archivoInput.files && archivoInput.files.length > 0);
+
+    if (urlImagen && tieneArchivo) {
+        mostrarToast('Solo debes seleccionar una opción de imagen: URL o importar imagen local', 'error');
+        return;
+    }
+
     if (!nombre || isNaN(precio) || isNaN(duracion) || duracion < 1) {
         mostrarToast(duracion < 1 ? 'La duración debe ser al menos de 1 hora' : 'Completa los campos obligatorios', 'error');
         return;
     }
+
+    let imagen = urlImagen;
+    if (tieneArchivo) {
+        try {
+            imagen = await subirArchivoLocal(archivoInput.files[0]);
+        } catch (err) {
+            mostrarToast('Error al procesar la imagen importada', 'error');
+            return;
+        }
+    }
+
     const body = { nombre, categoria, precioBase: precio, duracionMinutos: duracion, descripcion: desc, estado, imagen };
     const url = servicioEdit ? `${API.servicios}/${servicioEdit}` : API.servicios;
     const method = servicioEdit ? 'PUT' : 'POST';
@@ -1442,13 +1633,18 @@ function puedeModificarEstadoCliente(cliente) {
     return false;
 }
 
+let _filtroApelacionActivo = false;
+let _clienteApelacionActual = null;
+
 // Renderiza la tabla de clientes con paginación y acciones (ver compras, inhabilitar/habilitar)
 function renderClientes(clientes) {
     const tbody = document.getElementById('tablaClientes');
     if (!tbody) return;
     const info = document.getElementById('infoClientes');
     if (info) {
-        if (_filtroEstadoCompra) {
+        if (_filtroApelacionActivo) {
+            info.textContent = `${clientes.length} de ${_todosClientes.length} clientes (apelaciones pendientes)`;
+        } else if (_filtroEstadoCompra) {
             info.textContent = `${clientes.length} de ${_todosClientes.length} clientes (${_filtroEstadoCompra.toLowerCase()})`;
         } else {
             info.textContent = `${clientes.length} clientes en total`;
@@ -1456,7 +1652,10 @@ function renderClientes(clientes) {
     }
     actualizarBotonesFiltroCompras();
     if (clientes.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">${_filtroEstadoCompra ? 'No hay clientes con última compra en estado "' + _filtroEstadoCompra + '"' : 'No hay clientes registrados'}</td></tr>`;
+        const msjVacio = _filtroApelacionActivo 
+            ? 'No hay clientes con apelaciones pendientes de revisión'
+            : (_filtroEstadoCompra ? 'No hay clientes con última compra en estado "' + _filtroEstadoCompra + '"' : 'No hay clientes registrados');
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">${msjVacio}</td></tr>`;
         renderPaginacionClientes(clientes);
         return;
     }
@@ -1472,8 +1671,24 @@ function renderClientes(clientes) {
 
         const puedeModificar = puedeModificarEstadoCliente(c);
         const esInactivo = (c.estado || 'Activo') === 'Inactivo';
+        const tieneApelacionPendiente = esInactivo && (c.estadoApelacion || '').toUpperCase() === 'PENDIENTE';
         const badgeClase = esInactivo ? 'status-inactive' : 'status-active';
         const textoEstado = esInactivo ? 'Inactivo' : 'Activo';
+
+        // Botón de Apelación / Notificación en columna de acción (a la izquierda de compras)
+        const btnApelacion = esInactivo ? `
+            <button class="btn btn-sm btn-outline-celeste btn-accion-apelacion position-relative me-1" 
+                    title="${tieneApelacionPendiente ? 'Evaluar apelación pendiente del cliente' : 'Ver caso de inhabilitación / apelación'}" 
+                    onclick="abrirModalApelacionAdmin(${c.id})">
+                <i class="bi bi-chat-left-text"></i>
+                ${tieneApelacionPendiente ? '<span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"><span class="visually-hidden">Apelación pendiente</span></span>' : ''}
+            </button>
+        ` : `
+            <button class="btn btn-sm btn-outline-secondary btn-accion-apelacion me-1 opacity-50" 
+                    title="Función disponible cuando la cuenta esté inhabilitada" disabled>
+                <i class="bi bi-chat-left-text"></i>
+            </button>
+        `;
 
         const btnEstado = puedeModificar ? `
             <button class="btn btn-sm ${esInactivo ? 'btn-outline-success' : 'btn-outline-danger'}" 
@@ -1495,6 +1710,7 @@ function renderClientes(clientes) {
             <td><small>${ultimaCita}</small></td>
             <td><span class="status-badge ${badgeClase}">${textoEstado}</span></td>
             <td>
+                ${btnApelacion}
                 <button class="btn btn-sm btn-outline-celeste btn-compras-cliente me-1" title="Ver compras" onclick="verComprasCliente(${c.id}, '${(c.nombres + ' ' + c.apellidos).replace(/'/g, "\\'")}')"><i class="bi bi-bag"></i></button>
                 ${btnEstado}
             </td>
@@ -1508,16 +1724,21 @@ function renderPaginacionClientes(clientes) {
     renderBotonesPaginacion('paginacionClientes', (clientes || []).length, CLIENTES_POR_PAGINA, _paginaClientesActual, 'irAPaginaClientes');
 }
 
-// Obtiene los clientes filtrados según el texto buscado (nombre, teléfono o correo) y filtro de última compra
+// Obtiene los clientes filtrados según el texto buscado, filtro de apelación pendiente o filtro de última compra
 function obtenerClientesFiltrados() {
     const busqueda = (document.getElementById('searchCliente')?.value || '').toLowerCase().trim();
-    return _todosClientes.filter(c => {
+    let lista = _todosClientes.filter(c => {
         if (busqueda) {
             const nombre = `${c.nombres || ''} ${c.apellidos || ''}`.toLowerCase();
             const tel = (c.telefono || '').toLowerCase();
             const email = (c.email || '').toLowerCase();
             const matchBusq = nombre.includes(busqueda) || tel.includes(busqueda) || email.includes(busqueda);
             if (!matchBusq) return false;
+        }
+        if (_filtroApelacionActivo) {
+            const esInactivo = (c.estado || 'Activo').toLowerCase() === 'inactivo';
+            const tieneApelacionPendiente = (c.estadoApelacion || '').toUpperCase() === 'PENDIENTE';
+            return esInactivo && tieneApelacionPendiente;
         }
         if (_filtroEstadoCompra) {
             // Busca las compras del cliente ordenadas de la última a la primera (LIFO / mayor ID primero)
@@ -1534,10 +1755,39 @@ function obtenerClientesFiltrados() {
         }
         return true;
     });
+
+    if (_filtroApelacionActivo) {
+        // FIFO: El primer cliente que apeló (más antiguo en llegar) va primero en la lista
+        return lista.sort((a, b) => new Date(a.fechaApelacion || 0) - new Date(b.fechaApelacion || 0));
+    }
+
+    if (_filtroEstadoCompra) {
+        // LIFO: El último cliente en ser atendido (última compra realizada) primero
+        return lista.sort((a, b) => {
+            const ca = _todasCompras.filter(co => co.usuario?.id === a.id).sort((x, y) => (Number(y.id) || 0) - (Number(x.id) || 0))[0];
+            const cb = _todasCompras.filter(co => co.usuario?.id === b.id).sort((x, y) => (Number(y.id) || 0) - (Number(x.id) || 0))[0];
+            return (Number(cb?.id) || 0) - (Number(ca?.id) || 0);
+        });
+    }
+
+    return lista;
 }
+
+// Activa o desactiva el filtro de clientes con apelaciones pendientes
+function toggleFiltroApelacion() {
+    _filtroApelacionActivo = !_filtroApelacionActivo;
+    if (_filtroApelacionActivo) {
+        _filtroEstadoCompra = null;
+    }
+    actualizarBotonesFiltroCompras();
+    _paginaClientesActual = 1;
+    renderClientes(obtenerClientesFiltrados());
+}
+window.toggleFiltroApelacion = toggleFiltroApelacion;
 
 // Activa o desactiva el filtro de clientes según el estado de su última compra
 function toggleFiltroCompras(estado) {
+    _filtroApelacionActivo = false;
     if (_filtroEstadoCompra === estado) {
         _filtroEstadoCompra = null;
     } else {
@@ -1548,8 +1798,12 @@ function toggleFiltroCompras(estado) {
     renderClientes(obtenerClientesFiltrados());
 }
 
-// Sincroniza la clase active de los 3 botones de filtro de compra
+// Sincroniza la clase active de los botones de filtro de compra y apelación
 function actualizarBotonesFiltroCompras() {
+    const btnApel = document.getElementById('btnFiltroApelacion');
+    if (btnApel) {
+        btnApel.classList.toggle('active', Boolean(_filtroApelacionActivo));
+    }
     const mapa = [
         { id: 'btnFiltroPorEntregar', estado: 'Por entregar' },
         { id: 'btnFiltroEntregado', estado: 'Entregado' },
@@ -1578,11 +1832,38 @@ function filtrarClientesTabla() {
     renderClientes(obtenerClientesFiltrados());
 }
 
-// Solicita confirmación para inhabilitar o habilitar un cliente y actualiza su estado
+// Solicita confirmación para inhabilitar o habilitar un cliente y actualiza su estado con motivo y evidencia
 function confirmarCambiarEstadoCliente(id, nombre, estadoActual) {
     const esInactivo = estadoActual === 'Inactivo';
     const nuevoEstado = esInactivo ? 'Activo' : 'Inactivo';
     const accion = esInactivo ? 'Habilitar' : 'Inhabilitar';
+
+    const contCampos = document.getElementById('contenedorCamposEstadoUsuario');
+    const dialogEl = document.getElementById('dialogModalEliminar');
+    const labelMotivo = document.getElementById('labelMotivoEstado');
+    const textoMotivo = document.getElementById('textoMotivoEstado');
+    const inputGrp = contCampos?.querySelector('.input-group');
+
+    if (contCampos) contCampos.classList.remove('d-none');
+    if (dialogEl) dialogEl.classList.add('modal-confirmacion-ext');
+    if (textoMotivo) textoMotivo.value = '';
+    limpiarImagenArchivo('estado');
+
+    if (esInactivo) {
+        if (labelMotivo) labelMotivo.textContent = 'Motivo de habilitación / Resolución (opcional)';
+        if (textoMotivo) {
+            textoMotivo.placeholder = 'Mensaje o motivo de reactivación de la cuenta...';
+            textoMotivo.className = 'form-control campo-estado-usuario campo-estado-verde';
+        }
+        if (inputGrp) inputGrp.className = 'input-group input-group-verde';
+    } else {
+        if (labelMotivo) labelMotivo.textContent = 'Motivo de inhabilitación';
+        if (textoMotivo) {
+            textoMotivo.placeholder = 'Describe la razón del bloqueo o suspensión de la cuenta...';
+            textoMotivo.className = 'form-control campo-estado-usuario campo-estado-rojo';
+        }
+        if (inputGrp) inputGrp.className = 'input-group input-group-rojo';
+    }
 
     mostrarModalAccion({
         titulo: `¿${accion} usuario?`,
@@ -1593,12 +1874,32 @@ function confirmarCambiarEstadoCliente(id, nombre, estadoActual) {
         colorIcono: esInactivo ? 'green' : 'red',
         textoBtn: accion,
         claseBtn: esInactivo ? 'btn-success' : 'btn-danger',
+        mostrarCamposEstado: true,
         onConfirmar: async () => {
+            const motivo = (textoMotivo?.value || '').trim();
+            if (!esInactivo && !motivo) {
+                mostrarToast('Debes ingresar un motivo de inhabilitación', 'error');
+                return;
+            }
+            let imagenEvidencia = '';
+            const fileInput = document.getElementById('estadoImagenArchivo');
+            if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                try {
+                    imagenEvidencia = await subirArchivoLocal(fileInput.files[0]);
+                } catch (err) {
+                    mostrarToast('Error al procesar la imagen de evidencia', 'error');
+                    return;
+                }
+            }
             try {
                 const resp = await fetch(`${API.usuarios}/${id}/estado`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ estado: nuevoEstado })
+                    body: JSON.stringify({
+                        estado: nuevoEstado,
+                        motivo: motivo,
+                        evidencia: imagenEvidencia
+                    })
                 });
                 if (!resp.ok) {
                     const err = await resp.json().catch(() => ({}));
@@ -1614,6 +1915,126 @@ function confirmarCambiarEstadoCliente(id, nombre, estadoActual) {
         }
     });
 }
+
+// Abre el modal para revisar la apelación de un cliente y redactar respuesta de administración
+function abrirModalApelacionAdmin(id) {
+    const cliente = _todosClientes.find(c => c.id === id);
+    if (!cliente) return;
+    _clienteApelacionActual = cliente;
+
+    const nombreEl = document.getElementById('apelacionClienteNombre');
+    if (nombreEl) nombreEl.textContent = `${cliente.nombres} ${cliente.apellidos}`;
+
+    const fechaBloqEl = document.getElementById('apelacionFechaBloqueo');
+    if (fechaBloqEl) {
+        fechaBloqEl.textContent = cliente.fechaBloqueo ? cliente.fechaBloqueo.replace('T', ' ').substring(0, 16) : 'Fecha no registrada';
+    }
+
+    const motivoBloqEl = document.getElementById('apelacionMotivoBloqueo');
+    if (motivoBloqEl) {
+        motivoBloqEl.textContent = cliente.motivoBloqueo || 'Sin motivo especificado.';
+    }
+
+    const contEvidBloq = document.getElementById('apelacionEvidenciaBloqueoContenedor');
+    const imgEvidBloq = document.getElementById('apelacionEvidenciaBloqueoImg');
+    if (contEvidBloq && imgEvidBloq) {
+        if (cliente.evidenciaBloqueo) {
+            imgEvidBloq.src = cliente.evidenciaBloqueo;
+            contEvidBloq.classList.remove('d-none');
+        } else {
+            contEvidBloq.classList.add('d-none');
+        }
+    }
+
+    const fechaEnvioEl = document.getElementById('apelacionFechaEnvio');
+    if (fechaEnvioEl) {
+        fechaEnvioEl.textContent = cliente.fechaApelacion ? cliente.fechaApelacion.replace('T', ' ').substring(0, 16) : '';
+    }
+
+    const msgClienteEl = document.getElementById('apelacionMensajeCliente');
+    if (msgClienteEl) {
+        msgClienteEl.textContent = cliente.mensajeApelacion || 'El cliente aún no ha enviado un mensaje de apelación para la revisión de su cuenta.';
+    }
+
+    // Historial de respuesta previa
+    const contRespPrevia = document.getElementById('contenedorRespuestaPreviaAdmin');
+    const fechaRespPrevia = document.getElementById('apelacionFechaUltimaRespuesta');
+    const textoRespPrevia = document.getElementById('apelacionTextoUltimaRespuesta');
+    const contEvidResp = document.getElementById('apelacionEvidenciaRespuestaContenedor');
+    const imgEvidResp = document.getElementById('apelacionEvidenciaRespuestaImg');
+
+    if (contRespPrevia) {
+        if (cliente.respuestaApelacion) {
+            contRespPrevia.classList.remove('d-none');
+            if (fechaRespPrevia) fechaRespPrevia.textContent = cliente.fechaRespuestaApelacion ? cliente.fechaRespuestaApelacion.replace('T', ' ').substring(0, 16) : '';
+            if (textoRespPrevia) textoRespPrevia.textContent = cliente.respuestaApelacion;
+            if (contEvidResp && imgEvidResp) {
+                if (cliente.evidenciaRespuesta) {
+                    imgEvidResp.src = cliente.evidenciaRespuesta;
+                    contEvidResp.classList.remove('d-none');
+                } else {
+                    contEvidResp.classList.add('d-none');
+                }
+            }
+        } else {
+            contRespPrevia.classList.add('d-none');
+        }
+    }
+
+    // Limpieza de campos del formulario
+    const txtResp = document.getElementById('textoRespuestaApelacionAdmin');
+    if (txtResp) txtResp.value = '';
+    limpiarImagenArchivo('respApelacion');
+
+    const modal = new bootstrap.Modal(document.getElementById('modalApelacionAdmin'));
+    modal.show();
+}
+window.abrirModalApelacionAdmin = abrirModalApelacionAdmin;
+
+// Guarda la resolución de apelación (Mantener inactivo o Habilitar)
+async function guardarResolucionApelacion(decision) {
+    if (!_clienteApelacionActual) return;
+    const txtResp = document.getElementById('textoRespuestaApelacionAdmin');
+    const respuesta = (txtResp?.value || '').trim();
+    if (!respuesta) {
+        mostrarToast('Por favor escribe una respuesta para el cliente', 'error');
+        return;
+    }
+
+    let evidencia = '';
+    const fileInput = document.getElementById('respApelacionImagenArchivo');
+    if (fileInput && fileInput.files && fileInput.files.length > 0) {
+        try {
+            evidencia = await subirArchivoLocal(fileInput.files[0]);
+        } catch (err) {
+            mostrarToast('Error al procesar la imagen de evidencia', 'error');
+            return;
+        }
+    }
+
+    try {
+        const resp = await fetch(`${API.usuarios}/${_clienteApelacionActual.id}/responder-apelacion`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                respuesta: respuesta,
+                evidencia: evidencia,
+                decision: decision
+            })
+        });
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            mostrarToast(err.error || 'Error al guardar la resolución', 'error');
+            return;
+        }
+        bootstrap.Modal.getInstance(document.getElementById('modalApelacionAdmin'))?.hide();
+        mostrarToast(decision === 'HABILITAR' ? 'Cuenta habilitada y respuesta enviada con éxito' : 'Respuesta enviada y cuenta mantenida inhabilitada', 'success');
+        await cargarClientes();
+    } catch (e) {
+        mostrarToast('Error de conexión al enviar respuesta', 'error');
+    }
+}
+window.guardarResolucionApelacion = guardarResolucionApelacion;
 
 // Muestra el modal con el historial de compras de un cliente (semana actual, última compra primero, paginado si > 5)
 function verComprasCliente(idCliente, nombre) {
@@ -1725,6 +2146,7 @@ function mostrarToast(mensaje, tipo = 'success') {
     if (!toast) return;
     const estilos = {
         success: { fondo: 'text-bg-success', icono: 'bi-check-circle-fill', cierreBlanco: true, delay: 3500 },
+        info: { fondo: 'text-bg-success', icono: 'bi-check-circle-fill', cierreBlanco: true, delay: 3500 },
         warning: { fondo: 'text-bg-warning text-dark', icono: 'bi-exclamation-triangle-fill', cierreBlanco: false, delay: 4500 },
         error: { fondo: 'text-bg-danger', icono: 'bi-exclamation-triangle-fill', cierreBlanco: true, delay: 3500 }
     };
@@ -1916,6 +2338,11 @@ async function actualizarConteoNotificaciones() {
                 badgeCampana.classList.add('d-none');
             }
         }
+
+        const infoMensajes = document.getElementById('infoMensajes');
+        if (infoMensajes) {
+            infoMensajes.textContent = `${count} ${count === 1 ? 'consulta' : 'consultas'} por responder`;
+        }
     } catch (e) {
         // Silencioso
     }
@@ -1933,12 +2360,46 @@ async function cargarMensajesAdmin(pagina = 0) {
         `;
     }
     try {
-        const resp = await fetch(`/api/mensajes?page=${pagina}&size=20`);
+        let url = `/api/mensajes?page=${pagina}&size=20`;
+        if (_filtroEstadoMensajes === 'pendiente') {
+            url += '&respondido=false';
+        } else if (_filtroEstadoMensajes === 'respondido') {
+            url += '&respondido=true';
+        }
+        const resp = await fetch(url);
         if (!resp.ok) throw new Error('Error al cargar mensajes');
         const data = await resp.json();
-        _mensajesAdmin = data.content || [];
+        let lista = data.content || [];
+        // Filtro de seguridad en memoria si la API retorna ambos estados
+        if (_filtroEstadoMensajes === 'pendiente') {
+            lista = lista.filter(m => !m.respondido);
+        } else if (_filtroEstadoMensajes === 'respondido') {
+            lista = lista.filter(m => m.respondido);
+        }
+        // Orden de atención:
+        // 1. Mensajes PENDIENTES SIEMPRE PRIMERO en la cabecera (el primero en ser atendido).
+        // 2. Entre pendientes: el primero en llegar va primero (orden de llegada FIFO ASC).
+        // 3. Una vez atendido pasa al final/abajo de la lista entre los respondidos.
+        // 4. Entre respondidos: el último en ser respondido se muestra en la cabecera de respondidos (DESC).
+        lista.sort((a, b) => {
+            const respA = Boolean(a.respondido);
+            const respB = Boolean(b.respondido);
+            if (respA !== respB) {
+                return respA ? 1 : -1;
+            }
+            const fA = new Date(a.fechaEnvio).getTime() || a.id || 0;
+            const fB = new Date(b.fechaEnvio).getTime() || b.id || 0;
+            if (!respA) {
+                return fA - fB;
+            }
+            return fB - fA;
+        });
+
+        _mensajesAdmin = lista;
         _totalPaginasMensajes = data.totalPages || 1;
-        const totalElements = data.totalElements || 0;
+        const totalElements = (_filtroEstadoMensajes !== null && data.totalElements === undefined)
+            ? lista.length
+            : (data.totalElements ?? lista.length);
 
         const badgeTotal = document.getElementById('badgeMensajesTotalConteo');
         if (badgeTotal) badgeTotal.textContent = totalElements;
@@ -1956,6 +2417,40 @@ async function cargarMensajesAdmin(pagina = 0) {
         }
     }
 }
+
+// Filtra las consultas por estado: 'pendiente' o 'respondido' en orden FIFO
+function filtrarMensajesEstado(estado) {
+    if (_filtroEstadoMensajes === estado) {
+        _filtroEstadoMensajes = null;
+    } else {
+        _filtroEstadoMensajes = estado;
+    }
+    actualizarBotonesFiltroMensajes();
+    cargarMensajesAdmin(0);
+}
+
+// Sincroniza la clase active de los botones de filtro de mensajes
+function actualizarBotonesFiltroMensajes() {
+    const btnPendiente = document.getElementById('btnFiltroMsgPendiente');
+    const btnRespondido = document.getElementById('btnFiltroMsgRespondido');
+    if (btnPendiente) {
+        btnPendiente.classList.toggle('active', _filtroEstadoMensajes === 'pendiente');
+    }
+    if (btnRespondido) {
+        btnRespondido.classList.toggle('active', _filtroEstadoMensajes === 'respondido');
+    }
+}
+
+// Actualiza la lista de mensajes y limpia los filtros aplicados
+async function actualizarMensajesAdmin() {
+    _filtroEstadoMensajes = null;
+    actualizarBotonesFiltroMensajes();
+    await cargarMensajesAdmin(0);
+    await actualizarConteoNotificaciones();
+    mostrarToast('Bandeja de mensajes actualizada con éxito', 'success');
+}
+window.filtrarMensajesEstado = filtrarMensajesEstado;
+window.actualizarMensajesAdmin = actualizarMensajesAdmin;
 
 // Renderiza los mensajes en la bandeja izquierda
 function renderMensajesBandeja(mensajes) {

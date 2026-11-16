@@ -13,7 +13,7 @@
     <!-- global.css: Estilos compartidos entre todos los roles; incluye variables CSS (--azul-oscuro, --celeste), navbar, y utilidades de sesión visual -->
     <link rel="stylesheet" th:href="@{/css/global.css(v='1.2')}">
     <!-- administrador.css: Estilos exclusivos del panel admin; define sidebar, topbar, admin-card, kpi-card, status-badge, product-admin-card, service-admin-card y admin-table -->
-    <link rel="stylesheet" th:href="@{/css/roles/administrador.css(v='5.9')}">
+    <link rel="stylesheet" th:href="@{/css/roles/administrador.css(v='6.5')}">
     <!-- Favicon del sitio -->
     <link rel="icon" th:href="@{/img/icono/icon.png}" type="image/png">
     <script th:inline="javascript">
@@ -279,6 +279,42 @@
                 </div>
                 <button class="btn btn-admin-nuevo fw-semibold" onclick="this.blur(); abrirNuevoServicio()"><i class="bi bi-plus-lg me-2"></i>Nuevo Servicio</button>
             </div>
+            <!-- Barra de filtros de servicios: searchServicio (texto), filterCategoriaServicio (categorías), filterEstadoServicio (activo/inactivo), filterPrecioServicio (50 en 50 hasta 400) -->
+            <div class="admin-card mb-4 filtros-barra-card">
+                <div class="admin-card-body py-3">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-sm-4">
+                            <input type="text" class="form-control" placeholder="Buscar servicio..." id="searchServicio" oninput="filtrarServicios()">
+                        </div>
+                        <div class="col-sm-3">
+                            <select class="form-select" id="filterCategoriaServicio" onchange="filtrarServicios()">
+                                <option value="">Todas las categorías</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-2">
+                            <select class="form-select" id="filterEstadoServicio" onchange="filtrarServicios()">
+                                <option value="">Todos</option>
+                                <option value="Activo">Activos</option>
+                                <option value="Inactivo">Inactivos</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-3">
+                            <select class="form-select" id="filterPrecioServicio" onchange="filtrarServicios()">
+                                <option value="">Todos los precios</option>
+                                <option value="0-50">Hasta S/ 50</option>
+                                <option value="50-100">S/ 50 - S/ 100</option>
+                                <option value="100-150">S/ 100 - S/ 150</option>
+                                <option value="150-200">S/ 150 - S/ 200</option>
+                                <option value="200-250">S/ 200 - S/ 250</option>
+                                <option value="250-300">S/ 250 - S/ 300</option>
+                                <option value="300-350">S/ 300 - S/ 350</option>
+                                <option value="350-400">S/ 350 - S/ 400</option>
+                                <option value="400+">Más de S/ 400</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <!-- gridServicios: Renderizado por renderServicios() en administrador.js; incluye icono auto-detectado por keyword del nombre del servicio, badge de estado y botones de editar/eliminar -->
             <div class="row g-3" id="gridServicios">
                 <div class="col-12 text-center py-5 text-muted">
@@ -311,8 +347,11 @@
                     <!-- infoClientes muestra el total de clientes registrados con rol "cliente", actualizado por renderClientes() en administrador.js -->
                     <small class="section-subtitle" id="infoClientes">Cargando clientes...</small>
                 </div>
-                <!-- 3 botones para filtrar clientes según el estado de su última compra realizada -->
+                <!-- Botones para filtrar clientes: Apelación pendiente y estado de última compra -->
                 <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <button type="button" class="btn btn-filtro-compra btn-filtro-apelacion" id="btnFiltroApelacion" onclick="toggleFiltroApelacion(); this.blur();">
+                        <i class="bi bi-shield-exclamation me-1"></i>Apelación
+                    </button>
                     <button type="button" class="btn btn-filtro-compra btn-filtro-por-entregar" id="btnFiltroPorEntregar" onclick="toggleFiltroCompras('Por entregar'); this.blur();">
                         <i class="bi bi-clock-history me-1"></i>Por entregar
                     </button>
@@ -368,12 +407,17 @@
         <section id="sec-mensajes" class="admin-section">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
                 <div class="d-flex flex-column align-items-start gap-2">
-                    <span class="section-tag">GESTIÓN - BANDEJA DE MENSAJES</span>
-                    <h2 class="section-title mb-0">Consultas de Clientes</h2>
-                    <p class="section-subtitle mb-0">Atiende las consultas recibidas desde "Contáctanos" en orden de llegada (FIFO). La respuesta será visible para el cliente en su perfil.</p>
+                    <span class="section-tag">GESTIÓN - MENSAJES</span>
+                    <small class="section-subtitle" id="infoMensajes">0 consultas por responder</small>
                 </div>
-                <div class="d-flex align-items-center gap-2">
-                    <button class="btn btn-outline-secondary btn-sm" onclick="cargarMensajesAdmin(_paginaMensajesActual)" title="Actualizar lista">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <button type="button" class="btn btn-filtro-mensaje btn-filtro-msg-pendiente" id="btnFiltroMsgPendiente" onclick="filtrarMensajesEstado('pendiente'); this.blur();">
+                        <i class="bi bi-clock me-1"></i>Pendiente
+                    </button>
+                    <button type="button" class="btn btn-filtro-mensaje btn-filtro-msg-respondido" id="btnFiltroMsgRespondido" onclick="filtrarMensajesEstado('respondido'); this.blur();">
+                        <i class="bi bi-check2-circle me-1"></i>Respondido
+                    </button>
+                    <button type="button" class="btn btn-filtro-mensaje btn-actualizar-mensajes" id="btnActualizarMensajes" onclick="actualizarMensajesAdmin(); this.blur();" title="Actualizar lista y limpiar filtros">
                         <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
                     </button>
                 </div>
@@ -475,23 +519,23 @@
                     <form id="formProducto">
                         <div class="row g-3">
                             <div class="col-sm-8">
-                                <label class="form-label small fw-semibold">Nombre del producto <span class="text-danger">*</span></label>
+                                <label class="form-label small fw-semibold">Nombre del producto</label>
                                 <input type="text" id="prodNombre" class="form-control" placeholder="Ej: Juego de Llaves 12 pzas" maxlength="100">
                             </div>
                             <!-- prodCategoria: Select dinámico poblado por actualizarSelectCategorias() en administrador.js; en modo edición se verifica con Array.from(options).some() que el id exista antes de asignarlo para evitar que quede en "Seleccionar..." -->
                             <div class="col-sm-4">
-                                <label class="form-label small fw-semibold">Categoría <span class="text-danger">*</span></label>
+                                <label class="form-label small fw-semibold">Categoría</label>
                                 <select id="prodCategoria" class="form-select"><option value="">Seleccionar...</option></select>
                             </div>
                             <div class="col-sm-3">
-                                <label class="form-label small fw-semibold">Precio (S/) <span class="text-danger">*</span></label>
+                                <label class="form-label small fw-semibold">Precio (S/)</label>
                                 <div class="input-group">
                                     <span class="input-group-text">S/</span>
                                     <input type="number" id="prodPrecio" class="form-control" placeholder="0.00" min="0.1" step="0.5">
                                 </div>
                             </div>
                             <div class="col-sm-3">
-                                <label class="form-label small fw-semibold">Stock <span class="text-danger">*</span></label>
+                                <label class="form-label small fw-semibold">Stock</label>
                                 <input type="number" id="prodStock" class="form-control" placeholder="0" min="0">
                             </div>
                             <div class="col-sm-3">
@@ -504,7 +548,7 @@
                                 </select>
                             </div>
                             <div class="col-sm-3">
-                                <label class="form-label small fw-semibold">Estado <span class="text-danger">*</span></label>
+                                <label class="form-label small fw-semibold">Estado</label>
                                 <select id="prodEstado" class="form-select">
                                     <option value="Activo">Activo</option>
                                     <option value="Inactivo">Inactivo</option>
@@ -518,6 +562,17 @@
                                 <label class="form-label small fw-semibold">URL de imagen</label>
                                 <input type="text" id="prodImagen" class="form-control" placeholder="https://... (opcional)">
                             </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Importar imagen</label>
+                                <div class="input-group">
+                                    <label class="btn btn-archivo-accion" for="prodImagenArchivo">
+                                        <i class="bi bi-folder2-open me-1"></i>Seleccionar imagen
+                                    </label>
+                                    <input type="file" id="prodImagenArchivo" class="d-none" accept="image/*" onchange="actualizarNombreArchivo(this, 'prod')">
+                                    <input type="text" id="prodImagenArchivoTexto" class="form-control" placeholder="Ninguna imagen seleccionada" readonly>
+                                    <button type="button" class="btn btn-archivo-accion" id="btnLimpiarImagenProd" onclick="limpiarImagenArchivo('prod')"><i class="bi bi-x-lg me-1"></i>Limpiar</button>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -530,7 +585,7 @@
     </div>
     <!-- Modal de creación/edición de servicio: Reutilizado para ambas operaciones; modalServicioTitulo cambia dinámicamente; guardarServicio() decide entre POST /api/servicios o PUT /api/servicios/{id} según servicioEdit; el campo estado permite activar/desactivar servicios del catálogo público -->
     <div class="modal fade" id="modalServicio" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header" style="background:var(--azul-oscuro);">
                     <h5 class="modal-title text-white fw-bold" id="modalServicioTitulo"><i class="bi bi-gear-fill me-2"></i>Nuevo Servicio</h5>
@@ -539,22 +594,22 @@
                 <div class="modal-body">
                     <form id="formServicio">
                         <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label small fw-semibold">Nombre del servicio <span class="text-danger">*</span></label>
+                            <div class="col-sm-8">
+                                <label class="form-label small fw-semibold">Nombre del servicio</label>
                                 <input type="text" id="servNombre" class="form-control" placeholder="Ej: Cambio de Aceite" maxlength="100">
                             </div>
-                            <div class="col-sm-6">
+                            <div class="col-sm-4">
                                 <label class="form-label small fw-semibold">Categoría</label>
                                 <input type="text" id="servCategoria" class="form-control" placeholder="Ej: Lubricación" maxlength="50">
                             </div>
-                            <div class="col-sm-6">
-                                <label class="form-label small fw-semibold">Precio (S/) <span class="text-danger">*</span></label>
+                            <div class="col-sm-4">
+                                <label class="form-label small fw-semibold">Precio (S/)</label>
                                 <div class="input-group">
                                     <span class="input-group-text">S/</span>
                                     <input type="number" id="servPrecio" class="form-control" placeholder="0.00" min="0.1" step="0.5">
                                 </div>
                             </div>
-                            <div class="col-sm-6">
+                            <div class="col-sm-4">
                                 <label class="form-label small fw-semibold">Duración (horas)</label>
                                 <div class="input-group">
                                     <input type="number" id="servDuracion" class="form-control" placeholder="1" min="1" step="1">
@@ -562,7 +617,7 @@
                                 </div>
                             </div>
                             <!-- servEstado: Controla si el servicio aparece en el catálogo público de servicios.html; solo los servicios con estado "Activo" son devueltos por GET /api/servicios/activos consumido por servicios.js -->
-                            <div class="col-sm-6">
+                            <div class="col-sm-4">
                                 <label class="form-label small fw-semibold">Estado</label>
                                 <select id="servEstado" class="form-select">
                                     <option value="Activo">Activo</option>
@@ -570,12 +625,23 @@
                                 </select>
                             </div>
                             <div class="col-12">
+                                <label class="form-label small fw-semibold">Descripción</label>
+                                <textarea id="servDescripcion" class="form-control" rows="3" placeholder="Descripción del servicio..." maxlength="300"></textarea>
+                            </div>
+                            <div class="col-12">
                                 <label class="form-label small fw-semibold">URL de imagen</label>
                                 <input type="text" id="servImagen" class="form-control" placeholder="https://... (opcional)">
                             </div>
                             <div class="col-12">
-                                <label class="form-label small fw-semibold">Descripción</label>
-                                <textarea id="servDescripcion" class="form-control" rows="3" placeholder="Descripción del servicio..." maxlength="300"></textarea>
+                                <label class="form-label small fw-semibold">Importar imagen</label>
+                                <div class="input-group">
+                                    <label class="btn btn-archivo-accion" for="servImagenArchivo">
+                                        <i class="bi bi-folder2-open me-1"></i>Seleccionar imagen
+                                    </label>
+                                    <input type="file" id="servImagenArchivo" class="d-none" accept="image/*" onchange="actualizarNombreArchivo(this, 'serv')">
+                                    <input type="text" id="servImagenArchivoTexto" class="form-control" placeholder="Ninguna imagen seleccionada" readonly>
+                                    <button type="button" class="btn btn-archivo-accion" id="btnLimpiarImagenServ" onclick="limpiarImagenArchivo('serv')"><i class="bi bi-x-lg me-1"></i>Limpiar</button>
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -598,7 +664,7 @@
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-12">
-                            <label class="form-label small fw-semibold">Nombre <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-semibold">Nombre</label>
                             <input type="text" id="catNombre" class="form-control" placeholder="Nombre de la categoría" maxlength="50">
                         </div>
                         <div class="col-12">
@@ -652,7 +718,7 @@
     </div>
     <!-- Modal de confirmación dinámico: Reutilizado para eliminación de categorías, productos, servicios y para habilitar o inhabilitar usuarios según rol de creación -->
     <div class="modal fade" id="modalEliminar" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-confirmacion">
+        <div class="modal-dialog modal-dialog-centered modal-confirmacion" id="dialogModalEliminar">
             <div class="modal-content">
                 <div class="modal-body text-center py-4 px-4">
                     <div class="kpi-icon red mx-auto mb-3" style="width:56px;height:56px;font-size:1.5rem;" id="iconoModalEliminarContenedor">
@@ -660,10 +726,112 @@
                     </div>
                     <h6 class="fw-bold mb-2" id="tituloModalEliminar">¿Confirmar eliminación?</h6>
                     <p class="text-muted small mb-0" id="nombreEliminar">Esta acción no se puede deshacer.</p>
+
+                    <!-- Campos dinámicos para motivo y evidencia de inhabilitación / habilitación -->
+                    <div id="contenedorCamposEstadoUsuario" class="d-none mt-3 text-start">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold" id="labelMotivoEstado">Motivo</label>
+                            <textarea id="textoMotivoEstado" class="form-control campo-estado-usuario" rows="3" placeholder="Describe la razón..." maxlength="400"></textarea>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small fw-semibold">Adjuntar evidencia (opcional)</label>
+                            <div class="input-group">
+                                <label class="btn btn-archivo-accion" for="estadoImagenArchivo">
+                                    <i class="bi bi-folder2-open me-1"></i>Seleccionar imagen
+                                </label>
+                                <input type="file" id="estadoImagenArchivo" class="d-none" accept="image/*" onchange="actualizarNombreArchivo(this, 'estado')">
+                                <input type="text" id="estadoImagenArchivoTexto" class="form-control" placeholder="Ninguna imagen seleccionada" readonly>
+                                <button type="button" class="btn btn-archivo-accion" id="btnLimpiarImagenEstado" onclick="limpiarImagenArchivo('estado')"><i class="bi bi-x-lg me-1"></i>Limpiar</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer border-0 justify-content-center gap-2">
                     <button type="button" class="btn btn-modal-accion-cancelar px-4" data-bs-dismiss="modal" onclick="this.blur();">Cancelar</button>
                     <button type="button" class="btn btn-danger px-4 fw-semibold" id="btnConfirmarEliminar">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de revisión y respuesta de apelación de cliente inhabilitado -->
+    <div class="modal fade" id="modalApelacionAdmin" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header" style="background:var(--azul-oscuro);">
+                    <h5 class="modal-title text-white fw-bold"><i class="bi bi-shield-exclamation me-2 text-warning"></i>Caso de Apelación - <span id="apelacionClienteNombre"></span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- Ficha de inhabilitación del cliente -->
+                    <div class="card border-0 mb-3" style="background:#fef2f2; border-left: 4px solid #dc3545 !important;">
+                        <div class="card-body py-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-bold text-danger small"><i class="bi bi-person-x me-1"></i>Motivo de Inhabilitación</span>
+                                <small class="text-muted" id="apelacionFechaBloqueo">—</small>
+                            </div>
+                            <p class="small text-dark mb-2" id="apelacionMotivoBloqueo">Sin motivo especificado.</p>
+                            <div id="apelacionEvidenciaBloqueoContenedor" class="d-none mt-2">
+                                <span class="small fw-semibold text-muted d-block mb-1">Evidencia adjunta por administración:</span>
+                                <img id="apelacionEvidenciaBloqueoImg" src="" alt="Evidencia de suspensión" class="img-thumbnail rounded" style="max-height: 180px; object-fit: contain;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mensaje de apelación del cliente -->
+                    <div class="card border-0 mb-3" style="background:#f8fafd; border-left: 4px solid #56aee8 !important;">
+                        <div class="card-body py-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-bold small" style="color:var(--azul-oscuro);"><i class="bi bi-chat-left-text me-1"></i>Mensaje de Apelación del Cliente</span>
+                                <small class="text-muted" id="apelacionFechaEnvio">—</small>
+                            </div>
+                            <p class="small text-dark mb-0" id="apelacionMensajeCliente">El cliente aún no ha enviado un mensaje de apelación.</p>
+                        </div>
+                    </div>
+
+                    <!-- Historial de respuesta previa si existe -->
+                    <div id="contenedorRespuestaPreviaAdmin" class="card border-0 mb-3 d-none" style="background:#f0fdf4; border-left: 4px solid #198754 !important;">
+                        <div class="card-body py-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-bold text-success small"><i class="bi bi-check2-circle me-1"></i>Última Respuesta de Administración</span>
+                                <small class="text-muted" id="apelacionFechaUltimaRespuesta">—</small>
+                            </div>
+                            <p class="small text-dark mb-1" id="apelacionTextoUltimaRespuesta">—</p>
+                            <div id="apelacionEvidenciaRespuestaContenedor" class="d-none mt-2">
+                                <img id="apelacionEvidenciaRespuestaImg" src="" alt="Evidencia de respuesta" class="img-thumbnail rounded" style="max-height: 160px; object-fit: contain;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de respuesta de administración -->
+                    <div class="card border p-3">
+                        <h6 class="fw-bold mb-2 small" style="color:var(--azul-oscuro);"><i class="bi bi-pencil-square me-1"></i>Redactar Respuesta / Resolución para el Cliente</h6>
+                        <div class="mb-3">
+                            <textarea id="textoRespuestaApelacionAdmin" class="form-control" rows="3" placeholder="Escribe aquí tu respuesta para el cliente..."></textarea>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small fw-semibold">Adjuntar imagen o evidencia opcional</label>
+                            <div class="input-group">
+                                <label class="btn btn-archivo-accion" for="respApelacionImagenArchivo">
+                                    <i class="bi bi-folder2-open me-1"></i>Seleccionar imagen
+                                </label>
+                                <input type="file" id="respApelacionImagenArchivo" class="d-none" accept="image/*" onchange="actualizarNombreArchivo(this, 'respApelacion')">
+                                <input type="text" id="respApelacionImagenArchivoTexto" class="form-control" placeholder="Ninguna imagen seleccionada" readonly>
+                                <button type="button" class="btn btn-archivo-accion" id="btnLimpiarImagenRespApelacion" onclick="limpiarImagenArchivo('respApelacion')"><i class="bi bi-x-lg me-1"></i>Limpiar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 d-flex justify-content-between">
+                    <button type="button" class="btn btn-modal-accion-cancelar px-4" data-bs-dismiss="modal">Cerrar</button>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-danger px-3 fw-semibold" id="btnMantenerInactivoApelacion" onclick="guardarResolucionApelacion('MANTENER_INACTIVO')">
+                            <i class="bi bi-x-circle me-1"></i>Mantener inhabilitado
+                        </button>
+                        <button type="button" class="btn btn-success px-3 fw-semibold" id="btnHabilitarCuentaApelacion" onclick="guardarResolucionApelacion('HABILITAR')">
+                            <i class="bi bi-check-circle me-1"></i>Habilitar cuenta
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -829,7 +997,7 @@
     <!-- global.js: Define obtenerSesion(), guardarSesion(), cerrarSesion(), actualizarNavbar(), abrirModal(), limpiarBackdropsSobrantes() y otras utilidades compartidas entre todos los roles; debe cargarse antes de administrador.js -->
     <script th:src="@{/js/global.js(v='1.2')}"></script>
     <!-- administrador.js: Lógica principal del panel; valida el rol "administrador" en sessionStorage al cargar, realiza todas las llamadas a la API REST (/api/categorias, /api/productos, /api/servicios, /api/citas, /api/usuarios, /api/compras) y gestiona el estado de la SPA -->
-    <script th:src="@{/js/roles/administrador.js(v='3.6')}"></script>
+    <script th:src="@{/js/roles/administrador.js(v='4.4')}"></script>
     <!-- Activa la sección correspondiente según la URL solicitada al servidor o memoria local -->
     <script th:inline="javascript">
         /*<![CDATA[*/

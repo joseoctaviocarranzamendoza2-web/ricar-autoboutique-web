@@ -351,9 +351,11 @@ function iniciarFiltrosVentas() {
     const inputBusq = document.getElementById('filtroVentasBuscar') || document.querySelector('#sec-ventas input[type="text"]');
     const inputFechaIni = document.getElementById('filtroVentasDesde') || document.querySelectorAll('#sec-ventas input[type="date"]')[0];
     const inputFechaFin = document.getElementById('filtroVentasHasta') || document.querySelectorAll('#sec-ventas input[type="date"]')[1];
-    const btnFiltrar = document.getElementById('btnFiltrarVentas') || document.querySelector('#sec-ventas .btn-primary.w-100');
+    const btnFiltrar = document.getElementById('btnFiltrarVentas') || document.querySelector('#sec-ventas .btn-filtrar-ventas');
+    const btnLimpiar = document.getElementById('btnLimpiarFiltrosVentas');
     const btnExportar = document.getElementById('btnExportarVentas');
     const btnExportarServicios = document.getElementById('btnExportarServicios');
+
     // Validación interactiva de rangos de fecha (de pasado al presente)
     inputFechaIni?.addEventListener('change', () => {
         if (inputFechaIni.value && inputFechaFin) {
@@ -365,15 +367,42 @@ function iniciarFiltrosVentas() {
             inputFechaIni.max = inputFechaFin.value;
         }
     });
+
+    // Búsqueda en tiempo real conforme el usuario escribe (cliente, producto o servicio)
+    inputBusq?.addEventListener('input', () => {
+        ejecutarFiltroVentas(false);
+    });
     inputBusq?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
             btnFiltrar?.click();
         }
     });
+
+    // Botón Filtrar: Valida estrictamente que se haya seleccionado un rango de fechas antes de filtrar
     btnFiltrar?.addEventListener('click', () => {
+        const desde = inputFechaIni?.value || '';
+        const hasta = inputFechaFin?.value || '';
+        if (!desde && !hasta) {
+            mostrarToast('Seleccione un rango de fechas primero para procesar el filtro', 'error');
+            return;
+        }
+        if (!desde || !hasta) {
+            mostrarToast('Seleccione un rango de fechas completo para procesar el filtro', 'error');
+            return;
+        }
+        if (desde > hasta) {
+            mostrarToast('El rango de fechas no es válido. La fecha inicial debe ser anterior o igual a la final.', 'error');
+            return;
+        }
         ejecutarFiltroVentas(true);
         btnFiltrar.blur();
+    });
+
+    // Botón Limpiar filtros: Restablece campos de búsqueda y fecha, y muestra todos los registros
+    btnLimpiar?.addEventListener('click', () => {
+        limpiarFiltrosVentas();
+        btnLimpiar.blur();
     });
     const btnExportarPdf = document.getElementById('btnExportarVentasPdf');
     const btnExportarServiciosPdf = document.getElementById('btnExportarServiciosPdf');
@@ -410,6 +439,27 @@ function iniciarFiltrosVentas() {
         });
     }
 }
+
+// Limpia los filtros de búsqueda y fechas y restaura la vista completa de la tabla activa
+function limpiarFiltrosVentas() {
+    const inputBusq = document.getElementById('filtroVentasBuscar');
+    const inputFechaIni = document.getElementById('filtroVentasDesde');
+    const inputFechaFin = document.getElementById('filtroVentasHasta');
+    if (inputBusq) inputBusq.value = '';
+    if (inputFechaIni) {
+        inputFechaIni.value = '';
+        inputFechaIni.removeAttribute('max');
+    }
+    if (inputFechaFin) {
+        inputFechaFin.value = '';
+        inputFechaFin.removeAttribute('min');
+    }
+    _comprasFiltradas = ordenarVentasDesc(_compras);
+    _citasFiltradas = ordenarVentasDesc(_citas);
+    _paginaVentasActual = 1;
+    renderVentas();
+}
+window.limpiarFiltrosVentas = limpiarFiltrosVentas;
 
 // Ejecuta el filtro de búsqueda y rango de fechas para el apartado activo
 function ejecutarFiltroVentas(conToast = false) {

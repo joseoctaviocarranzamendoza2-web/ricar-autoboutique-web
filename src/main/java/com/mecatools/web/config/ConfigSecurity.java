@@ -39,6 +39,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import com.mecatools.web.repositories.UsuarioRepository;
 import com.mecatools.web.security.JwtCookieAuthenticationFilter;
 import org.springframework.core.annotation.Order;
 import jakarta.servlet.http.HttpServletRequest;
@@ -57,12 +58,14 @@ public class ConfigSecurity {
     private final UsuarioDetailsService usuarioDetailsService;
     private final JwtTokenService jwtTokenService;
     private final ObjectMapper objectMapper;
+    private final UsuarioRepository usuarioRepository;
 
     public ConfigSecurity(UsuarioDetailsService usuarioDetailsService, JwtTokenService jwtTokenService,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper, UsuarioRepository usuarioRepository) {
         this.usuarioDetailsService = usuarioDetailsService;
         this.jwtTokenService = jwtTokenService;
         this.objectMapper = objectMapper;
+        this.usuarioRepository = usuarioRepository;
     }
 
     // Bean para encriptar contraseñas usando BCrypt
@@ -87,6 +90,27 @@ public class ConfigSecurity {
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(usuarioDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
+        // En pre-checks no validamos isEnabled para que Spring Security valide primero la contraseña.
+        // Esto evita revelar si una cuenta existe o está inhabilitada si la contraseña es incorrecta.
+        provider.setPreAuthenticationChecks(user -> {
+            if (!user.isAccountNonLocked()) {
+                throw new org.springframework.security.authentication.LockedException("Cuenta bloqueada");
+            }
+            if (!user.isAccountNonExpired()) {
+                throw new org.springframework.security.authentication.AccountExpiredException("Cuenta expirada");
+            }
+        });
+        // En post-checks (se ejecuta estrictamente DESPUÉS de verificar la contraseña):
+        // Si las credenciales fueron correctas pero la cuenta está inhabilitada, lanzamos DisabledException.
+        provider.setPostAuthenticationChecks(user -> {
+            if (!user.isEnabled()) {
+                throw new org.springframework.security.authentication.DisabledException(
+                        "Tu cuenta se encuentra inhabilitada.\nContacta con administración.");
+            }
+            if (!user.isCredentialsNonExpired()) {
+                throw new org.springframework.security.authentication.CredentialsExpiredException("Credenciales expiradas");
+            }
+        });
         return provider;
     }
 
@@ -97,21 +121,25 @@ public class ConfigSecurity {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/api/usuarios/registro", "/api/auth/refresh", "/api/usuarios/refresh").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/servicios/**",
-                                "/api/categorias/**", "/api/comentarios/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios/registro", "/api/usuarios/apelar", "/api/auth/refresh", "/api/usuarios/refresh").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios/estado-cuenta").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/productos", "/api/productos/**",
+                                "/api/servicios", "/api/servicios/**",
+                                "/api/categorias", "/api/categorias/**",
+                                "/api/comentarios", "/api/comentarios/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/roles-disponibles").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios/**").hasAnyAuthority("administrador", "gerente")
-                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/**").hasAnyAuthority("administrador", "cliente")
-                        .requestMatchers(HttpMethod.PATCH, "/api/usuarios/**").hasAnyAuthority("administrador", "gerente")
-                        .requestMatchers(HttpMethod.DELETE, "/api/usuarios/**").hasAuthority("administrador")
-                        .requestMatchers(HttpMethod.POST, "/api/productos/**", "/api/servicios/**", "/api/categorias/**")
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios", "/api/usuarios/**").hasAnyAuthority("administrador", "gerente")
+                        .requestMatchers(HttpMethod.PUT, "/api/usuarios", "/api/usuarios/**").hasAnyAuthority("administrador", "cliente")
+                        .requestMatchers(HttpMethod.PATCH, "/api/usuarios", "/api/usuarios/**").hasAnyAuthority("administrador", "gerente")
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios/*/responder-apelacion").hasAnyAuthority("administrador", "gerente")
+                        .requestMatchers(HttpMethod.DELETE, "/api/usuarios", "/api/usuarios/**").hasAuthority("administrador")
+                        .requestMatchers(HttpMethod.POST, "/api/productos", "/api/productos/**", "/api/servicios", "/api/servicios/**", "/api/categorias", "/api/categorias/**", "/api/upload/**")
                         .hasAnyAuthority("administrador", "gerente")
-                        .requestMatchers(HttpMethod.PUT, "/api/productos/**", "/api/servicios/**", "/api/categorias/**")
+                        .requestMatchers(HttpMethod.PUT, "/api/productos", "/api/productos/**", "/api/servicios", "/api/servicios/**", "/api/categorias", "/api/categorias/**")
                         .hasAnyAuthority("administrador", "gerente")
-                        .requestMatchers(HttpMethod.DELETE, "/api/productos/**", "/api/servicios/**",
-                                "/api/categorias/**").hasAuthority("administrador")
-                        .requestMatchers("/api/citas/**", "/api/compras/**", "/api/mensajes/**").hasAnyAuthority("cliente", "administrador", "gerente")
+                        .requestMatchers(HttpMethod.DELETE, "/api/productos", "/api/productos/**", "/api/servicios", "/api/servicios/**",
+                                "/api/categorias", "/api/categorias/**").hasAuthority("administrador")
+                        .requestMatchers("/api/citas", "/api/citas/**", "/api/compras", "/api/compras/**", "/api/mensajes", "/api/mensajes/**").hasAnyAuthority("cliente", "administrador", "gerente")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(resourceServer -> resourceServer
                                 .authenticationEntryPoint(authenticationEntryPoint())
@@ -154,7 +182,7 @@ public class ConfigSecurity {
                         .requestMatchers("/", "/inicio", "/inicio/login", "/inicio/register", "/servicios",
                                 "/servicios/login", "/servicios/register", "/productos", "/productos/login",
                                 "/productos/register", "/nosotros", "/nosotros/login", "/nosotros/register",
-                                "/contacto", "/contacto/login", "/contacto/register", "/css/**", "/js/**", "/img/**",
+                                "/contacto", "/contacto/login", "/contacto/register", "/css/**", "/js/**", "/img/**", "/uploads/**",
                                 "/api/auth/refresh", "/api/usuarios/refresh")
                         .permitAll()
                         // Selección de rol: pública para que funcione aunque la sesión HTTP haya
@@ -272,11 +300,51 @@ public class ConfigSecurity {
                     AuthenticationException exception) throws java.io.IOException {
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
-                String mensaje = "Credenciales incorrectas";
+                String mensaje = "Correo o contraseña incorrectos";
+                Map<String, Object> body = new LinkedHashMap<>();
+                body.put("status", HttpStatus.UNAUTHORIZED.value());
+                body.put("error", HttpStatus.UNAUTHORIZED.getReasonPhrase());
+
                 if (exception instanceof org.springframework.security.authentication.DisabledException) {
-                    mensaje = "Tu cuenta se encuentra inhabilitada. Contacta con soporte o administración.";
+                    mensaje = "Tu cuenta se encuentra inhabilitada.\nContacta con administración.";
+                    body.put("inhabilitado", true);
+                    String email = request.getParameter("email");
+                    if (email != null && !email.isBlank()) {
+                        Usuario u = usuarioRepository.findByEmail(email.trim().toLowerCase()).orElse(null);
+                        if (u != null) {
+                            body.put("email", u.getEmail());
+                            body.put("nombres", u.getNombres() + " " + u.getApellidos());
+                            body.put("motivoBloqueo", u.getMotivoBloqueo());
+                            body.put("evidenciaBloqueo", u.getEvidenciaBloqueo());
+                            body.put("fechaBloqueo", u.getFechaBloqueo() != null ? u.getFechaBloqueo().toString() : null);
+                            body.put("mensajeApelacion", u.getMensajeApelacion());
+                            body.put("fechaApelacion", u.getFechaApelacion() != null ? u.getFechaApelacion().toString() : null);
+                            body.put("estadoApelacion", u.getEstadoApelacion());
+                            body.put("respuestaApelacion", u.getRespuestaApelacion());
+                            body.put("evidenciaRespuesta", u.getEvidenciaRespuesta());
+                            body.put("fechaRespuestaApelacion", u.getFechaRespuestaApelacion() != null ? u.getFechaRespuestaApelacion().toString() : null);
+                            body.put("mensajeHabilitacion", u.getMensajeHabilitacion());
+                            body.put("evidenciaHabilitacion", u.getEvidenciaHabilitacion());
+                            body.put("fechaHabilitacion", u.getFechaHabilitacion() != null ? u.getFechaHabilitacion().toString() : null);
+
+                            boolean puedeApelar = true;
+                            long diasRestantes = 0;
+                            if (u.getFechaApelacion() != null) {
+                                java.time.LocalDateTime proxima = u.getFechaApelacion().plusDays(7);
+                                java.time.LocalDateTime ahora = java.time.LocalDateTime.now();
+                                if (ahora.isBefore(proxima)) {
+                                    puedeApelar = false;
+                                    diasRestantes = java.time.Duration.between(ahora, proxima).toDays() + 1;
+                                }
+                            }
+                            body.put("puedeApelar", puedeApelar);
+                            body.put("diasRestantes", diasRestantes);
+                        }
+                    }
                 }
-                escribirErrorJson(response, HttpStatus.UNAUTHORIZED, mensaje);
+                body.put("message", mensaje);
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                objectMapper.writeValue(response.getWriter(), body);
             }
         };
     }
@@ -311,4 +379,3 @@ public class ConfigSecurity {
     }
 
 }
-

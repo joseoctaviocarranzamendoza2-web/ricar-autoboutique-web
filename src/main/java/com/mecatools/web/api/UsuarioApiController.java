@@ -62,6 +62,16 @@ public class UsuarioApiController {
         }
     }
 
+    // Endpoint público para verificar si un email ya está registrado en la base de datos
+    @GetMapping("/verificar-email")
+    public ResponseEntity<?> verificarEmail(@RequestParam(required = false) String email) {
+        if (email == null || email.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email requerido", "existe", false));
+        }
+        boolean existe = usuarioService.existePorEmail(email.trim());
+        return ResponseEntity.ok(Map.of("existe", existe, "email", email.trim().toLowerCase()));
+    }
+
     // Endpoint para consultar los roles disponibles del usuario autenticado
     @GetMapping("/roles-disponibles")
     public ResponseEntity<?> rolesDisponibles(Authentication auth) {

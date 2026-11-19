@@ -63,6 +63,22 @@ public class Cita {
     @Column(nullable = false)
     private String estado;
 
+    // Motivo de cancelación registrado por administración o el usuario
+    @Column(name = "motivo_cancelacion", columnDefinition = "TEXT")
+    private String motivoCancelacion;
+
+    // Evidencia opcional (imagen) adjuntada al momento de la cancelación
+    @Column(name = "evidencia_cancelacion", columnDefinition = "MEDIUMTEXT")
+    private String evidenciaCancelacion;
+
+    // Nombre y rol del usuario/administrador que canceló la cita
+    @Column(name = "cancelado_por", length = 150)
+    private String canceladoPor;
+
+    // Fecha y hora en la que se canceló la cita
+    @Column(name = "fecha_cancelacion")
+    private java.time.LocalDateTime fechaCancelacion;
+
     // Relación ManyToOne hacia el usuario que solicita la cita
     @ManyToOne
     @JoinColumn(name = "id_usuario", nullable = false)

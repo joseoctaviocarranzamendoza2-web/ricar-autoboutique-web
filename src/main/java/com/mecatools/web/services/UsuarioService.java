@@ -50,6 +50,15 @@ public class UsuarioService {
         return usuarioRepository.findById(id);
     }
 
+    // Método para verificar si un correo electrónico ya existe registrado en la base de datos (ignorando mayúsculas/minúsculas)
+    @Transactional(readOnly = true)
+    public boolean existePorEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return false;
+        }
+        return usuarioRepository.existsByEmailIgnoreCase(email.trim());
+    }
+
     // Método para registrar un nuevo usuario con roles normalizados (3FN).
     // Asigna roles acumulativos según jerarquía:
     // - cliente: rol cliente
@@ -60,7 +69,7 @@ public class UsuarioService {
         if (usuario.getPassword() == null || usuario.getPassword().length() < 8 || usuario.getPassword().length() > 30) {
             throw new IllegalArgumentException("La contraseña debe tener entre 8 y 30 caracteres");
         }
-        if (usuarioRepository.findByEmail(usuario.getEmail()).isPresent()) {
+        if (usuarioRepository.existsByEmailIgnoreCase(usuario.getEmail())) {
             throw new IllegalStateException("Email ya registrado");
         }
         String rolPedido = usuario.getRol();

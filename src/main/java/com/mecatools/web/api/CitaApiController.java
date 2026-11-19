@@ -89,7 +89,11 @@ public class CitaApiController {
     @PatchMapping("/{id}/estado")
     public ResponseEntity<?> cambiarEstado(@PathVariable Long id, @RequestBody Map<String, String> body) {
         try {
-            return ResponseEntity.ok(citaService.cambiarEstado(id, body.get("estado")));
+            String nuevoEstado = body.get("estado");
+            String motivo = body.get("motivoCancelacion");
+            String evidencia = body.get("evidenciaCancelacion");
+            String canceladoPor = body.get("canceladoPor");
+            return ResponseEntity.ok(citaService.cambiarEstado(id, nuevoEstado, motivo, evidencia, canceladoPor));
         } catch (NoSuchElementException e) {
             return ResponseEntity.notFound().build();
         } catch (IllegalArgumentException e) {
@@ -97,11 +101,20 @@ public class CitaApiController {
         }
     }
 
+    // Sobrecarga de conveniencia para cancelar cita con solo el ID (usado en tests y llamadas internas)
+    public ResponseEntity<?> cancelar(Long id) {
+        return cancelar(id, null, null);
+    }
+
     // Método para cancelar una cita existente. Devuelve una respuesta HTTP con el estado OK y un mensaje de confirmación, o un estado Not Found si no se encuentra la cita.
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> cancelar(@PathVariable Long id) {
+    public ResponseEntity<?> cancelar(
+            @PathVariable Long id,
+            @RequestParam(required = false) String canceladoPor,
+            @RequestParam(required = false) String motivo) {
         try {
-            citaService.cancelar(id);
+            String autor = (canceladoPor != null && !canceladoPor.isBlank()) ? canceladoPor : "Cliente";
+            citaService.cancelar(id, autor, motivo, null);
             return ResponseEntity.ok(Map.of("mensaje", "Cita cancelada"));
         } catch (NoSuchElementException e) {
             return ResponseEntity.notFound().build();

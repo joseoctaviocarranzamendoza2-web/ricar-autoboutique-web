@@ -170,7 +170,12 @@
                         <!-- Campo para ingresar la contraseña empresarial necesaria para completar la verificación -->
                         <div class="mb-3 text-center">
                             <label class="form-label fw-semibold" for="passEmpresarial">Contraseña empresarial</label>
-                            <input type="password" id="passEmpresarial" class="form-control text-center" placeholder="••••••••••">
+                            <div class="input-group">
+                                <input type="password" id="passEmpresarial" class="form-control text-center" placeholder="••••••••••">
+                                <button type="button" class="btn btn-outline-secondary btn-toggle-password" onclick="togglePasswordVisibility('passEmpresarial', this)" tabindex="-1" title="Mostrar/ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                             <div class="invalid-feedback text-center"></div>
                         </div>
                         <!-- Mensaje de error mostrado cuando la contraseña empresarial es incorrecta -->

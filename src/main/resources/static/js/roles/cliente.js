@@ -213,6 +213,7 @@ async function cargarCitas() {
         const resp = await fetch(`${API.citas}?usuario=${sesion.id}`);
         if (!resp.ok) return;
         const citas = await resp.json();
+        _citasCache = citas;
         renderCitas(citas);
         actualizarKPIs(null, citas);
         renderHistorial(null, citas);
@@ -225,6 +226,7 @@ async function cargarCitas() {
 function renderCitas(citas) {
     const grid = document.getElementById('grid-servicios');
     if (!grid) return;
+    _citasCache = citas || [];
     if (citas.length === 0) {
         grid.innerHTML = `
         <div class="col-12 text-center text-muted py-5">
@@ -238,7 +240,14 @@ function renderCitas(citas) {
         const opaca = c.estado === 'Completada' || c.estado === 'Cancelada' ? 'opaca' : '';
         const esPers = (c.servicio?.nombre || '').toLowerCase().includes('personalizad') || (c.notas && c.notas.toLowerCase().includes('servicio personalizado'));
         const precio = esPers ? 'A cotizar' : (c.servicio?.precioBase ? `S/ ${c.servicio.precioBase.toFixed(2)}` : '—');
-        const acciones = (c.estado === 'Pendiente' || c.estado === 'Confirmada') ? `<button class="btn-cita peligro" onclick="cancelarCita(${c.id}, this)">Cancelar</button>` : '';
+        
+        let acciones = '';
+        if (c.estado === 'Pendiente' || c.estado === 'Confirmada') {
+            acciones = `<button class="btn-cita peligro" onclick="abrirModalCancelarCitaCliente(${c.id})">Cancelar</button>`;
+        } else if (c.estado === 'Cancelada') {
+            acciones = `<button class="btn-cita secundario" onclick="verMotivoCancelacionCliente(${c.id})"><i class="bi bi-info-circle me-1"></i>Ver motivo</button>`;
+        }
+
         return `
         <div class="col-12 col-md-6" data-estado="${c.estado}">
             <div class="u-cita-card ${opaca}">
@@ -264,26 +273,106 @@ function renderCitas(citas) {
     }).join('');
 }
 
-// Cancela una cita (DELETE) y anima la remoción en la UI
-async function cancelarCita(id, btn) {
-    const col = btn?.closest('[data-estado]');
-    if (!confirm('¿Deseas cancelar esta cita?')) return;
+let _idCitaACancelarCliente = null;
+
+// Abre modal de confirmación para cancelar una cita en el panel de cliente (reemplaza confirm() nativo)
+function abrirModalCancelarCitaCliente(id) {
+    _idCitaACancelarCliente = id;
+    const cita = (_citasCache || []).find(c => Number(c.id) === Number(id));
+    const msgEl = document.getElementById('mensajeModalCancelarCitaCliente');
+    if (msgEl) {
+        if (cita) {
+            const serv = cita.servicio?.nombre || 'este servicio';
+            msgEl.textContent = `¿Estás seguro de que deseas cancelar tu cita para "${serv}" programada el ${cita.fecha || ''}? Esta acción no se puede deshacer.`;
+        } else {
+            msgEl.textContent = '¿Estás seguro de que deseas cancelar esta cita? Esta acción no se puede deshacer.';
+        }
+    }
+    const modalEl = document.getElementById('modalConfirmarCancelarCitaCliente');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+}
+window.abrirModalCancelarCitaCliente = abrirModalCancelarCitaCliente;
+
+// Confirma la cancelación de la cita vía DELETE al servidor y refresca la UI
+async function confirmarCancelarCitaCliente() {
+    if (!_idCitaACancelarCliente) return;
+    const id = _idCitaACancelarCliente;
+    const btn = document.getElementById('btnConfirmarCancelarCliente');
+    if (btn) btn.disabled = true;
+
     try {
-        const resp = await fetch(`${API.citas}/${id}`, { method: 'DELETE' });
+        const resp = await fetch(`${API.citas}/${id}?canceladoPor=Cliente`, { method: 'DELETE' });
+        bootstrap.Modal.getInstance(document.getElementById('modalConfirmarCancelarCitaCliente'))?.hide();
         if (!resp.ok) {
             mostrarToast('No se pudo cancelar la cita', 'error');
             return;
         }
-        if (col) {
-            col.style.transition = 'opacity .3s, transform .3s';
-            col.style.opacity = '0';
-            col.style.transform = 'scale(0.95)';
-            setTimeout(() => col.remove(), 300);
-        }
         mostrarToast('Cita cancelada correctamente', 'success');
+        await cargarCitas();
     } catch (e) {
+        bootstrap.Modal.getInstance(document.getElementById('modalConfirmarCancelarCitaCliente'))?.hide();
         mostrarToast('Error de conexión', 'error');
+    } finally {
+        if (btn) btn.disabled = false;
+        _idCitaACancelarCliente = null;
     }
+}
+window.confirmarCancelarCitaCliente = confirmarCancelarCitaCliente;
+
+// Abre el modal para visualizar el motivo y evidencia de cancelación para el cliente
+function verMotivoCancelacionCliente(id) {
+    const cita = (_citasCache || []).find(c => Number(c.id) === Number(id));
+    if (!cita) return;
+
+    const elCodigo = document.getElementById('motivoCitaCodigo');
+    if (elCodigo) elCodigo.textContent = `#S-${String(cita.id).padStart(3, '0')}`;
+
+    const elServicio = document.getElementById('motivoCitaServicio');
+    if (elServicio) elServicio.textContent = cita.servicio?.nombre || cita.servicio || 'Servicio';
+
+    const elAutor = document.getElementById('motivoCitaAutor');
+    if (elAutor) elAutor.textContent = cita.canceladoPor || 'Administración';
+
+    const elFechaHora = document.getElementById('motivoCitaFechaHora');
+    if (elFechaHora) {
+        const f = cita.fecha || '—';
+        const h = cita.hora || '';
+        elFechaHora.textContent = `${f} · ${h}`;
+    }
+
+    const elTexto = document.getElementById('motivoCitaTexto');
+    if (elTexto) {
+        elTexto.textContent = (cita.motivoCancelacion && cita.motivoCancelacion.trim())
+            ? cita.motivoCancelacion.trim()
+            : 'No se especificó un motivo para la cancelación.';
+    }
+
+    const contEvidencia = document.getElementById('contenedorEvidenciaCancelacion');
+    const imgEvidencia = document.getElementById('imgEvidenciaCancelacion');
+    if (contEvidencia && imgEvidencia) {
+        if (cita.evidenciaCancelacion && cita.evidenciaCancelacion.trim()) {
+            imgEvidencia.src = cita.evidenciaCancelacion.trim();
+            contEvidencia.classList.remove('d-none');
+        } else {
+            imgEvidencia.src = '';
+            contEvidencia.classList.add('d-none');
+        }
+    }
+
+    const modalEl = document.getElementById('modalMotivoCancelacionCliente');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+}
+window.verMotivoCancelacionCliente = verMotivoCancelacionCliente;
+
+// Cancela una cita (DELETE) y anima la remoción en la UI (método alternativo por ID)
+async function cancelarCita(id, btn) {
+    abrirModalCancelarCitaCliente(id);
 }
 
 // Caches temporales para KPIs/historial

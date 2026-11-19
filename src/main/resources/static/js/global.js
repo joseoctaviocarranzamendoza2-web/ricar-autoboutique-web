@@ -515,19 +515,38 @@ window.addEventListener('scroll', () => {
 // Almacena temporalmente el rol empresarial pendiente de verificación durante el registro
 let rolPendienteVerificacion = null;
 
-// Contraseñas de verificación simples para cuentas empresariales (solo UI, no seguras)
-const PASS_EMPRESARIAL = { administrador: 'admin123', gerente: 'gerente123' };
+// Contraseñas de verificación para cuentas empresariales (soporta las variantes definidas)
+const PASS_EMPRESARIAL = {
+    administrador: ['admin123456789', '#admin$101010$access', '123456789', 'admin123'],
+    gerente: ['gerente987654321', '#gerente$202020$access', '987654321', 'gerente123']
+};
+
+// Verifica si la contraseña ingresada coincide con las contraseñas válidas para el rol
+function esPasswordEmpresarialValida(rol, pass) {
+    if (!rol || !pass) return false;
+    const rolNorm = rol.toLowerCase().trim();
+    const passNorm = pass.trim();
+    const permitidas = PASS_EMPRESARIAL[rolNorm];
+    if (Array.isArray(permitidas)) {
+        return permitidas.includes(passNorm);
+    }
+    return permitidas === passNorm;
+}
 
 // Prepara y muestra el modal para confirmar creación de cuentas empresariales
 function abrirModalEmpresarial(rol) {
+    rolPendienteVerificacion = (rol || '').toLowerCase().trim();
     const texto = document.getElementById('rolEmpresarialTexto');
     const input = document.getElementById('passEmpresarial');
     const err = document.getElementById('empresarialError');
-    if (texto) texto.textContent = rol === 'administrador' ? 'Administrador' : 'Gerente';
+    if (texto) texto.textContent = rolPendienteVerificacion === 'administrador' ? 'Administrador' : 'Gerente';
     if (input) {
         input.value = '';
+        input.type = 'password';
         input.classList.remove('is-invalid');
     }
+    const icon = input?.parentElement?.querySelector('.btn-toggle-password i');
+    if (icon) icon.className = 'bi bi-eye';
     err?.classList.add('d-none');
     const modalRegister = document.getElementById('modalRegister');
     modalRegister.addEventListener('hidden.bs.modal', function handler() {
@@ -544,9 +563,23 @@ async function confirmarEmpresarial() {
     const btn = document.getElementById('btnConfirmarEmpresarial');
     err?.classList.add('d-none');
     input?.classList.remove('is-invalid');
-    const passIngresada = input?.value || '';
-    const passCorrecta = PASS_EMPRESARIAL[rolPendienteVerificacion];
-    if (passIngresada !== passCorrecta) {
+    const passIngresada = (input?.value || '').trim();
+
+    // Detección segura del rol en caso de que la variable global se haya desincronizado
+    let rolActual = (rolPendienteVerificacion || '').toLowerCase().trim();
+    if (!rolActual) {
+        const textoModal = (document.getElementById('rolEmpresarialTexto')?.textContent || '').toLowerCase();
+        if (textoModal.includes('admin')) {
+            rolActual = 'administrador';
+        } else if (textoModal.includes('gerente')) {
+            rolActual = 'gerente';
+        } else {
+            rolActual = (document.getElementById('regRol')?.value || 'administrador').toLowerCase();
+        }
+        rolPendienteVerificacion = rolActual;
+    }
+
+    if (!esPasswordEmpresarialValida(rolActual, passIngresada)) {
         input?.classList.add('is-invalid');
         if (err) {
             err.innerHTML = '<i class="bi bi-x-circle me-2"></i>Contraseña incorrecta.';
@@ -555,11 +588,12 @@ async function confirmarEmpresarial() {
         }
         return;
     }
+
     if (btn) {
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verificando...';
     }
-    const exito = await ejecutarRegistro(rolPendienteVerificacion);
+    const exito = await ejecutarRegistro(rolActual);
     if (btn) {
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-check-lg me-2"></i>Confirmar';
@@ -667,9 +701,28 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+    const regEmailInput = document.getElementById('regEmail');
+    regEmailInput?.addEventListener('blur', () => {
+        if (regEmailInput.value.trim()) {
+            verificarEmailUnicoBD(regEmailInput);
+        }
+    });
+    regEmailInput?.addEventListener('input', () => {
+        if (regEmailInput.classList.contains('is-invalid')) {
+            regEmailInput.classList.remove('is-invalid');
+            const fb = regEmailInput.parentNode.querySelector('.invalid-feedback') || regEmailInput.closest('.col-sm-6')?.querySelector('.invalid-feedback');
+            if (fb) fb.textContent = '';
+        }
+    });
     document.getElementById('btnLogin')?.addEventListener('click', manejarLogin);
     document.getElementById('btnRegister')?.addEventListener('click', manejarRegister);
     document.getElementById('btnConfirmarEmpresarial')?.addEventListener('click', confirmarEmpresarial);
+    document.getElementById('passEmpresarial')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            confirmarEmpresarial();
+        }
+    });
 });
 
 // Monitor de actividad y renovación silenciosa: cada 60s verifica si el usuario sigue activo
@@ -1103,13 +1156,21 @@ function abrirModalVerRespuestaAdmin() {
 // Maneja el registro de usuarios: Valida campos y dispara el registro (incluye flujo empresarial)
 async function manejarRegister() {
     const campos = { nombres: document.getElementById('regNombres'), apellidos: document.getElementById('regApellidos'), email: document.getElementById('regEmail'), tel: document.getElementById('regTel'), password: document.getElementById('regPassword'), confirm: document.getElementById('regConfirm'), checkbox: document.getElementById('aceptaTerminos') };
-    const rolSeleccionado = document.getElementById('regRol')?.value || 'cliente';
+    const rolSeleccionado = (document.getElementById('regRol')?.value || 'cliente').toLowerCase().trim();
     const divExito = document.getElementById('registerExito');
     const divError = document.getElementById('registerError');
     divExito?.classList.add('d-none');
     divError?.classList.add('d-none');
     const valido = validarTexto(campos.nombres, 'El nombre es obligatorio') & validarTexto(campos.apellidos, 'El apellido es obligatorio') & validarEmail(campos.email) & validarTel(campos.tel) & validarPassword(campos.password) & validarConfirm(campos.password, campos.confirm) & validarCheckbox(campos.checkbox);
     if (!valido) return;
+
+    // Verifica en la Base de Datos si el correo ya existe
+    const emailDisponible = await verificarEmailUnicoBD(campos.email);
+    if (!emailDisponible) {
+        campos.email?.focus();
+        return;
+    }
+
     if (rolSeleccionado !== 'cliente') {
         rolPendienteVerificacion = rolSeleccionado;
         abrirModalEmpresarial(rolSeleccionado);
@@ -1136,6 +1197,10 @@ async function ejecutarRegistro(rol) {
     try {
         const resp = await fetch('/api/usuarios/registro', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombres: document.getElementById('regNombres')?.value.trim(), apellidos: document.getElementById('regApellidos')?.value.trim(), email: document.getElementById('regEmail')?.value.trim(), telefono: document.getElementById('regTel')?.value.trim(), password: document.getElementById('regPassword')?.value, rol: rol }) });
         if (resp.status === 409) {
+            const campoEmail = document.getElementById('regEmail');
+            if (campoEmail) {
+                marcarInvalido(campoEmail, 'Este correo ya se encuentra registrado. Usa otro correo o inicia sesión.');
+            }
             if (msgError) msgError.textContent = 'Este correo ya está registrado. Inicia sesión.';
             divError?.classList.remove('d-none');
             return false;
@@ -1192,6 +1257,34 @@ function validarEmail(campo) {
     if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(v)) {
         marcarInvalido(campo, 'Ingresa un correo @gmail.com válido');
         return false;
+    }
+    marcarValido(campo);
+    return true;
+}
+
+// Validación asíncrona de email que comprueba formato y unicidad en la Base de Datos
+async function verificarEmailUnicoBD(campo) {
+    if (!campo) return false;
+    const v = campo.value.trim();
+    if (!v) {
+        marcarInvalido(campo, 'El correo electrónico es obligatorio');
+        return false;
+    }
+    if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(v)) {
+        marcarInvalido(campo, 'Ingresa un correo @gmail.com válido');
+        return false;
+    }
+    try {
+        const resp = await fetch(`/api/usuarios/verificar-email?email=${encodeURIComponent(v.toLowerCase())}`);
+        if (resp.ok) {
+            const data = await resp.json();
+            if (data.existe) {
+                marcarInvalido(campo, 'Este correo ya se encuentra registrado. Usa otro correo o inicia sesión.');
+                return false;
+            }
+        }
+    } catch (e) {
+        console.warn('Error al verificar unicidad del correo:', e);
     }
     marcarValido(campo);
     return true;

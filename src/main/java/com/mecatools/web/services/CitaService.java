@@ -242,6 +242,12 @@ public class CitaService {
     // Método para cambiar el estado de una cita existente. Impide confirmar citas expiradas o completar citas antes de finalizar su horario.
     @Transactional
     public Cita cambiarEstado(Long id, String nuevoEstado) {
+        return cambiarEstado(id, nuevoEstado, null, null, null);
+    }
+
+    // Sobrecarga de cambio de estado con motivo, evidencia opcional y autor de la cancelación
+    @Transactional
+    public Cita cambiarEstado(Long id, String nuevoEstado, String motivoCancelacion, String evidenciaCancelacion, String canceladoPor) {
         if (nuevoEstado == null || nuevoEstado.isBlank()) {
             throw new IllegalArgumentException("Estado requerido");
         }
@@ -269,14 +275,42 @@ public class CitaService {
             }
         }
         cita.setEstado(nuevoEstado);
+        if (esCancelacion) {
+            if (motivoCancelacion != null && !motivoCancelacion.isBlank()) {
+                cita.setMotivoCancelacion(motivoCancelacion.trim());
+            }
+            if (evidenciaCancelacion != null && !evidenciaCancelacion.isBlank()) {
+                cita.setEvidenciaCancelacion(evidenciaCancelacion.trim());
+            }
+            if (canceladoPor != null && !canceladoPor.isBlank()) {
+                cita.setCanceladoPor(canceladoPor.trim());
+            }
+            cita.setFechaCancelacion(java.time.LocalDateTime.now());
+        }
         return citaRepository.save(cita);
     }
 
     // Método para cancelar una cita existente. Cambia el estado de la cita a "Cancelada" incluso si su fecha ya expiró.
     @Transactional
     public void cancelar(Long id) {
+        cancelar(id, null, null, null);
+    }
+
+    // Sobrecarga de cancelación con autor, motivo y evidencia
+    @Transactional
+    public void cancelar(Long id, String canceladoPor, String motivo, String evidencia) {
         Cita cita = citaRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Cita no encontrada"));
         cita.setEstado("Cancelada");
+        if (canceladoPor != null && !canceladoPor.isBlank()) {
+            cita.setCanceladoPor(canceladoPor.trim());
+        }
+        if (motivo != null && !motivo.isBlank()) {
+            cita.setMotivoCancelacion(motivo.trim());
+        }
+        if (evidencia != null && !evidencia.isBlank()) {
+            cita.setEvidenciaCancelacion(evidencia.trim());
+        }
+        cita.setFechaCancelacion(java.time.LocalDateTime.now());
         citaRepository.save(cita);
     }
 

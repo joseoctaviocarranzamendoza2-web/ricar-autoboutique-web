@@ -122,7 +122,7 @@ public class ConfigSecurity {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/usuarios/registro", "/api/usuarios/apelar", "/api/auth/refresh", "/api/usuarios/refresh").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/usuarios/estado-cuenta").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios/estado-cuenta", "/api/usuarios/verificar-email").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/productos", "/api/productos/**",
                                 "/api/servicios", "/api/servicios/**",
                                 "/api/categorias", "/api/categorias/**",
@@ -183,7 +183,7 @@ public class ConfigSecurity {
                                 "/servicios/login", "/servicios/register", "/productos", "/productos/login",
                                 "/productos/register", "/nosotros", "/nosotros/login", "/nosotros/register",
                                 "/contacto", "/contacto/login", "/contacto/register", "/css/**", "/js/**", "/img/**", "/uploads/**",
-                                "/api/auth/refresh", "/api/usuarios/refresh")
+                                "/api/auth/refresh", "/api/usuarios/refresh", "/api/usuarios/verificar-email")
                         .permitAll()
                         // Selección de rol: pública para que funcione aunque la sesión HTTP haya
                         // expirado. La autenticación real la gestiona rol.js via sessionStorage.

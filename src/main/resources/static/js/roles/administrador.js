@@ -8,6 +8,7 @@ let vistaProductos = 'grid';
 let productoEdit = null;
 let categoriaEdit = null;
 let servicioEdit = null;
+let _filtrosProductosMemoria = { busqueda: '', categoria: '', estado: '' };
 let _todasCitas = [];
 let _citasFiltradas = [];
 let _paginaCitasActual = 1;
@@ -110,7 +111,10 @@ function mostrarSeccion(nombre, link) {
     if (sec) sec.classList.add('active');
     const linkActivo = link || document.querySelector(`[data-seccion="${nombre}"]`);
     if (linkActivo) linkActivo.classList.add('active');
-    if (nombre === 'productos') cargarProductos();
+    if (nombre === 'productos') {
+        restaurarFiltrosProductosDeMemoria();
+        cargarProductos();
+    }
     if (nombre === 'categorias') cargarCategorias();
     if (nombre === 'servicios') cargarServicios();
     if (nombre === 'citas') cargarCitas();
@@ -198,6 +202,7 @@ async function cargarProductos() {
     try {
         const resp = await fetch(API.productos);
         productos = ordenarPorIdDesc(await resp.json());
+        restaurarFiltrosProductosDeMemoria();
         renderProductos(productos);
         if (categorias.length > 0) {
             renderCategorias();
@@ -260,6 +265,13 @@ function actualizarSelectCategorias() {
     const listaCatHtml = categorias.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
     actualizarOpcionesSelect('prodCategoria', '<option value="">Seleccionar...</option>' + listaCatHtml);
     actualizarOpcionesSelect('filterCategoria', '<option value="">Todas las categorías</option>' + listaCatHtml);
+    if (_filtrosProductosMemoria && _filtrosProductosMemoria.categoria) {
+        const sel = document.getElementById('filterCategoria');
+        if (sel && Array.from(sel.options).some(o => o.value === _filtrosProductosMemoria.categoria)) {
+            sel.value = _filtrosProductosMemoria.categoria;
+            sincronizarSelectPersonalizado('filterCategoria');
+        }
+    }
 }
 
 // Abre modal para crear una nueva categoría
@@ -323,7 +335,7 @@ function escaparHtml(texto) {
 }
 
 // Muestra modal genérico de confirmación/acción adaptando icono, color, título y botones
-function mostrarModalAccion({ titulo, mensaje, icono = 'bi-trash3', colorIcono = 'red', textoBtn = 'Eliminar', claseBtn = 'btn-danger', textoBtnCancelar = 'Cancelar', mostrarCamposEstado = false, onConfirmar }) {
+function mostrarModalAccion({ titulo, mensaje, icono = 'bi-trash3', colorIcono = 'red', textoBtn = 'Eliminar', claseBtn = 'btn-danger', textoBtnCancelar = 'Cancelar', mostrarCamposEstado = false, labelMotivo = 'Motivo', placeholderMotivo = 'Describe la razón...', esVerde = false, onConfirmar }) {
     const modalEl = document.getElementById('modalEliminar');
     const iconoCont = document.getElementById('iconoModalEliminarContenedor');
     const iconoEl = document.getElementById('iconoModalEliminar');
@@ -333,8 +345,22 @@ function mostrarModalAccion({ titulo, mensaje, icono = 'bi-trash3', colorIcono =
     const btnCancelar = modalEl?.querySelector('[data-bs-dismiss="modal"]');
     const contCampos = document.getElementById('contenedorCamposEstadoUsuario');
     const dialogEl = document.getElementById('dialogModalEliminar');
+    const labelMotivoEl = document.getElementById('labelMotivoEstado');
+    const textoMotivoEl = document.getElementById('textoMotivoEstado');
+    const inputGrp = contCampos?.querySelector('.input-group');
 
-    if (!mostrarCamposEstado) {
+    if (mostrarCamposEstado) {
+        if (contCampos) contCampos.classList.remove('d-none');
+        if (dialogEl) dialogEl.classList.add('modal-confirmacion-ext');
+        if (labelMotivoEl) labelMotivoEl.textContent = labelMotivo;
+        if (textoMotivoEl) {
+            textoMotivoEl.value = '';
+            textoMotivoEl.placeholder = placeholderMotivo;
+            textoMotivoEl.className = `form-control campo-estado-usuario ${esVerde ? 'campo-estado-verde' : 'campo-estado-rojo'}`;
+        }
+        if (inputGrp) inputGrp.className = `input-group ${esVerde ? 'input-group-verde' : 'input-group-rojo'}`;
+        limpiarImagenArchivo('estado');
+    } else {
         if (contCampos) contCampos.classList.add('d-none');
         if (dialogEl) dialogEl.classList.remove('modal-confirmacion-ext');
     }
@@ -410,7 +436,7 @@ function renderProductos(productos) {
                         const badgeTxt = p.stock <= 5 ? 'Stock bajo' : (p.etiqueta || '');
                         const isInactive = p.estado === 'Inactivo';
                         const nombreSafe = (p.nombre || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                        return `<div class="product-list-row prod-item ${isInactive ? 'opacity-75' : ''}" data-estado="${p.estado || 'Activo'}">
+                        return `<div class="product-list-row prod-item ${isInactive ? 'opacity-75' : ''}" data-estado="${p.estado || 'Activo'}" data-categoria-id="${p.categoria?.id || ''}" data-stock="${p.stock}">
                             <div class="product-list-img-box">
                                 ${p.imagen ? `<img src="${p.imagen}" alt="${nombreSafe}">` : `<i class="bi bi-box-seam product-icon-list"></i>`}
                             </div>
@@ -443,7 +469,7 @@ function renderProductos(productos) {
             const badgeTxt = p.stock <= 5 ? 'Stock bajo' : (p.etiqueta || '');
             const isInactive = p.estado === 'Inactivo';
             const nombreSafe = (p.nombre || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            return `<div class="col-6 col-md-4 col-xl-3 prod-item" data-estado="${p.estado || 'Activo'}">
+            return `<div class="col-6 col-md-4 col-xl-3 prod-item" data-estado="${p.estado || 'Activo'}" data-categoria-id="${p.categoria?.id || ''}" data-stock="${p.stock}">
                 <div class="product-admin-card h-100 ${isInactive ? 'opacity-75' : ''}">
                     <div class="product-img-box">
                         ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}" style="width:100%;height:100%;object-fit:cover;">` : `<i class="bi bi-box-seam product-icon"></i>`}
@@ -467,6 +493,7 @@ function renderProductos(productos) {
             </div>`;
         }).join('');
     }
+    filtrarProductos();
 }
 
 // Sincroniza visualmente los desplegables personalizados del modal de producto
@@ -598,25 +625,107 @@ function confirmarEliminarProducto(id, nombre) {
     });
 }
 
+// Guarda los filtros activos de productos en memoria y sessionStorage
+function guardarFiltrosProductosEnMemoria() {
+    const busqueda = document.getElementById('searchProducto')?.value || '';
+    const categoria = document.getElementById('filterCategoria')?.value || '';
+    const estado = document.getElementById('filterEstado')?.value || '';
+    _filtrosProductosMemoria = { busqueda, categoria, estado };
+    try {
+        sessionStorage.setItem('filtrosProductosAdmin', JSON.stringify(_filtrosProductosMemoria));
+    } catch (e) {}
+}
+
+// Restaura los filtros de productos desde la memoria/sessionStorage hacia los controles de la UI
+function restaurarFiltrosProductosDeMemoria() {
+    try {
+        const stored = sessionStorage.getItem('filtrosProductosAdmin');
+        if (stored) {
+            _filtrosProductosMemoria = Object.assign(_filtrosProductosMemoria, JSON.parse(stored));
+        }
+    } catch (e) {}
+
+    const inputBusqueda = document.getElementById('searchProducto');
+    const selectCat = document.getElementById('filterCategoria');
+    const selectEstado = document.getElementById('filterEstado');
+
+    if (inputBusqueda && _filtrosProductosMemoria.busqueda !== undefined) {
+        inputBusqueda.value = _filtrosProductosMemoria.busqueda;
+    }
+    if (selectCat && _filtrosProductosMemoria.categoria !== undefined) {
+        if (Array.from(selectCat.options).some(o => o.value === _filtrosProductosMemoria.categoria)) {
+            selectCat.value = _filtrosProductosMemoria.categoria;
+            sincronizarSelectPersonalizado('filterCategoria');
+        }
+    }
+    if (selectEstado && _filtrosProductosMemoria.estado !== undefined) {
+        if (Array.from(selectEstado.options).some(o => o.value === _filtrosProductosMemoria.estado)) {
+            selectEstado.value = _filtrosProductosMemoria.estado;
+            sincronizarSelectPersonalizado('filterEstado');
+        }
+    }
+}
+
 // Filtra la grilla de productos por búsqueda, categoría y estado
 function filtrarProductos() {
-    const busqueda = (document.getElementById('searchProducto')?.value || '').toLowerCase();
+    guardarFiltrosProductosEnMemoria();
+
+    const busqueda = (document.getElementById('searchProducto')?.value || '').toLowerCase().trim();
     const catFiltro = document.getElementById('filterCategoria')?.value || '';
     const estadoFiltro = document.getElementById('filterEstado')?.value || '';
-    document.querySelectorAll('#productGrid .prod-item').forEach(item => {
+    const grid = document.getElementById('productGrid');
+    if (!grid) return;
+
+    const items = grid.querySelectorAll('.prod-item');
+    let visibles = 0;
+
+    items.forEach(item => {
         const nombre = item.querySelector('.product-name')?.textContent.toLowerCase() || '';
         const cat = item.querySelector('.product-category')?.textContent.trim() || '';
-        const stockTxt = item.querySelector('small strong')?.textContent || '999';
+        const catId = item.dataset.categoriaId || '';
+        const stockTxt = item.dataset.stock !== undefined ? item.dataset.stock : (item.querySelector('small strong')?.textContent || '999');
         const stock = parseInt(stockTxt);
         const itemEstado = item.dataset.estado || 'Activo';
-        const matchBusq = nombre.includes(busqueda);
-        const matchCat = !catFiltro || categorias.find(c => String(c.id) === catFiltro && cat.includes(c.nombre));
+
+        const matchBusq = !busqueda || nombre.includes(busqueda);
+        const matchCat = !catFiltro
+            || (catId && catId === catFiltro)
+            || categorias.find(c => String(c.id) === catFiltro && (cat.includes(c.nombre) || cat.toLowerCase().includes(c.nombre.toLowerCase())));
         const matchEstado = !estadoFiltro
             || (estadoFiltro === 'low' && stock <= 5)
             || (estadoFiltro === 'Activo' && itemEstado !== 'Inactivo')
             || (estadoFiltro === 'Inactivo' && itemEstado === 'Inactivo');
-        item.style.display = (matchBusq && matchCat && matchEstado) ? '' : 'none';
+
+        const esVisible = Boolean(matchBusq && matchCat && matchEstado);
+        item.style.display = esVisible ? '' : 'none';
+        if (esVisible) visibles++;
     });
+
+    let emptyMsg = document.getElementById('gridProductosVacio');
+    if (visibles === 0 && items.length > 0) {
+        if (!emptyMsg) {
+            emptyMsg = document.createElement('div');
+            emptyMsg.id = 'gridProductosVacio';
+            emptyMsg.className = 'col-12 text-center py-5 text-muted';
+            emptyMsg.innerHTML = '<i class="bi bi-search me-2"></i>No se encontraron productos con los filtros seleccionados.';
+            grid.appendChild(emptyMsg);
+        } else {
+            emptyMsg.style.display = '';
+        }
+        if (vistaProductos === 'list') {
+            const listCardCol = grid.querySelector('.product-list-card')?.closest('.col-12');
+            if (listCardCol) listCardCol.style.display = 'none';
+        }
+    } else {
+        if (emptyMsg) {
+            emptyMsg.style.display = 'none';
+        }
+        if (vistaProductos === 'list') {
+            const listCardCol = grid.querySelector('.product-list-card')?.closest('.col-12');
+            if (listCardCol) listCardCol.style.display = '';
+        }
+    }
+
     actualizarBordesExtremosLista();
 }
 
@@ -1000,16 +1109,63 @@ function fechaEstaSemana(fechaISO) {
     return fecha >= inicioSemana && fecha <= finSemana;
 }
 
-// Calcula y actualiza KPIs de citas: pendientes globales y confirmadas/completadas/canceladas de la semana actual
+// Control de periodo seleccionado para métricas de Citas ('semana' por defecto, 'mes' o 'anio')
+let _periodoKpiCitas = 'semana';
+
+function cambiarPeriodoKpiCitas(periodo) {
+    _periodoKpiCitas = periodo;
+    const btnSemana = document.getElementById('btnPeriodoCitaSemana');
+    const btnMes = document.getElementById('btnPeriodoCitaMes');
+    const btnAnio = document.getElementById('btnPeriodoCitaAnio');
+    [btnSemana, btnMes, btnAnio].forEach(b => {
+        if (b) b.classList.remove('active');
+    });
+    if (periodo === 'semana' && btnSemana) btnSemana.classList.add('active');
+    if (periodo === 'mes' && btnMes) btnMes.classList.add('active');
+    if (periodo === 'anio' && btnAnio) btnAnio.classList.add('active');
+    actualizarKPIsCitas(_todasCitas);
+}
+window.cambiarPeriodoKpiCitas = cambiarPeriodoKpiCitas;
+
+// Calcula y actualiza KPIs de citas: pendientes, confirmadas, completadas y canceladas en total de la semana, mes o año
 function actualizarKPIsCitas(citas) {
     const lista = citas || [];
-    const citasSemana = lista.filter(c => fechaEstaSemana(c.fecha));
-    // Pendientes siempre muestra el total global para que el administrador pueda aprobar reservas de cualquier semana
-    const pendientes  = lista.filter(c => c.estado === 'Pendiente').length;
-    const confirmadas = citasSemana.filter(c => c.estado === 'Confirmada').length;
-    const completadas = citasSemana.filter(c => c.estado === 'Completada').length;
-    const canceladas  = citasSemana.filter(c => c.estado === 'Cancelada').length;
-    const totalPendientes = pendientes;
+    const hoy = new Date();
+    const anioActual = hoy.getFullYear();
+    const mesActual = hoy.getMonth() + 1;
+
+    let citasFiltradasPeriodo = [];
+    let sufijoLabel = 'esta semana';
+    let nombrePeriodo = 'Semana';
+
+    if (_periodoKpiCitas === 'anio') {
+        sufijoLabel = 'este año';
+        nombrePeriodo = 'Año';
+        citasFiltradasPeriodo = lista.filter(c => {
+            if (!c.fecha) return false;
+            const p = c.fecha.split('-');
+            return parseInt(p[0], 10) === anioActual;
+        });
+    } else if (_periodoKpiCitas === 'mes') {
+        sufijoLabel = 'este mes';
+        nombrePeriodo = 'Mes';
+        citasFiltradasPeriodo = lista.filter(c => {
+            if (!c.fecha) return false;
+            const p = c.fecha.split('-');
+            return parseInt(p[0], 10) === anioActual && parseInt(p[1], 10) === mesActual;
+        });
+    } else {
+        // 'semana' por defecto
+        sufijoLabel = 'esta semana';
+        nombrePeriodo = 'Semana';
+        citasFiltradasPeriodo = lista.filter(c => fechaEstaSemana(c.fecha));
+    }
+
+    const pendientes  = citasFiltradasPeriodo.filter(c => c.estado === 'Pendiente').length;
+    const confirmadas = citasFiltradasPeriodo.filter(c => c.estado === 'Confirmada').length;
+    const completadas = citasFiltradasPeriodo.filter(c => c.estado === 'Completada').length;
+    const canceladas  = citasFiltradasPeriodo.filter(c => c.estado === 'Cancelada').length;
+
     const set = (id, val) => {
         const el = document.getElementById(id);
         if (el) el.textContent = val;
@@ -1018,10 +1174,22 @@ function actualizarKPIsCitas(citas) {
     set('kpiConfirmadas', confirmadas);
     set('kpiCompletadas', completadas);
     set('kpiCanceladas', canceladas);
+
+    const setLabel = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    };
+    setLabel('labelKpiPendientes', `Pendientes (${nombrePeriodo})`);
+    setLabel('labelKpiConfirmadas', `Confirmadas ${sufijoLabel}`);
+    setLabel('labelKpiCompletadas', `Completadas ${sufijoLabel}`);
+    setLabel('labelKpiCanceladas', `Canceladas ${sufijoLabel}`);
+
+    // Badge en sidebar y texto de info muestran el total de citas pendientes globales
+    const totalPendientesGlobal = lista.filter(c => c.estado === 'Pendiente').length;
     const badge = document.getElementById('badgePendientes');
-    if (badge) badge.textContent = totalPendientes > 0 ? totalPendientes : '';
+    if (badge) badge.textContent = totalPendientesGlobal > 0 ? totalPendientesGlobal : '';
     const info = document.getElementById('infoCitas');
-    if (info) info.textContent = `${totalPendientes} pendientes de confirmar`;
+    if (info) info.textContent = `${totalPendientesGlobal} pendientes de confirmar`;
 }
 
 // Resuelve el texto de horario para una cita, sincronizando "Por confirmar" con su estado real
@@ -1056,6 +1224,16 @@ function renderCitas(citas) {
                                 (c.notas && c.notas.toLowerCase().includes('servicio personalizado'));
         const nombreServicio = esPersonalizado ? 'Personalizado' : (c.servicio?.nombre || c.servicio || '');
         const horaDisplay = resolverTextoHoraCita(c.hora, c.estado);
+        const tieneMensaje = Boolean(c.notas && c.notas.trim().length > 0);
+
+        let btnOjito = '';
+        if (esPersonalizado) {
+            btnOjito = `<button type="button" class="btn btn-xs btn-outline-celeste accion-btn" title="Ver detalles de solicitud personalizada" onclick="abrirModalDetallePersonalizado(${c.id}); this.blur();"><i class="bi bi-eye"></i></button>`;
+        } else if (tieneMensaje) {
+            btnOjito = `<button type="button" class="btn btn-xs btn-outline-celeste accion-btn" title="Ver descripción del problema del cliente" onclick="abrirModalDetalleMensajeCita(${c.id}); this.blur();"><i class="bi bi-eye"></i></button>`;
+        } else {
+            btnOjito = `<button type="button" class="btn btn-xs btn-outline-celeste accion-btn" disabled title="Sin descripción adicional del cliente"><i class="bi bi-eye"></i></button>`;
+        }
 
         return `
     <tr>
@@ -1070,7 +1248,7 @@ function renderCitas(citas) {
         <td><span class="status-badge ${estadoBadge[c.estado] || ''}">${c.estado}</span></td>
         <td>
             <div class="d-flex gap-1 align-items-center">
-                ${esPersonalizado ? `<button type="button" class="btn btn-xs btn-outline-celeste accion-btn" title="Ver detalles de solicitud personalizada" onclick="abrirModalDetallePersonalizado(${c.id}); this.blur();"><i class="bi bi-eye"></i></button>` : ''}
+                ${btnOjito}
                 ${c.estado === 'Pendiente' ? `<button class="btn btn-xs btn-outline-success accion-btn" title="Confirmar" onclick="cambiarEstadoCita(${c.id},'Confirmada')"><i class="bi bi-check-lg"></i></button>` : ''}
                 ${c.estado === 'Confirmada' ? `<button class="btn btn-xs btn-outline-success accion-btn" title="Marcar como completada" onclick="cambiarEstadoCita(${c.id},'Completada')"><i class="bi bi-check2-all"></i></button>` : ''}
                 ${c.estado !== 'Cancelada' && c.estado !== 'Completada' ? `<button class="btn btn-xs btn-outline-danger accion-btn" title="Cancelar" onclick="cambiarEstadoCita(${c.id},'Cancelada')"><i class="bi bi-x"></i></button>` : ''}
@@ -1111,6 +1289,46 @@ function parsearNotasPersonalizado(notas) {
         descripcion: desc,
         contactoPref: getVal('Contacto preferido') || getVal('Contacto')
     };
+}
+
+// Abre el modal con la descripción del problema / mensaje enviado por el cliente para citas estándar
+function abrirModalDetalleMensajeCita(id) {
+    const cita = _todasCitas.find(c => Number(c.id) === Number(id));
+    if (!cita) return;
+
+    const elCodigo = document.getElementById('detMensajeCitaCodigo');
+    if (elCodigo) elCodigo.textContent = `#S-${String(cita.id).padStart(3, '0')}`;
+
+    const nombreCliente = `${cita.usuario?.nombres || ''} ${cita.usuario?.apellidos || ''}`.trim() || 'Cliente';
+    const vehiculo = cita.vehiculo || 'Vehículo';
+
+    const elCliente = document.getElementById('detMensajeCitaCliente');
+    if (elCliente) elCliente.textContent = `${nombreCliente} • ${vehiculo}`;
+
+    const elServicio = document.getElementById('detMensajeCitaServicio');
+    if (elServicio) elServicio.textContent = cita.servicio?.nombre || cita.servicio || 'Servicio General';
+
+    const horaDisplay = resolverTextoHoraCita(cita.hora, cita.estado);
+    const elFechaHora = document.getElementById('detMensajeCitaFechaHora');
+    if (elFechaHora) elFechaHora.textContent = `${cita.fecha || ''} ${horaDisplay ? '(' + horaDisplay + ')' : ''}`.trim() || '—';
+
+    const elVehiculo = document.getElementById('detMensajeCitaVehiculo');
+    if (elVehiculo) elVehiculo.textContent = vehiculo;
+
+    const elTel = document.getElementById('detMensajeCitaTelefono');
+    if (elTel) elTel.textContent = cita.usuario?.telefono || 'No registrado';
+
+    const elTexto = document.getElementById('detMensajeCitaTexto');
+    if (elTexto) {
+        const texto = (cita.notas && cita.notas.trim()) ? cita.notas.trim() : 'Sin descripción adicional.';
+        elTexto.textContent = texto;
+    }
+
+    const modalEl = document.getElementById('modalDetalleMensajeCita');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        modal.show();
+    }
 }
 
 // Abre el modal con los detalles adicionales de una solicitud de servicio personalizado
@@ -1315,7 +1533,11 @@ function cambiarEstadoCita(id, nuevoEstado) {
             colorIcono: 'red',
             textoBtn: 'Sí, cancelar',
             claseBtn: 'btn-danger',
-            textoBtnCancelar: 'Volver'
+            textoBtnCancelar: 'Volver',
+            mostrarCamposEstado: true,
+            labelMotivo: 'Motivo de cancelación',
+            placeholderMotivo: 'Describe la razón de la cancelación de la cita...',
+            esRojo: true
         }
     };
 
@@ -1336,8 +1558,33 @@ async function ejecutarCambioEstadoCita(id, nuevoEstado, expirada) {
     const btn = document.getElementById('btnConfirmarEliminar');
     if (btn) btn.disabled = true;
     try {
-        const resp = await fetch(`${API.citas}/${id}/estado`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estado: nuevoEstado }) });
+        let payload = { estado: nuevoEstado };
+        if (nuevoEstado === 'Cancelada') {
+            const motivo = (document.getElementById('textoMotivoEstado')?.value || '').trim();
+            let imagenEvidencia = '';
+            const fileInput = document.getElementById('estadoImagenArchivo');
+            if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                try {
+                    imagenEvidencia = await subirArchivoLocal(fileInput.files[0]);
+                } catch (err) {
+                    mostrarToast('Error al procesar la imagen de evidencia', 'error');
+                    return;
+                }
+            }
+            const sesion = (typeof obtenerSesion === 'function') ? obtenerSesion() : null;
+            const nombreAdmin = sesion ? `${sesion.nombres || ''} ${sesion.apellidos || ''}`.trim() : 'Administrador';
+            payload.motivoCancelacion = motivo;
+            payload.evidenciaCancelacion = imagenEvidencia;
+            payload.canceladoPor = `${nombreAdmin} (Administrador)`;
+        }
+
+        const resp = await fetch(`${API.citas}/${id}/estado`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
         bootstrap.Modal.getInstance(document.getElementById('modalEliminar'))?.hide();
+        limpiarImagenArchivo('estado');
         if (!resp.ok) {
             const errData = await resp.json().catch(() => ({}));
             mostrarToast(errData.error || 'Error al actualizar la cita', resp.status === 400 ? 'warning' : 'error');
@@ -1350,6 +1597,7 @@ async function ejecutarCambioEstadoCita(id, nuevoEstado, expirada) {
         }
         await cargarCitas();
     } catch (e) {
+        console.error('Error al cambiar estado de cita:', e);
         bootstrap.Modal.getInstance(document.getElementById('modalEliminar'))?.hide();
         mostrarToast('Error de conexión', 'error');
     } finally {
@@ -1838,33 +2086,6 @@ function confirmarCambiarEstadoCliente(id, nombre, estadoActual) {
     const nuevoEstado = esInactivo ? 'Activo' : 'Inactivo';
     const accion = esInactivo ? 'Habilitar' : 'Inhabilitar';
 
-    const contCampos = document.getElementById('contenedorCamposEstadoUsuario');
-    const dialogEl = document.getElementById('dialogModalEliminar');
-    const labelMotivo = document.getElementById('labelMotivoEstado');
-    const textoMotivo = document.getElementById('textoMotivoEstado');
-    const inputGrp = contCampos?.querySelector('.input-group');
-
-    if (contCampos) contCampos.classList.remove('d-none');
-    if (dialogEl) dialogEl.classList.add('modal-confirmacion-ext');
-    if (textoMotivo) textoMotivo.value = '';
-    limpiarImagenArchivo('estado');
-
-    if (esInactivo) {
-        if (labelMotivo) labelMotivo.textContent = 'Motivo de habilitación / Resolución (opcional)';
-        if (textoMotivo) {
-            textoMotivo.placeholder = 'Mensaje o motivo de reactivación de la cuenta...';
-            textoMotivo.className = 'form-control campo-estado-usuario campo-estado-verde';
-        }
-        if (inputGrp) inputGrp.className = 'input-group input-group-verde';
-    } else {
-        if (labelMotivo) labelMotivo.textContent = 'Motivo de inhabilitación';
-        if (textoMotivo) {
-            textoMotivo.placeholder = 'Describe la razón del bloqueo o suspensión de la cuenta...';
-            textoMotivo.className = 'form-control campo-estado-usuario campo-estado-rojo';
-        }
-        if (inputGrp) inputGrp.className = 'input-group input-group-rojo';
-    }
-
     mostrarModalAccion({
         titulo: `¿${accion} usuario?`,
         mensaje: esInactivo
@@ -1875,7 +2096,11 @@ function confirmarCambiarEstadoCliente(id, nombre, estadoActual) {
         textoBtn: accion,
         claseBtn: esInactivo ? 'btn-success' : 'btn-danger',
         mostrarCamposEstado: true,
+        labelMotivo: esInactivo ? 'Motivo de habilitación / Resolución (opcional)' : 'Motivo',
+        placeholderMotivo: 'Describe la razón...',
+        esVerde: esInactivo,
         onConfirmar: async () => {
+            const textoMotivo = document.getElementById('textoMotivoEstado');
             const motivo = (textoMotivo?.value || '').trim();
             if (!esInactivo && !motivo) {
                 mostrarToast('Debes ingresar un motivo de inhabilitación', 'error');
@@ -1907,9 +2132,11 @@ function confirmarCambiarEstadoCliente(id, nombre, estadoActual) {
                     return;
                 }
                 bootstrap.Modal.getInstance(document.getElementById('modalEliminar'))?.hide();
+                limpiarImagenArchivo('estado');
                 mostrarToast(`Usuario "${nombre}" marcado como ${nuevoEstado}`, 'success');
                 await cargarClientes();
             } catch (e) {
+                console.error('Error al cambiar estado de cliente:', e);
                 mostrarToast('Error de conexión', 'error');
             }
         }

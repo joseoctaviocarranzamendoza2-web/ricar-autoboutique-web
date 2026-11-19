@@ -15,6 +15,10 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     // Busca un usuario por su correo electrónico
     Optional<Usuario> findByEmail(String email);
 
+    // Verifica si un correo electrónico ya está registrado ignorando mayúsculas y minúsculas
+    @Query("SELECT COUNT(u) > 0 FROM Usuario u WHERE LOWER(u.email) = LOWER(:email)")
+    boolean existsByEmailIgnoreCase(@Param("email") String email);
+
     // Obtiene el usuario con correo y contraseña para autenticación básica
     Optional<Usuario> findByEmailAndPassword(String email, String password);
 

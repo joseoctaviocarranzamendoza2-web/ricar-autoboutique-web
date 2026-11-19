@@ -1251,6 +1251,17 @@ body {
     color: #ffffff !important;
 }
 
+.btn-outline-celeste:disabled,
+.btn-outline-celeste.disabled {
+    opacity: 0.35 !important;
+    cursor: not-allowed !important;
+    border-color: #cbd5e1 !important;
+    color: #94a3b8 !important;
+    background-color: transparent !important;
+    pointer-events: auto !important;
+    box-shadow: none !important;
+}
+
 /* Botones de acción en tabla de clientes (#tablaClientes) */
 #tablaClientes td .btn-sm {
     width: 32px;
@@ -2158,29 +2169,94 @@ textarea.form-control {
     color: #ffffff !important;
 }
 
-/* Campos de motivo y evidencia en modal de confirmación según acción:
-   Inhabilitar: borde rojo al pasar cursor (#dc3545)
-   Habilitar: borde verde al pasar cursor (#198754) */
-.campo-estado-rojo:hover,
-.campo-estado-rojo:focus,
-.input-group-rojo:hover .form-control,
-.input-group-rojo:hover .btn-archivo-accion,
-.input-group-rojo:focus-within .form-control,
-.input-group-rojo:focus-within .btn-archivo-accion {
+/* Campos de motivo y evidencia en modal de confirmación (#modalEliminar) según acción:
+   - Cancelar cita / Inhabilitar usuario (Rojo #dc3545):
+     Al pasar el cursor (hover) o foco en el campo describe la razón y en seleccionar imagen,
+     ambos se iluminan con el mismo borde rojo.
+   - Habilitar usuario (Verde #198754):
+     Al pasar el cursor (hover) o foco en el campo describe la razón y en seleccionar imagen,
+     ambos se iluminan con el borde verde del botón habilitar. */
+#modalEliminar #textoMotivoEstado {
+    border: 1.5px solid #dce6f0 !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#modalEliminar .input-group .form-control[readonly] {
+    background-color: #ffffff !important;
+    border: 1.5px solid #dce6f0 !important;
+    border-radius: 0 !important;
+    margin-left: -1.5px !important;
+    color: var(--color-gris-texto, #4a5568);
+    font-size: 0.95rem;
+    box-shadow: none !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#modalEliminar .input-group > .btn-archivo-accion:first-child {
+    border-radius: 8px 0 0 8px !important;
+    border: 1.5px solid #dce6f0 !important;
+    box-shadow: none !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#modalEliminar .input-group > .btn-archivo-accion:last-child {
+    border-radius: 0 8px 8px 0 !important;
+    border: 1.5px solid #dce6f0 !important;
+    margin-left: -1.5px !important;
+    box-shadow: none !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Estado Rojo: Cancelar cita e Inhabilitar usuario */
+#modalEliminar .campo-estado-rojo:hover,
+#modalEliminar .campo-estado-rojo:focus,
+#modalEliminar textarea#textoMotivoEstado.campo-estado-rojo:hover,
+#modalEliminar textarea#textoMotivoEstado.campo-estado-rojo:focus {
     border-color: #dc3545 !important;
+    box-shadow: none !important;
 }
 
-.campo-estado-verde:hover,
-.campo-estado-verde:focus,
-.input-group-verde:hover .form-control,
-.input-group-verde:hover .btn-archivo-accion,
-.input-group-verde:focus-within .form-control,
-.input-group-verde:focus-within .btn-archivo-accion {
+#modalEliminar .input-group-rojo:hover .form-control,
+#modalEliminar .input-group-rojo:hover .btn-archivo-accion,
+#modalEliminar .input-group-rojo:focus-within .form-control,
+#modalEliminar .input-group-rojo:focus-within .btn-archivo-accion,
+#modalEliminar .input-group-rojo .btn-archivo-accion:hover,
+#modalEliminar .input-group-rojo .btn-archivo-accion:focus,
+#modalEliminar .input-group-rojo .btn-archivo-accion:active {
+    border-color: #dc3545 !important;
+    box-shadow: none !important;
+    z-index: 3 !important;
+}
+
+/* Estado Verde: Habilitar usuario */
+#modalEliminar .campo-estado-verde:hover,
+#modalEliminar .campo-estado-verde:focus,
+#modalEliminar textarea#textoMotivoEstado.campo-estado-verde:hover,
+#modalEliminar textarea#textoMotivoEstado.campo-estado-verde:focus {
     border-color: #198754 !important;
+    box-shadow: none !important;
 }
 
-.modal-confirmacion-ext {
-    --bs-modal-width: 480px !important;
+#modalEliminar .input-group-verde:hover .form-control,
+#modalEliminar .input-group-verde:hover .btn-archivo-accion,
+#modalEliminar .input-group-verde:focus-within .form-control,
+#modalEliminar .input-group-verde:focus-within .btn-archivo-accion,
+#modalEliminar .input-group-verde .btn-archivo-accion:hover,
+#modalEliminar .input-group-verde .btn-archivo-accion:focus,
+#modalEliminar .input-group-verde .btn-archivo-accion:active {
+    border-color: #198754 !important;
+    box-shadow: none !important;
+    z-index: 3 !important;
+}
+
+/* Ancho ampliado para los modales de Cancelar Cita, Inhabilitar Usuario y Habilitar Usuario */
+.modal-confirmacion-ext,
+#dialogModalEliminar.modal-confirmacion-ext {
+    --bs-modal-width: 580px !important;
+    max-width: min(580px, 95vw) !important;
+    width: 100% !important;
 }
 
 /* Botón de acción para ver apelación en tabla de clientes */

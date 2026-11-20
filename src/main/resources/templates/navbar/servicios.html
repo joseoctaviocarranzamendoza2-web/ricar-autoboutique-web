@@ -1,4 +1,4 @@
-<!-- Página 'servicios' pública: Listado y detalle de servicios ofrecidos; usa Bootstrap 5 y fragmento navbar -->
+﻿<!-- Página 'servicios' pública: Listado y detalle de servicios ofrecidos; usa Bootstrap 5 y fragmento navbar -->
 <!DOCTYPE html>
 <!-- Thymeleaf requiere el namespace xmlns:th para habilitar directivas th:href, th:src y th:text en todo el documento -->
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
@@ -11,7 +11,7 @@
     <!-- Bootstrap Icons 1.11.3 CDN: Iconos usados en cards, badges y botones -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <!-- global.css: Estilos compartidos entre páginas públicas -->
-    <link th:href="@{/css/global.css}" rel="stylesheet">
+    <link th:href="@{/css/global.css(v='2.3')}" rel="stylesheet">
     <!-- servicios.css: Estilos específicos del listado y grid de servicios -->
     <link th:href="@{/css/navbar/servicios.css(v='2.1')}" rel="stylesheet">
     <!-- Favicon del sitio -->
@@ -599,7 +599,7 @@
     <!-- Bootstrap 5.3.3 JS Bundle CDN: Habilita modales, dropdowns y tooltips usados en la navegación pública -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- global.js: Scripts compartidos de interacción general, validación de formularios y comportamientos de navbar -->
-    <script th:src="@{/js/global.js(v='2.0')}"></script>
+    <script th:src="@{/js/global.js(v='2.8')}"></script>
     <!-- servicios.js: Lógica de comportamiento específica de la página de servicios -->
     <script th:src="@{/js/navbar/servicios.js(v='1.4')}"></script>
 </body>

@@ -14,19 +14,23 @@
                         <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
                     <div class="modal-body">
+                        <!-- Mensaje informativo accesible WCAG con contraste destacado -->
+                        <div class="text-center mb-3">
+                            <span class="register-info-badge">Todos los datos son necesarios para iniciar sesión.</span>
+                        </div>
                         <!-- Formulario de inicio de sesión: Solicita correo para la autenticación de usuario -->
                         <div class="mb-3">
-                            <label class="form-label" for="loginEmail">Correo electrónico</label>
-                            <input type="email" id="loginEmail" class="form-control" placeholder="tu@gmail.com" autocomplete="email">
+                            <label class="form-label" for="loginEmail">Correo electrónico <span class="text-danger fw-bold" aria-hidden="true">*</span></label>
+                            <input type="email" id="loginEmail" class="form-control" placeholder="solo@gmail.com" autocomplete="email" aria-required="true">
                             <div class="invalid-feedback"></div>
                         </div>
                         <!-- Formulario de inicio de sesión: Solicita contraseña para la autenticación de usuario -->
                         <div class="mb-3">
-                            <label class="form-label" for="loginPassword">Contraseña</label>
+                            <label class="form-label" for="loginPassword">Contraseña <span class="text-danger fw-bold" aria-hidden="true">*</span></label>
                             <div class="input-group">
-                                <input type="password" id="loginPassword" class="form-control" placeholder="Tu contraseña" autocomplete="current-password">
-                                <button type="button" class="btn btn-outline-secondary btn-toggle-password" onclick="togglePasswordVisibility('loginPassword', this)" tabindex="-1" title="Mostrar/ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
-                                    <i class="bi bi-eye"></i>
+                                <input type="password" id="loginPassword" class="form-control" placeholder="Tu contraseña" autocomplete="current-password" aria-required="true">
+                                <button type="button" class="btn btn-toggle-password" onclick="togglePasswordVisibility('loginPassword', this)" tabindex="-1" title="Mostrar/ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
+                                    <i class="bi bi-eye-slash"></i>
                                 </button>
                                 <div class="invalid-feedback"></div>
                             </div>
@@ -45,9 +49,7 @@
                         </div>
                         <hr>
                         <!-- Enlace a registro: Cambia al modal de registro cuando el usuario no tiene cuenta -->
-                        <p class="text-center small text-muted mb-0">¿No tienes cuenta?
-                            <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#modalRegister">Regístrate aquí</a>
-                        </p>
+                        <p class="text-center small text-muted mb-0">¿No tienes cuenta?&nbsp;<a href="#" class="text-decoration-none" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#modalRegister">Regístrate aquí</a></p>
                     </div>
                 </div>
             </div>
@@ -62,50 +64,54 @@
                         <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
                     <div class="modal-body">
+                        <!-- Mensaje informativo accesible WCAG con contraste destacado -->
+                        <div class="text-center mb-3">
+                            <span class="register-info-badge">Todos los datos son necesarios para crear tu perfil.</span>
+                        </div>
                         <!-- Campos de datos para el registro de nuevo usuario -->
                         <div class="row g-3">
                             <!-- Campo de nombres con validación de longitud de 2 a 50 caracteres y formato básico -->
                             <div class="col-sm-6">
-                                <label class="form-label" for="regNombres">Nombres</label>
-                                <input type="text" id="regNombres" class="form-control" placeholder="Tus nombres" maxlength="50" autocomplete="given-name">
+                                <label class="form-label" for="regNombres">Nombres <span class="text-danger fw-bold" aria-hidden="true">*</span></label>
+                                <input type="text" id="regNombres" class="form-control" placeholder="Solo letras" maxlength="50" autocomplete="given-name" aria-required="true">
                                 <div class="invalid-feedback"></div>
                             </div>
                             <!-- Campo de apellidos con validación de longitud de 2 a 50 caracteres y formato básico -->
                             <div class="col-sm-6">
-                                <label class="form-label" for="regApellidos">Apellidos</label>
-                                <input type="text" id="regApellidos" class="form-control" placeholder="Tus apellidos" maxlength="50" autocomplete="family-name">
+                                <label class="form-label" for="regApellidos">Apellidos <span class="text-danger fw-bold" aria-hidden="true">*</span></label>
+                                <input type="text" id="regApellidos" class="form-control" placeholder="Solo letras" maxlength="50" autocomplete="family-name" aria-required="true">
                                 <div class="invalid-feedback"></div>
                             </div>
                             <!-- Campo de correo con validación de tipo email -->
                             <div class="col-sm-6">
-                                <label class="form-label" for="regEmail">Correo electrónico</label>
-                                <input type="email" id="regEmail" class="form-control" placeholder="tu@gmail.com" autocomplete="email">
+                                <label class="form-label" for="regEmail">Correo electrónico <span class="text-danger fw-bold" aria-hidden="true">*</span></label>
+                                <input type="email" id="regEmail" class="form-control" placeholder="solo@gmail.com" autocomplete="email" aria-required="true">
                                 <div class="invalid-feedback"></div>
                             </div>
                             <!-- Campo de teléfono con validación de longitud de 9 caracteres y formato numérico -->
                             <div class="col-sm-6">
-                                <label class="form-label" for="regTel">Teléfono</label>
-                                <input type="tel" id="regTel" class="form-control" placeholder="987 654 321" maxlength="9" autocomplete="tel">
+                                <label class="form-label" for="regTel">Teléfono <span class="text-danger fw-bold" aria-hidden="true">*</span></label>
+                                <input type="tel" id="regTel" class="form-control" placeholder="999 999 999" maxlength="9" autocomplete="tel" aria-required="true">
                                 <div class="invalid-feedback"></div>
                             </div>
                             <!-- Campo de contraseña con validación de longitud mínima de 8 caracteres -->
                             <div class="col-sm-6">
-                                <label class="form-label" for="regPassword">Contraseña</label>
+                                <label class="form-label" for="regPassword">Contraseña <span class="text-danger fw-bold" aria-hidden="true">*</span></label>
                                 <div class="input-group">
-                                    <input type="password" id="regPassword" class="form-control" placeholder="Mínimo 8 caracteres" maxlength="30" autocomplete="new-password">
-                                    <button type="button" class="btn btn-outline-secondary btn-toggle-password" onclick="togglePasswordVisibility('regPassword', this)" tabindex="-1" title="Mostrar/ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
-                                        <i class="bi bi-eye"></i>
+                                    <input type="password" id="regPassword" class="form-control" placeholder="Mínimo 8 caracteres" maxlength="30" autocomplete="new-password" aria-required="true">
+                                    <button type="button" class="btn btn-toggle-password" onclick="togglePasswordVisibility('regPassword', this)" tabindex="-1" title="Mostrar/ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
+                                        <i class="bi bi-eye-slash"></i>
                                     </button>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
                             <!-- Campo de confirmación de contraseña con validación de coincidencia -->
                             <div class="col-sm-6">
-                                <label class="form-label" for="regConfirm">Confirmar contraseña</label>
+                                <label class="form-label" for="regConfirm">Confirmar contraseña <span class="text-danger fw-bold" aria-hidden="true">*</span></label>
                                 <div class="input-group">
-                                    <input type="password" id="regConfirm" class="form-control" placeholder="Repite tu contraseña" maxlength="30" autocomplete="new-password">
-                                    <button type="button" class="btn btn-outline-secondary btn-toggle-password" onclick="togglePasswordVisibility('regConfirm', this)" tabindex="-1" title="Mostrar/ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
-                                        <i class="bi bi-eye"></i>
+                                    <input type="password" id="regConfirm" class="form-control" placeholder="Repite tu contraseña" maxlength="30" autocomplete="new-password" aria-required="true">
+                                    <button type="button" class="btn btn-toggle-password" onclick="togglePasswordVisibility('regConfirm', this)" tabindex="-1" title="Mostrar/ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
+                                        <i class="bi bi-eye-slash"></i>
                                     </button>
                                     <div class="invalid-feedback"></div>
                                 </div>
@@ -121,13 +127,13 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-12 d-flex justify-content-center">
-                                <!-- Aceptación de términos: Obliga al usuario a confirmar políticas antes de registrar cuenta -->
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="aceptaTerminos">
-                                    <label class="form-check-label small" for="aceptaTerminos">Acepto los <a href="#">términos y condiciones</a></label>
-                                    <div class="invalid-feedback"></div>
+                            <div class="col-12 text-center">
+                                <!-- Aceptación de términos: Centrado simétrico de checkbox y texto -->
+                                <div class="form-check d-inline-flex align-items-center justify-content-center p-0 m-0">
+                                    <input class="form-check-input m-0 me-2 float-none" type="checkbox" id="aceptaTerminos" aria-required="true">
+                                    <label class="form-check-label small mb-0" for="aceptaTerminos">Acepto los&nbsp;<a href="#" class="text-decoration-none">términos y condiciones</a> <span class="text-danger fw-bold" aria-hidden="true">*</span></label>
                                 </div>
+                                <div class="invalid-feedback text-center w-100 mt-1"></div>
                             </div>
                             <!-- Botón principal para enviar el formulario de registro -->
                             <div class="col-12">
@@ -150,7 +156,7 @@
                         <hr>
                         <!-- Enlace de acceso directo al login si el usuario ya tiene cuenta -->
                         <p class="text-center small text-muted mb-0">¿Ya tienes cuenta?
-                            <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#modalLogin">Inicia sesión aquí</a>
+                            <a href="#" class="text-decoration-none" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#modalLogin">Inicia sesión aquí</a>
                         </p>
                     </div>
                 </div>
@@ -172,8 +178,8 @@
                             <label class="form-label fw-semibold" for="passEmpresarial">Contraseña empresarial</label>
                             <div class="input-group">
                                 <input type="password" id="passEmpresarial" class="form-control text-center" placeholder="••••••••••">
-                                <button type="button" class="btn btn-outline-secondary btn-toggle-password" onclick="togglePasswordVisibility('passEmpresarial', this)" tabindex="-1" title="Mostrar/ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
-                                    <i class="bi bi-eye"></i>
+                                <button type="button" class="btn btn-toggle-password" onclick="togglePasswordVisibility('passEmpresarial', this)" tabindex="-1" title="Mostrar/ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
+                                    <i class="bi bi-eye-slash"></i>
                                 </button>
                             </div>
                             <div class="invalid-feedback text-center"></div>

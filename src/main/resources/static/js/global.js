@@ -701,18 +701,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-    const regEmailInput = document.getElementById('regEmail');
-    regEmailInput?.addEventListener('blur', () => {
-        if (regEmailInput.value.trim()) {
-            verificarEmailUnicoBD(regEmailInput);
-        }
+    ['regNombres', 'regApellidos', 'regEmail', 'regTel', 'regPassword', 'regConfirm', 'loginEmail', 'loginPassword'].forEach(id => {
+        const input = document.getElementById(id);
+        input?.addEventListener('input', () => {
+            if (input.classList.contains('is-invalid')) {
+                input.classList.remove('is-invalid');
+                const fb = input.parentNode.querySelector('.invalid-feedback') || input.closest('.mb-3, .col-sm-6, .col-12')?.querySelector('.invalid-feedback');
+                if (fb) fb.textContent = '';
+            }
+        });
     });
-    regEmailInput?.addEventListener('input', () => {
-        if (regEmailInput.classList.contains('is-invalid')) {
-            regEmailInput.classList.remove('is-invalid');
-            const fb = regEmailInput.parentNode.querySelector('.invalid-feedback') || regEmailInput.closest('.col-sm-6')?.querySelector('.invalid-feedback');
-            if (fb) fb.textContent = '';
+    document.getElementById('aceptaTerminos')?.addEventListener('change', e => {
+        if (e.target.checked) {
+            marcarValido(e.target);
         }
+        e.target.blur();
     });
     document.getElementById('btnLogin')?.addEventListener('click', manejarLogin);
     document.getElementById('btnRegister')?.addEventListener('click', manejarRegister);
@@ -756,13 +759,19 @@ async function manejarLogin() {
     const divExito = document.getElementById('loginExito');
     const divError = document.getElementById('loginError');
     const btnLogin = document.getElementById('btnLogin');
+    btnLogin?.blur();
     divExito?.classList.add('d-none');
     divError?.classList.add('d-none');
     const emailValido = validarEmail(emailInput);
     const passwordValido = validarRequerido(passwordInput, 'La contraseña es obligatoria');
-    if (!emailValido || !passwordValido) return;
-    btnLogin.disabled = true;
-    btnLogin.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Ingresando...';
+    if (!emailValido || !passwordValido) {
+        btnLogin?.blur();
+        return;
+    }
+    if (btnLogin) {
+        btnLogin.disabled = true;
+        btnLogin.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Cargando...';
+    }
     try {
         const formData = new URLSearchParams();
         formData.append('email', emailInput.value.trim());
@@ -814,11 +823,16 @@ async function manejarLogin() {
         }, 1200);
     } catch (err) {
         console.error('Error de conexión:', err);
-        divError.innerHTML = '<i class="bi bi-wifi-off me-2"></i>Error de conexión. Intenta de nuevo.';
-        divError?.classList.remove('d-none');
+        if (divError) {
+            divError.innerHTML = '<i class="bi bi-wifi-off me-2"></i>Error de conexión. Intenta de nuevo.';
+            divError.classList.remove('d-none');
+        }
     } finally {
-        btnLogin.disabled = false;
-        btnLogin.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Ingresar';
+        if (btnLogin) {
+            btnLogin.disabled = false;
+            btnLogin.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Ingresar';
+            btnLogin.blur();
+        }
     }
 }
 
@@ -1153,29 +1167,41 @@ function abrirModalVerRespuestaAdmin() {
     }
 }
 
-// Maneja el registro de usuarios: Valida campos y dispara el registro (incluye flujo empresarial)
+// Maneja el registro de usuarios: Valida campos en el cliente y dispara el registro al servidor
 async function manejarRegister() {
-    const campos = { nombres: document.getElementById('regNombres'), apellidos: document.getElementById('regApellidos'), email: document.getElementById('regEmail'), tel: document.getElementById('regTel'), password: document.getElementById('regPassword'), confirm: document.getElementById('regConfirm'), checkbox: document.getElementById('aceptaTerminos') };
+    document.getElementById('btnRegister')?.blur();
+    const campos = {
+        nombres: document.getElementById('regNombres'),
+        apellidos: document.getElementById('regApellidos'),
+        email: document.getElementById('regEmail'),
+        tel: document.getElementById('regTel'),
+        password: document.getElementById('regPassword'),
+        confirm: document.getElementById('regConfirm'),
+        checkbox: document.getElementById('aceptaTerminos')
+    };
     const rolSeleccionado = (document.getElementById('regRol')?.value || 'cliente').toLowerCase().trim();
     const divExito = document.getElementById('registerExito');
     const divError = document.getElementById('registerError');
     divExito?.classList.add('d-none');
     divError?.classList.add('d-none');
-    const valido = validarTexto(campos.nombres, 'El nombre es obligatorio') & validarTexto(campos.apellidos, 'El apellido es obligatorio') & validarEmail(campos.email) & validarTel(campos.tel) & validarPassword(campos.password) & validarConfirm(campos.password, campos.confirm) & validarCheckbox(campos.checkbox);
-    if (!valido) return;
 
-    // Verifica en la Base de Datos si el correo ya existe
-    const emailDisponible = await verificarEmailUnicoBD(campos.email);
-    if (!emailDisponible) {
-        campos.email?.focus();
-        return;
-    }
+    // Validación local del formulario (aprovecha recursos del cliente, sin peticiones innecesarias al servidor)
+    const valido = validarTexto(campos.nombres, 'El nombre es obligatorio') &
+                   validarTexto(campos.apellidos, 'El apellido es obligatorio') &
+                   validarEmail(campos.email) &
+                   validarTel(campos.tel) &
+                   validarPassword(campos.password) &
+                   validarConfirm(campos.password, campos.confirm) &
+                   validarCheckbox(campos.checkbox);
+    if (!valido) return;
 
     if (rolSeleccionado !== 'cliente') {
         rolPendienteVerificacion = rolSeleccionado;
         abrirModalEmpresarial(rolSeleccionado);
         return;
     }
+
+    // Envía la petición al servidor en una sola llamada completa
     const exito = await ejecutarRegistro(rolSeleccionado);
     if (exito) {
         setTimeout(() => {
@@ -1184,37 +1210,76 @@ async function manejarRegister() {
     }
 }
 
-// Realiza la llamada al endpoint de registro y actualiza la UI según el resultado
+// Realiza la llamada al endpoint de registro y actualiza la UI según la respuesta de la BD
 async function ejecutarRegistro(rol) {
     const btnReg = document.getElementById('btnRegister');
     const divExito = document.getElementById('registerExito');
     const divError = document.getElementById('registerError');
     const msgError = document.getElementById('registerErrorMsg');
+
+    // Muestra estado de cargando con icono giratorio y deshabilita el botón
     if (btnReg) {
         btnReg.disabled = true;
-        btnReg.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Registrando...';
+        btnReg.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Cargando...';
     }
+    divExito?.classList.add('d-none');
+    divError?.classList.add('d-none');
+
     try {
-        const resp = await fetch('/api/usuarios/registro', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombres: document.getElementById('regNombres')?.value.trim(), apellidos: document.getElementById('regApellidos')?.value.trim(), email: document.getElementById('regEmail')?.value.trim(), telefono: document.getElementById('regTel')?.value.trim(), password: document.getElementById('regPassword')?.value, rol: rol }) });
+        const resp = await fetch('/api/usuarios/registro', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                nombres: document.getElementById('regNombres')?.value.trim(),
+                apellidos: document.getElementById('regApellidos')?.value.trim(),
+                email: document.getElementById('regEmail')?.value.trim(),
+                telefono: document.getElementById('regTel')?.value.trim(),
+                password: document.getElementById('regPassword')?.value,
+                rol: rol
+            })
+        });
+
+        // Caso 409 Conflict: El correo ya existe registrado en la BD del servidor
         if (resp.status === 409) {
+            const dataErr = await resp.json().catch(() => ({}));
             const campoEmail = document.getElementById('regEmail');
             if (campoEmail) {
                 marcarInvalido(campoEmail, 'Este correo ya se encuentra registrado. Usa otro correo o inicia sesión.');
+                campoEmail.focus();
             }
-            if (msgError) msgError.textContent = 'Este correo ya está registrado. Inicia sesión.';
+            if (msgError) {
+                msgError.textContent = 'Este correo ya se encuentra registrado en el sistema. Inicia sesión o utiliza otro correo.';
+            }
             divError?.classList.remove('d-none');
             return false;
         }
-        if (!resp.ok) throw new Error('Error del servidor');
-        divExito?.classList.remove('d-none');
+
+        // Si el servidor responde con otro error
+        if (!resp.ok) {
+            const dataErr = await resp.json().catch(() => ({}));
+            const errorDetalle = dataErr.error || 'Hubo un error al registrar la cuenta. Por favor, inténtalo de nuevo.';
+            if (msgError) msgError.textContent = errorDetalle;
+            divError?.classList.remove('d-none');
+            return false;
+        }
+
+        // Éxito: Los datos llegaron a la BD exitosamente
+        const dataOk = await resp.json().catch(() => ({}));
+        if (divExito) {
+            divExito.innerHTML = '<i class="bi bi-check-circle me-2"></i>¡Cuenta creada con éxito! Ya puedes iniciar sesión.';
+            divExito.classList.remove('d-none');
+        }
         limpiarCamposRegister();
         return true;
     } catch (e) {
         console.error('Error al registrar usuario:', e);
-        if (msgError) msgError.textContent = 'Error del servidor al registrar usuario.';
+        if (msgError) {
+            msgError.textContent = 'Hubo un problema de conexión con el servidor. Por favor, inténtalo de nuevo.';
+        }
         divError?.classList.remove('d-none');
         return false;
     } finally {
+        // Restaura el botón a su estado normal
         if (btnReg) {
             btnReg.disabled = false;
             btnReg.innerHTML = '<i class="bi bi-person-check me-2"></i>Crear mi cuenta';
@@ -1324,7 +1389,7 @@ function validarPassword(campo) {
 function validarConfirm(passCampo, confirmCampo) {
     const c = confirmCampo.value;
     if (!c) {
-        marcarInvalido(confirmCampo, 'Confirma tu contraseña');
+        marcarInvalido(confirmCampo, 'Confirmar tu contraseña es obligatorio');
         return false;
     }
     if (c !== passCampo.value) {
@@ -1338,7 +1403,7 @@ function validarConfirm(passCampo, confirmCampo) {
 // Validación para la casilla de aceptación de términos y condiciones
 function validarCheckbox(checkbox) {
     if (!checkbox.checked) {
-        marcarInvalido(checkbox, 'Debes aceptar los términos y condiciones');
+        marcarInvalido(checkbox, 'Debes aceptar nuestros términos y condiciones');
         return false;
     }
     marcarValido(checkbox);
@@ -1353,8 +1418,11 @@ function togglePasswordVisibility(inputId, btn) {
     input.type = esPassword ? 'text' : 'password';
     const icon = btn ? btn.querySelector('i') : null;
     if (icon) {
-        icon.className = esPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+        // Al revelar la contraseña (tipo text) se muestra el ojo normal sin tachar ('bi bi-eye')
+        // Al ocultar la contraseña (tipo password en puntos) se muestra el ojo tachado ('bi bi-eye-slash')
+        icon.className = esPassword ? 'bi bi-eye' : 'bi bi-eye-slash';
     }
+    btn?.blur();
 }
 
 // Aplica estilos de campo inválido y muestra el mensaje de error correspondiente
@@ -1362,7 +1430,10 @@ function marcarInvalido(campo, mensaje) {
     campo.classList.remove('is-valid');
     campo.classList.add('is-invalid');
     const fb = campo.parentNode.querySelector('.invalid-feedback') || campo.closest('.mb-3, .col-sm-6, .col-12')?.querySelector('.invalid-feedback');
-    if (fb) fb.textContent = mensaje;
+    if (fb) {
+        fb.textContent = mensaje;
+        fb.style.display = 'block';
+    }
 }
 
 // Aplica estilos de campo válido y limpia mensajes de error
@@ -1370,7 +1441,10 @@ function marcarValido(campo) {
     campo.classList.remove('is-invalid');
     campo.classList.add('is-valid');
     const fb = campo.parentNode.querySelector('.invalid-feedback') || campo.closest('.mb-3, .col-sm-6, .col-12')?.querySelector('.invalid-feedback');
-    if (fb) fb.textContent = '';
+    if (fb) {
+        fb.textContent = '';
+        fb.style.display = '';
+    }
 }
 
 // Limpia los campos y estados de un modal específico (inputs, feedback, checkboxes, ojitos)
@@ -1381,17 +1455,19 @@ function limpiarModal(modalId) {
         const fb = campo.parentNode.querySelector('.invalid-feedback') || campo.closest('.mb-3, .col-sm-6, .col-12')?.querySelector('.invalid-feedback');
         if (fb) fb.textContent = '';
     });
-    // Restablece los campos de contraseña a tipo password y el icono del ojito a bi-eye
+    // Restablece los campos de contraseña a tipo password y el icono del ojito a bi-eye-slash
     document.querySelectorAll(`#${modalId} input[id$="Password"], #${modalId} input[id$="Confirm"]`).forEach(input => {
         input.type = 'password';
     });
     document.querySelectorAll(`#${modalId} .btn-toggle-password i`).forEach(icon => {
-        icon.className = 'bi bi-eye';
+        icon.className = 'bi bi-eye-slash';
     });
     const checkbox = document.getElementById('aceptaTerminos');
     if (checkbox) {
         checkbox.checked = false;
-        checkbox.classList.remove('is-invalid');
+        checkbox.classList.remove('is-invalid', 'is-valid');
+        const fb = checkbox.parentNode.querySelector('.invalid-feedback') || checkbox.closest('.col-12')?.querySelector('.invalid-feedback');
+        if (fb) fb.textContent = '';
     }
     document.getElementById('registerExito')?.classList.add('d-none');
     document.getElementById('registerError')?.classList.add('d-none');
@@ -1415,7 +1491,7 @@ function limpiarCamposRegister() {
         if (input) input.type = 'password';
     });
     document.querySelectorAll('#modalRegister .btn-toggle-password i').forEach(icon => {
-        icon.className = 'bi bi-eye';
+        icon.className = 'bi bi-eye-slash';
     });
     const checkbox = document.getElementById('aceptaTerminos');
     if (checkbox) {

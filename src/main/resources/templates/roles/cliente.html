@@ -1,4 +1,4 @@
-<!-- Página cliente protegida a través del rol cliente; el HTML se renderiza como vista personalizada con Thymeleaf para mantener sesión y autorización del usuario -->
+﻿<!-- Página cliente protegida a través del rol cliente; el HTML se renderiza como vista personalizada con Thymeleaf para mantener sesión y autorización del usuario -->
 <!DOCTYPE html>
 <!-- Thymeleaf requiere xmlns:th para habilitar th:href, th:src y th:text en toda la plantilla -->
 <html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
@@ -11,7 +11,7 @@
     <!-- Bootstrap Icons 1.11.3 CDN: Iconos SVG usados en tarjetas, botones y badges del dashboard de cliente -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <!-- global.css: Estilos compartidos entre todas las páginas del sitio -->
-    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <link rel="stylesheet" th:href="@{/css/global.css(v='2.3')}">
     <!-- cliente.css se carga después de global.css para anular estilos compartidos y definir el layout del perfil, tarjetas de compras y timeline del cliente -->
     <link rel="stylesheet" th:href="@{/css/roles/cliente.css}">
     <!-- Favicon del sitio -->
@@ -376,7 +376,7 @@
     <!-- Bootstrap 5.3.3 JS Bundle CDN: Incluye Popper integrado y es requerido para el funcionamiento de los componentes Bootstrap usados en esta vista -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- global.js: Utilidades compartidas entre roles, maneja sesión, actualiza navbar y controla comportamiento general del frontend -->
-    <script th:src="@{/js/global.js(v='2.0')}"></script>
+    <script th:src="@{/js/global.js(v='2.8')}"></script>
     <!-- cliente.js: Lógica específica del panel de cliente; carga datos de perfil, compras y servicios, gestiona pestañas y acciones del usuario sin recargar la página -->
     <script th:src="@{/js/roles/cliente.js(v='2.1')}"></script>
     <!-- Activa la pestaña correspondiente según la URL solicitada al servidor (panel/cliente/{id}/perfil|compras|servicios|historial|mensajes) -->

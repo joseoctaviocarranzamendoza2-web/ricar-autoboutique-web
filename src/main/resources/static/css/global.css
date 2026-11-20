@@ -681,27 +681,55 @@ body {
     letter-spacing: 0.5px;
 }
 
+/* Cápsula informativa accesible WCAG: diseño tipo píldora que contrasta claramente sin sombreado */
+.register-info-badge {
+    background-color: #ffffff;
+    color: var(--azul-oscuro);
+    border: 1px solid #dce6f0;
+    border-radius: 50px;
+    padding: 0.35rem 1.35rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    display: inline-block;
+    box-shadow: none !important;
+}
+
 /* Borde suave, padding y fondo blanco */
-.modal-body .form-control {
+.modal-body .form-control,
+.modal-body .form-select {
     border: 1.5px solid #dce6f0;
     border-radius: 8px;
     padding: 0.55rem 0.85rem;
     font-size: 0.9rem;
     color: var(--oscuro);
     background-color: var(--blanco);
-    transition: border-color .2s, box-shadow .2s;
+    transition: border-color .2s;
+    height: 42px;
 }
 
-/* Hover en campos de modales: Resalta con borde celeste institucional */
-.modal-body .form-control:hover {
-    border-color: var(--celeste);
+/* Hover en campos de modales: Resalta siempre con borde celeste institucional */
+.modal-body .form-control:hover,
+.modal-body .form-select:hover,
+.modal-body .form-control.is-invalid:hover,
+.modal-body .form-select.is-invalid:hover {
+    border-color: var(--celeste) !important;
 }
 
-/* Resalta borde y añade sombra de enfoque */
-.modal-body .form-control:focus {
-    border-color: var(--celeste);
-    box-shadow: 0 0 0 3px rgba(86, 174, 232, 0.15);
-    outline: none;
+/* Click/Focus en campos de modales: Al dar clic o llenar el campo, elimina completamente el borde rojo y la sombra roja, manteniendo solo el borde celeste */
+.modal-body .form-control:focus,
+.modal-body .form-select:focus,
+.modal-body .form-control.is-invalid:focus,
+.modal-body .form-select.is-invalid:focus {
+    border-color: var(--celeste) !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Elimina cualquier sombra residual en campos marcados como inválidos */
+.modal-body .form-control.is-invalid,
+.modal-body .form-select.is-invalid {
+    box-shadow: none !important;
 }
 
 /* Color gris y tamaño ligero */
@@ -710,59 +738,172 @@ body {
     font-size: 0.85rem;
 }
 
-/* Input-group con botón para alternar visibilidad de contraseña (ojito) */
-.modal-body .input-group .form-control {
-    border-top-right-radius: 0 !important;
-    border-bottom-right-radius: 0 !important;
+/* Input-group con botón integrado para alternar visibilidad de contraseña (ojito) */
+.modal-body .input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
 }
 
+.modal-body .input-group .form-control {
+    border-radius: 8px !important;
+    padding-right: 4.2rem !important;
+    width: 100%;
+}
+
+/* Iconos de validación (check verde e incompleto rojo) posicionados a la izquierda del ojito */
+.modal-body .input-group .form-control.is-invalid,
+.modal-body .input-group .form-control.is-valid {
+    background-position: right 2.6rem center !important;
+}
+
+/* Botón del ojito: sin bordes grises ni celestes propios, fondo transparente, altura fija anclada al input */
 .modal-body .input-group .btn-toggle-password {
-    border: 1.5px solid #dce6f0;
-    border-left: none;
-    border-top-right-radius: 8px !important;
-    border-bottom-right-radius: 8px !important;
-    background-color: #ffffff;
-    color: #64748b;
-    padding: 0.55rem 0.85rem;
-    font-size: 0.95rem;
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 42px;
+    bottom: auto;
+    z-index: 5;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    padding: 0 0.85rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: border-color .2s, color .2s, background-color .2s;
 }
 
-.modal-body .input-group .btn-toggle-password:hover,
-.modal-body .input-group .btn-toggle-password:focus {
-    color: var(--azul-institucional, #0a3d6b);
-    background-color: #f8fafc;
-    border-color: var(--celeste);
+/* Icono del ojito cuando la contraseña está oculta en puntos (ojo tachado): Celeste institucional en reposo */
+.modal-body .input-group .btn-toggle-password i.bi-eye-slash,
+.modal-body .input-group .btn-toggle-password i {
+    color: var(--celeste) !important;
+    font-size: 1.05rem;
+    transition: color .2s ease;
 }
 
-.modal-body .input-group:hover .btn-toggle-password {
-    border-color: var(--celeste);
+/* Al pasar el cursor o presionar (hover/active) sobre ojo tachado: Cambia temporalmente a azul institucional */
+.modal-body .input-group .btn-toggle-password:hover i.bi-eye-slash,
+.modal-body .input-group .btn-toggle-password:active i.bi-eye-slash {
+    color: var(--azul-oscuro) !important;
 }
 
-.modal-body .input-group:hover .form-control {
-    border-color: var(--celeste);
+.modal-body .input-group .btn-toggle-password:focus i.bi-eye-slash {
+    color: var(--celeste) !important;
 }
 
-.modal-body .input-group:focus-within .btn-toggle-password {
-    border-color: var(--celeste);
+/* Icono del ojito cuando la contraseña está visible en texto (ojo normal sin tachar): Azul institucional en reposo */
+.modal-body .input-group .btn-toggle-password i.bi-eye {
+    color: var(--azul-oscuro) !important;
+    font-size: 1.05rem;
+    transition: color .2s ease;
 }
 
-.modal-body .input-group .form-control.is-invalid + .btn-toggle-password {
-    border-color: #dc3545;
+/* Al pasar el cursor o presionar (hover/active) sobre ojo normal: Cambia temporalmente a celeste institucional */
+.modal-body .input-group .btn-toggle-password:hover i.bi-eye,
+.modal-body .input-group .btn-toggle-password:active i.bi-eye {
+    color: var(--celeste) !important;
 }
 
-.modal-body .input-group .form-control.is-valid + .btn-toggle-password {
-    border-color: #198754;
+.modal-body .input-group .btn-toggle-password:focus i.bi-eye {
+    color: var(--azul-oscuro) !important;
 }
 
 .modal-body .input-group > .invalid-feedback {
     display: none;
     width: 100%;
     margin-top: 0.25rem;
+}
+
+/* Checkbox de términos y condiciones centrado sin desajuste de padding */
+#modalRegister .form-check {
+    padding-left: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 auto !important;
+}
+
+#modalRegister .form-check-input {
+    float: none !important;
+    margin: 0 0.5rem 0 0 !important;
+    border: 1.5px solid #dce6f0;
+    border-radius: 4px;
+    box-shadow: none !important;
+    outline: none !important;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color .2s ease, background-color .2s ease;
+}
+
+#modalRegister .form-check-label {
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 0;
+}
+
+/* Hover en checkbox: borde azul institucional */
+#modalRegister .form-check-input:hover,
+#modalRegister .form-check:hover .form-check-input:not(:checked) {
+    border-color: var(--azul-oscuro) !important;
+}
+
+/* Al desmarcar o recibir focus: elimina sombra y mantiene su borde de reposo sin quedarse pegado */
+#modalRegister .form-check-input:focus {
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+#modalRegister .form-check-input:not(:checked):focus {
+    border-color: #dce6f0 !important;
+}
+
+/* Al marcarse (checked): fondo azul institucional y check blanco institucional */
+#modalRegister .form-check-input:checked {
+    background-color: var(--azul-oscuro) !important;
+    border-color: var(--azul-oscuro) !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e") !important;
+    box-shadow: none !important;
+}
+
+/* Botones Crear mi cuenta (#btnRegister) e Ingresar (#btnLogin): Fondo celeste institucional en reposo, estáticos */
+#modalRegister #btnRegister,
+#modalLogin #btnLogin {
+    background-color: var(--celeste) !important;
+    border: 1.5px solid var(--celeste) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    outline: none !important;
+    border-radius: 8px;
+    transform: none !important;
+    transition: background-color .25s ease, border-color .25s ease;
+}
+
+/* Hover y activo al presionar: Cambia temporalmente a fondo azul institucional sin moverse */
+#modalRegister #btnRegister:hover,
+#modalRegister #btnRegister:active,
+#modalLogin #btnLogin:hover,
+#modalLogin #btnLogin:active {
+    background-color: var(--azul-oscuro) !important;
+    border-color: var(--azul-oscuro) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
+}
+
+/* Tras hacer click (focus): Regresa de inmediato al color celeste de reposo */
+#modalRegister #btnRegister:focus,
+#modalLogin #btnLogin:focus {
+    background-color: var(--celeste) !important;
+    border-color: var(--celeste) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transform: none !important;
 }
 
 /* Color de marca y bordes suavizados */
@@ -791,15 +932,20 @@ body {
     color: #7a8fa6 !important;
 }
 
-/* Color marca y peso seminegrita */
+/* Enlaces dentro de modales: sin subrayado, peso seminegrita */
 .modal-body a {
     color: var(--azul-medio);
     font-weight: 600;
+    text-decoration: none !important;
+    transition: color .2s ease;
 }
 
-/* Color secundario */
-.modal-body a:hover {
-    color: var(--celeste);
+/* Color secundario en hover/focus sin subrayado */
+.modal-body a:hover,
+.modal-body a:focus,
+.modal-body a:active {
+    color: var(--celeste) !important;
+    text-decoration: none !important;
 }
 
 /* Color de marca */
@@ -825,9 +971,10 @@ body {
     display: block;
 }
 
-/* Label pasa a color de error si inválido */
-.modal-body .form-check-input.is-invalid~.form-check-label {
-    color: #dc3545;
+/* Mantiene el color habitual del texto del label aún cuando el checkbox sea inválido */
+.modal-body .form-check-input.is-invalid ~ .form-check-label,
+.modal-body .form-check-label {
+    color: #5a6e82 !important;
 }
 
 /* ========================================================

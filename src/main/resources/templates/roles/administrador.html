@@ -1,4 +1,4 @@
-<!-- Panel de administración protegido por Spring Security: Solo accede el rol "administrador" validado en PaginaController.java con Authentication + UsuarioDetails -->
+﻿<!-- Panel de administración protegido por Spring Security: Solo accede el rol "administrador" validado en PaginaController.java con Authentication + UsuarioDetails -->
 <!DOCTYPE html>
 <!-- Thymeleaf requiere el namespace xmlns:th para habilitar directivas th:href, th:src y th:text en todo el documento -->
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
@@ -11,7 +11,7 @@
     <!-- Bootstrap Icons 1.11.3 CDN: Librería de iconos SVG usada en sidebar, KPIs, botones de acción y badges de estado a lo largo del panel -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <!-- global.css: Estilos compartidos entre todos los roles; incluye variables CSS (--azul-oscuro, --celeste), navbar, y utilidades de sesión visual -->
-    <link rel="stylesheet" th:href="@{/css/global.css(v='1.2')}">
+    <link rel="stylesheet" th:href="@{/css/global.css(v='2.3')}">
     <!-- administrador.css: Estilos exclusivos del panel admin; define sidebar, topbar, admin-card, kpi-card, status-badge, product-admin-card, service-admin-card y admin-table -->
     <link rel="stylesheet" th:href="@{/css/roles/administrador.css(v='6.6')}">
     <!-- Favicon del sitio -->
@@ -1080,7 +1080,7 @@
     <!-- Bootstrap 5.3.3 JS Bundle CDN: Incluye Popper.js integrado; requerido para el funcionamiento de modales, dropdowns, toasts y tooltips de Bootstrap usados en todo el panel -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- global.js: Define obtenerSesion(), guardarSesion(), cerrarSesion(), actualizarNavbar(), abrirModal(), limpiarBackdropsSobrantes() y otras utilidades compartidas entre todos los roles; debe cargarse antes de administrador.js -->
-    <script th:src="@{/js/global.js(v='2.0')}"></script>
+    <script th:src="@{/js/global.js(v='2.8')}"></script>
     <!-- administrador.js: Lógica principal del panel; valida el rol "administrador" en sessionStorage al cargar, realiza todas las llamadas a la API REST (/api/categorias, /api/productos, /api/servicios, /api/citas, /api/usuarios, /api/compras) y gestiona el estado de la SPA -->
     <script th:src="@{/js/roles/administrador.js(v='4.8')}"></script>
     <!-- Activa la sección correspondiente según la URL solicitada al servidor o memoria local -->

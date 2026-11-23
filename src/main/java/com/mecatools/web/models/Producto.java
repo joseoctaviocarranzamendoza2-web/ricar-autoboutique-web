@@ -67,10 +67,10 @@ public class Producto {
         this.estado = (estado == null || estado.isBlank()) ? "Activo" : estado;
     }
 
-    // Relación ManyToOne con la categoría del producto
+    // Relación ManyToOne con la categoría del producto (Normalización en 3FN)
     @NotNull(message = "La categoría es obligatoria")
     @ManyToOne
-    @JoinColumn(name = "id_categoria", nullable = false)
+    @JoinColumn(name = "id_categoria_producto", nullable = false)
     private Categoria categoria;
 
 }

@@ -11,8 +11,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 // Marca la clase como entidad JPA
 @Entity
-// Tabla asociada a la entidad
-@Table(name = "categoria")
+// Tabla asociada a la entidad para normalización en 3FN (Categorías de Productos)
+@Table(name = "categoria_producto")
 // Lombok genera getters
 @Getter
 // Lombok genera setters
@@ -36,6 +36,10 @@ public class Categoria {
     @Size(max = 200, message = "Máximo 200 caracteres")
     @Column
     private String descripcion;
+
+    // Discriminador de tipo para normalización en 3FN (Categorías de Productos)
+    @Column(name = "tipo", length = 20)
+    private String tipo = "PRODUCTO";
 
     // Relación con productos pertenecientes a esta categoría
     @OneToMany(mappedBy = "categoria")

@@ -3,6 +3,9 @@ const API = { categorias: '/api/categorias', productos: '/api/productos', servic
 
 // Estado local en memoria: arrays cache y variables de edición
 let categorias = [];
+let categoriasProductos = [];
+let categoriasServicios = [];
+let tipoCategoriaActiva = 'PRODUCTO';
 let productos = [];
 let vistaProductos = 'grid';
 let productoEdit = null;
@@ -185,13 +188,21 @@ function ordenarPorIdDesc(lista) {
     return [...(lista || [])].sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
 }
 
-// Carga categorías desde la API y actualiza la vista correspondiente
+// Carga categorías desde la API (productos y servicios normalizados en 3FN) y actualiza la vista
 async function cargarCategorias() {
     try {
-        const resp = await fetch(API.categorias);
-        categorias = ordenarPorIdDesc(await resp.json());
+        const [respProd, respServ] = await Promise.all([
+            fetch(`${API.categorias}?tipo=producto`),
+            fetch(`${API.categorias}?tipo=servicio`)
+        ]);
+        categoriasProductos = ordenarPorIdDesc(await respProd.json());
+        categoriasServicios = ordenarPorIdDesc(await respServ.json());
+        categorias = categoriasProductos;
         renderCategorias();
         actualizarSelectCategorias();
+        if (typeof servicios !== 'undefined' && servicios.length > 0) {
+            actualizarSelectCategoriasServicio(servicios);
+        }
     } catch (e) {
         console.error('Error cargando categorías:', e);
     }
@@ -212,36 +223,72 @@ async function cargarProductos() {
     }
 }
 
-// Renderiza tarjetas de categorías en el dashboard del admin
+// Cambia entre categorías de productos y servicios con los estilos de interacción idénticos a Mensajes
+function cambiarFiltroCategoria(tipo) {
+    tipoCategoriaActiva = tipo;
+    const btnProd = document.getElementById('btnFiltroCatProductos');
+    const btnServ = document.getElementById('btnFiltroCatServicios');
+    if (tipo === 'PRODUCTO') {
+        if (btnProd) btnProd.classList.add('active');
+        if (btnServ) btnServ.classList.remove('active');
+    } else {
+        if (btnServ) btnServ.classList.add('active');
+        if (btnProd) btnProd.classList.remove('active');
+    }
+    renderCategorias();
+}
+
+// Renderiza tarjetas de categorías en el dashboard del admin según el tipo activo (Productos o Servicios)
 function renderCategorias() {
     const grid = document.getElementById('gridCategorias');
     if (!grid) return;
     const contador = document.getElementById('infoCategorias');
-    if (contador) contador.textContent = `${categorias.length} categorías activas`;
+    const esProducto = tipoCategoriaActiva === 'PRODUCTO';
+    const lista = esProducto ? categoriasProductos : categoriasServicios;
+
+    if (contador) {
+        contador.textContent = `${lista.length} categorías de ${esProducto ? 'productos' : 'servicios'} activas`;
+    }
+
     const iconos = {
-        'herramienta': 'bi-wrench-adjustable', 'repuesto': 'bi-cpu', 'aceite': 'bi-droplet-half', 'perno': 'bi-nut', 'filtro': 'bi-funnel'
+        'herramienta': 'bi-wrench-adjustable', 'repuesto': 'bi-cpu', 'aceite': 'bi-droplet-half',
+        'perno': 'bi-nut', 'filtro': 'bi-funnel', 'lubricaci': 'bi-droplet-half',
+        'mantenimiento': 'bi-tools', 'diagn': 'bi-pc-display', 'electr': 'bi-lightning-charge',
+        'seguridad': 'bi-shield-check', 'personaliz': 'bi-stars', 'freno': 'bi-disc',
+        'suspensi': 'bi-truck', 'iluminaci': 'bi-lightbulb'
     };
     const colores = ['blue', 'green', 'orange', 'cyan', 'purple'];
-    if (categorias.length === 0) {
-        grid.innerHTML = `<div class="col-12 text-center py-5 text-muted"><i class="bi bi-tag display-4 d-block mb-3"></i>No hay categorías. Crea la primera.</div>`;
+
+    if (lista.length === 0) {
+        grid.innerHTML = `<div class="col-12 text-center py-5 text-muted"><i class="bi bi-tag display-4 d-block mb-3"></i>No hay categorías de ${esProducto ? 'productos' : 'servicios'}. Crea la primera.</div>`;
         return;
     }
-    grid.innerHTML = categorias.map((cat, i) => {
+
+    grid.innerHTML = lista.map((cat, i) => {
         const key = cat.nombre.toLowerCase();
         const iconKey = Object.keys(iconos).find(k => key.includes(k));
-        const icono = iconKey ? iconos[iconKey] : 'bi-tag';
+        const icono = iconKey ? iconos[iconKey] : (esProducto ? 'bi-tag' : 'bi-gear-fill');
         const color = colores[i % colores.length];
-        const total = productos.filter(p => p.categoria?.id === cat.id).length;
+        const total = esProducto
+            ? productos.filter(p => p.categoria?.id === cat.id).length
+            : servicios.filter(s => {
+                if (s.categoriaServicio?.id) return s.categoriaServicio.id === cat.id;
+                return (s.categoria || '').trim().toLowerCase() === cat.nombre.trim().toLowerCase();
+            }).length;
+
+        const tipoItem = esProducto ? 'PRODUCTO' : 'SERVICIO';
+        const labelItem = esProducto ? 'productos' : 'servicios';
+
         return `<div class="col-sm-6 col-lg-3 d-flex">
             <div class="admin-card category-card p-4 text-center h-100 d-flex flex-column">
                 <div class="kpi-icon ${color} mx-auto mb-3" style="width:52px;height:52px;font-size:1.4rem;"><i class="bi ${icono}"></i></div>
-                <h6 class="fw-bold mb-1">${cat.nombre}</h6>
+                <h6 class="fw-bold mb-1">${escaparHtml(cat.nombre)}</h6>
                 <div class="text-primary fw-bold fs-5 mb-0">${total}</div>
-                <span class="fw-bold text-uppercase" style="color: var(--color-celeste, #0284c7); font-size: 0.75rem; letter-spacing: 0.5px;">productos</span>
-                <p class="category-description text-muted small mt-2 mb-2 flex-grow-1" style="text-align: justify; text-justify: inter-word;">${cat.descripcion || ''}</p>
+                <span class="fw-bold text-uppercase" style="color: var(--color-celeste, #0284c7); font-size: 0.75rem; letter-spacing: 0.5px;">${labelItem}</span>
+                <p class="category-description text-muted small mt-2 mb-2 flex-grow-1" style="text-align: justify; text-justify: inter-word;">${escaparHtml(cat.descripcion || '')}</p>
                 <div class="d-flex gap-2 mt-auto pt-2 card-actions w-100">
-                    <button class="btn btn-sm btn-outline-primary btn-editar-cat flex-fill" onclick="abrirEditarCategoria(${cat.id})"><i class="bi bi-pencil me-1"></i>Editar</button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarCategoria(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}')"><i class="bi bi-trash"></i></button>
+                    <button class="btn btn-sm btn-outline-primary btn-editar-cat flex-fill" onclick="abrirEditarCategoria(${cat.id}, '${tipoItem}')"><i class="bi bi-pencil me-1"></i>Editar</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarCategoria(${cat.id}, '${cat.nombre.replace(/'/g, "\\'")}', '${tipoItem}')"><i class="bi bi-trash"></i></button>
                 </div>
             </div>
         </div>`;
@@ -262,7 +309,7 @@ function actualizarOpcionesSelect(selectId, opcionesHtml) {
 
 // Actualiza selects relacionados con categorías (producto y filtro)
 function actualizarSelectCategorias() {
-    const listaCatHtml = categorias.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+    const listaCatHtml = categoriasProductos.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
     actualizarOpcionesSelect('prodCategoria', '<option value="">Seleccionar...</option>' + listaCatHtml);
     actualizarOpcionesSelect('filterCategoria', '<option value="">Todas las categorías</option>' + listaCatHtml);
     if (_filtrosProductosMemoria && _filtrosProductosMemoria.categoria) {
@@ -274,23 +321,29 @@ function actualizarSelectCategorias() {
     }
 }
 
-// Abre modal para crear una nueva categoría
+// Abre modal para crear una nueva categoría preseleccionando el tipo activo
 function abrirNuevaCategoria() {
     categoriaEdit = null;
     document.getElementById('catNombre').value = '';
     document.getElementById('catDescripcion').value = '';
-    document.getElementById('modalCategoriaTitulo').textContent = 'Nueva Categoría';
+    const selTipo = document.getElementById('catTipo');
+    if (selTipo) selTipo.value = tipoCategoriaActiva;
+    document.getElementById('modalCategoriaTitulo').innerHTML = `<i class="bi bi-tag me-2"></i>Nueva Categoría de ${tipoCategoriaActiva === 'PRODUCTO' ? 'Producto' : 'Servicio'}`;
     new bootstrap.Modal(document.getElementById('modalCategoria')).show();
 }
 
-// Abre modal para editar una categoría existente y precarga sus datos
-function abrirEditarCategoria(id) {
-    const cat = categorias.find(c => c.id === id);
+// Abre modal para editar una categoría existente
+function abrirEditarCategoria(id, tipo) {
+    const esServ = (tipo || tipoCategoriaActiva) === 'SERVICIO';
+    const lista = esServ ? categoriasServicios : categoriasProductos;
+    const cat = lista.find(c => c.id === id);
     if (!cat) return;
-    categoriaEdit = id;
+    categoriaEdit = { id, tipo: esServ ? 'SERVICIO' : 'PRODUCTO' };
     document.getElementById('catNombre').value = cat.nombre;
     document.getElementById('catDescripcion').value = cat.descripcion || '';
-    document.getElementById('modalCategoriaTitulo').textContent = 'Editar Categoría';
+    const selTipo = document.getElementById('catTipo');
+    if (selTipo) selTipo.value = esServ ? 'SERVICIO' : 'PRODUCTO';
+    document.getElementById('modalCategoriaTitulo').innerHTML = `<i class="bi bi-pencil me-2"></i>Editar Categoría de ${esServ ? 'Servicio' : 'Producto'}`;
     new bootstrap.Modal(document.getElementById('modalCategoria')).show();
 }
 
@@ -298,13 +351,17 @@ function abrirEditarCategoria(id) {
 async function guardarCategoria() {
     const nombre = document.getElementById('catNombre').value.trim();
     const descripcion = document.getElementById('catDescripcion').value.trim();
+    const selTipo = document.getElementById('catTipo');
+    const tipo = selTipo ? selTipo.value : (categoriaEdit ? categoriaEdit.tipo : tipoCategoriaActiva);
+
     if (!nombre) {
         mostrarToast('El nombre es obligatorio', 'error');
         return;
     }
-    const body = { nombre, descripcion };
-    const url = categoriaEdit ? `${API.categorias}/${categoriaEdit}` : API.categorias;
-    const method = categoriaEdit ? 'PUT' : 'POST';
+    const body = { nombre, descripcion, tipo };
+    const id = categoriaEdit ? (typeof categoriaEdit === 'object' ? categoriaEdit.id : categoriaEdit) : null;
+    const url = id ? `${API.categorias}/${id}` : API.categorias;
+    const method = id ? 'PUT' : 'POST';
     try {
         const resp = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
         if (resp.status === 409) {
@@ -317,7 +374,8 @@ async function guardarCategoria() {
             return;
         }
         bootstrap.Modal.getInstance(document.getElementById('modalCategoria'))?.hide();
-        mostrarToast(categoriaEdit ? 'Categoría actualizada' : 'Categoría creada', 'success');
+        mostrarToast(id ? 'Categoría actualizada' : 'Categoría creada', 'success');
+        categoriaEdit = null;
         await cargarCategorias();
     } catch (e) {
         mostrarToast('Error de conexión', 'error');
@@ -388,20 +446,23 @@ function mostrarModalAccion({ titulo, mensaje, icono = 'bi-trash3', colorIcono =
     }
 }
 
-// Solicita confirmación y elimina una categoría por id
-async function eliminarCategoria(id, nombre) {
+// Solicita confirmación y elimina una categoría por id y tipo (Producto o Servicio)
+async function eliminarCategoria(id, nombre, tipo) {
+    const tipoFinal = tipo || tipoCategoriaActiva;
+    const esServ = tipoFinal === 'SERVICIO';
     mostrarModalAccion({
         titulo: '¿Confirmar eliminación?',
-        mensaje: `¿Eliminar la categoría "${nombre}"? Sus productos también serán afectados.`,
+        mensaje: `¿Eliminar la categoría "${escaparHtml(nombre)}"? Sus ${esServ ? 'servicios' : 'productos'} también podrían ser afectados.`,
         icono: 'bi-trash3',
         colorIcono: 'red',
         textoBtn: 'Eliminar',
         claseBtn: 'btn-danger',
         onConfirmar: async () => {
             try {
-                const resp = await fetch(`${API.categorias}/${id}`, { method: 'DELETE' });
+                const resp = await fetch(`${API.categorias}/${id}?tipo=${tipoFinal.toLowerCase()}`, { method: 'DELETE' });
                 if (!resp.ok) {
-                    mostrarToast('No se pudo eliminar', 'error');
+                    const err = await resp.json();
+                    mostrarToast(err.error || 'No se pudo eliminar', 'error');
                     return;
                 }
                 bootstrap.Modal.getInstance(document.getElementById('modalEliminar'))?.hide();
@@ -770,19 +831,27 @@ async function cargarServicios() {
     }
 }
 
-// Extrae dinámicamente las categorías únicas presentes en los servicios y actualiza el select desplegable
+// Actualiza el desplegable de filtro de categorías de servicio con las categorías normalizadas en 3FN
 function actualizarSelectCategoriasServicio(servicios) {
-    if (!Array.isArray(servicios)) return;
     const catSet = new Set();
-    servicios
-        .filter(s => s && s.nombre && !s.nombre.toLowerCase().includes('personalizad'))
-        .forEach(s => {
-            const cat = (s.categoria || '').trim();
-            if (cat) catSet.add(cat);
+    if (Array.isArray(categoriasServicios)) {
+        categoriasServicios.forEach(cs => {
+            if (cs && cs.nombre && !cs.nombre.toLowerCase().includes('personalizad')) {
+                catSet.add(cs.nombre.trim());
+            }
         });
+    }
+    if (Array.isArray(servicios)) {
+        servicios
+            .filter(s => s && s.nombre && !s.nombre.toLowerCase().includes('personalizad'))
+            .forEach(s => {
+                const cat = (s.categoria || '').trim();
+                if (cat) catSet.add(cat);
+            });
+    }
     const categoriasOrdenadas = Array.from(catSet).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
     const opcionesHtml = '<option value="">Todas las categorías</option>' +
-        categoriasOrdenadas.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+        categoriasOrdenadas.map(c => `<option value="${escaparHtml(c)}">${escaparHtml(c)}</option>`).join('');
     actualizarOpcionesSelect('filterCategoriaServicio', opcionesHtml);
 }
 

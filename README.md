@@ -119,7 +119,7 @@ A continuación se desglosan todos los recursos de configuración, datos SQL, es
 | Módulo / Carpeta | Archivo / Recurso | Tipo de Archivo | Descripción y Función en la Aplicación |
 | :--- | :--- | :--- | :--- |
 | **Configuración** | `application.properties` | Configuración Spring | Define el puerto, credenciales de conexión a MySQL (`ricar_autoboutique`), `ddl-auto=update`, tiempo de sesión HTTP (20m) y clave secreta del JWT. |
-| **`data`** | `mecatools.sql` | Script SQL | Script para inicializar y reiniciar la base de datos en MySQL con explicación de la normalización en 1FN, 2FN y 3FN, y consultas de auditoría por tabla. |
+| **`data`** | `ricar_autoboutique.sql` | Script SQL | Script para inicializar y reiniciar la base de datos en MySQL con explicación de la normalización en 1FN, 2FN y 3FN, y consultas de auditoría por tabla. |
 | **`data/postman`** | `*.json`, `endpoints.md` | JSON / Markdown | Colecciones de prueba con datos iniciales de usuarios, categorías, productos y catálogo de endpoints para pruebas de API en Postman o Thunder Client. |
 | **`static/css`** | `global.css` | Hoja de estilo CSS | Estilos globales, variables de color temáticas (modo oscuro/claro), tipografías, navbar flotante, footer, badges, botones y modales reutilizables. |
 | **`static/css/navbar`** | `contacto.css` | Hoja de estilo CSS | Estilos para la página de contacto: tarjetas de sucursales, formulario de consultas y mapas de atención. |

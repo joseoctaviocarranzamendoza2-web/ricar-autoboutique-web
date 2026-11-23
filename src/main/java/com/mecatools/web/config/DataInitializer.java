@@ -1,9 +1,11 @@
 package com.mecatools.web.config;
 
+import com.mecatools.web.models.CategoriaServicio;
 import com.mecatools.web.models.Cita;
 import com.mecatools.web.models.Rol;
 import com.mecatools.web.models.Servicio;
 import com.mecatools.web.models.Usuario;
+import com.mecatools.web.repositories.CategoriaServicioRepository;
 import com.mecatools.web.repositories.CitaRepository;
 import com.mecatools.web.repositories.RolRepository;
 import com.mecatools.web.repositories.ServicioRepository;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -21,13 +24,16 @@ public class DataInitializer implements CommandLineRunner {
     private final UsuarioRepository usuarioRepository;
     private final ServicioRepository servicioRepository;
     private final CitaRepository citaRepository;
+    private final CategoriaServicioRepository categoriaServicioRepository;
 
     public DataInitializer(RolRepository rolRepository, UsuarioRepository usuarioRepository,
-                           ServicioRepository servicioRepository, CitaRepository citaRepository) {
+                           ServicioRepository servicioRepository, CitaRepository citaRepository,
+                           CategoriaServicioRepository categoriaServicioRepository) {
         this.rolRepository = rolRepository;
         this.usuarioRepository = usuarioRepository;
         this.servicioRepository = servicioRepository;
         this.citaRepository = citaRepository;
+        this.categoriaServicioRepository = categoriaServicioRepository;
     }
 
     @Override
@@ -36,6 +42,9 @@ public class DataInitializer implements CommandLineRunner {
         Rol rolCliente = obtenerOCrearRol("cliente");
         Rol rolAdmin = obtenerOCrearRol("administrador");
         Rol rolGerente = obtenerOCrearRol("gerente");
+
+        // Normalización en 3FN: Inicializa y garantiza las categorías de servicios
+        inicializarCategoriasServicios();
 
         // Garantiza la existencia del servicio "Personalizado" para solicitudes especiales
         Servicio servPersonalizado = servicioRepository.findAll().stream()
@@ -66,6 +75,17 @@ public class DataInitializer implements CommandLineRunner {
             servicioRepository.save(servPersonalizado);
         }
 
+        // Sincroniza y normaliza las relaciones de todos los servicios existentes con CategoriaServicio (3FN)
+        List<Servicio> servicios = servicioRepository.findAll();
+        for (Servicio s : servicios) {
+            if (s.getCategoriaServicio() == null && s.getCategoria() != null && !s.getCategoria().isBlank()) {
+                CategoriaServicio cs = categoriaServicioRepository.findByNombreIgnoreCase(s.getCategoria().trim())
+                        .orElseGet(() -> categoriaServicioRepository.save(new CategoriaServicio(s.getCategoria().trim(), "Categoría de servicio: " + s.getCategoria().trim())));
+                s.setCategoriaServicio(cs);
+                servicioRepository.save(s);
+            }
+        }
+
         // Corrige citas existentes generadas desde el modal personalizado para asociarlas al servicio "Personalizado"
         List<Cita> citas = citaRepository.findAll();
         for (Cita c : citas) {
@@ -78,8 +98,7 @@ public class DataInitializer implements CommandLineRunner {
             }
         }
 
-        // Sincroniza y correlaciona usuarios existentes con la tabla de unión
-        // usuario_rol
+        // Sincroniza y correlaciona usuarios existentes con la tabla de unión usuario_rol (3FN)
         List<Usuario> usuarios = usuarioRepository.findAll();
         for (Usuario u : usuarios) {
             String rolStr = (u.getRol() != null ? u.getRol() : "").toLowerCase();
@@ -121,5 +140,22 @@ public class DataInitializer implements CommandLineRunner {
     private Rol obtenerOCrearRol(String nombre) {
         return rolRepository.findByNombreIgnoreCase(nombre)
                 .orElseGet(() -> rolRepository.save(new Rol(nombre.toLowerCase())));
+    }
+
+    private void inicializarCategoriasServicios() {
+        Map<String, String> categoriasBase = Map.of(
+                "Lubricación", "Cambio de aceite, fluidos y lubricación integral del motor y caja",
+                "Mantenimiento", "Mantenimiento preventivo, afinamiento y revisión general de sistemas",
+                "Diagnóstico", "Escaneo computarizado OBD2, pruebas de sensores y diagnóstico electrónico",
+                "Electricidad", "Baterías, alternador, sistema de arranque, iluminación y cableado",
+                "Seguridad", "Frenos, suspensión, dirección, amortiguadores, alineación y balanceo",
+                "Personalizado", "Servicio a medida según cotización y diagnóstico personalizado"
+        );
+
+        for (Map.Entry<String, String> entry : categoriasBase.entrySet()) {
+            if (categoriaServicioRepository.findByNombreIgnoreCase(entry.getKey()).isEmpty()) {
+                categoriaServicioRepository.save(new CategoriaServicio(entry.getKey(), entry.getValue()));
+            }
+        }
     }
 }

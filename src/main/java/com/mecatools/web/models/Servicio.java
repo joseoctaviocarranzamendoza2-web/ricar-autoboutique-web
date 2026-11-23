@@ -30,10 +30,33 @@ public class Servicio {
     @Column(nullable = false)
     private String nombre;
 
-    // Categoría textual del servicio
-    @NotBlank(message = "La categoría no puede estar vacía")
-    @Column(nullable = false)
+    // Relación ManyToOne con la entidad CategoriaServicio (Normalización en 3FN)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_categoria_servicio", nullable = true)
+    private CategoriaServicio categoriaServicio;
+
+    // Nombre de la categoría para sincronización y retrocompatibilidad
+    @Column(name = "categoria", nullable = true)
     private String categoria;
+
+    // Retorna el nombre de la categoría normalizada o el valor en texto
+    public String getCategoria() {
+        if (categoriaServicio != null && categoriaServicio.getNombre() != null) {
+            return categoriaServicio.getNombre();
+        }
+        return (categoria != null && !categoria.isBlank()) ? categoria : "";
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
+    }
+
+    public void setCategoriaServicio(CategoriaServicio categoriaServicio) {
+        this.categoriaServicio = categoriaServicio;
+        if (categoriaServicio != null && categoriaServicio.getNombre() != null) {
+            this.categoria = categoriaServicio.getNombre();
+        }
+    }
 
     // Precio base del servicio
     @NotNull(message = "El precio base no puede estar vacío")

@@ -1,4 +1,4 @@
-﻿<!-- Panel de administración protegido por Spring Security: Solo accede el rol "administrador" validado en PaginaController.java con Authentication + UsuarioDetails -->
+<!-- Panel de administración protegido por Spring Security: Solo accede el rol "administrador" validado en PaginaController.java con Authentication + UsuarioDetails -->
 <!DOCTYPE html>
 <!-- Thymeleaf requiere el namespace xmlns:th para habilitar directivas th:href, th:src y th:text en todo el documento -->
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
@@ -13,7 +13,7 @@
     <!-- global.css: Estilos compartidos entre todos los roles; incluye variables CSS (--azul-oscuro, --celeste), navbar, y utilidades de sesión visual -->
     <link rel="stylesheet" th:href="@{/css/global.css(v='2.3')}">
     <!-- administrador.css: Estilos exclusivos del panel admin; define sidebar, topbar, admin-card, kpi-card, status-badge, product-admin-card, service-admin-card y admin-table -->
-    <link rel="stylesheet" th:href="@{/css/roles/administrador.css(v='6.6')}">
+    <link rel="stylesheet" th:href="@{/css/roles/administrador.css(v='6.7')}">
     <!-- Favicon del sitio -->
     <link rel="icon" th:href="@{/img/icono/icon.png}" type="image/png">
     <script th:inline="javascript">
@@ -334,17 +334,25 @@
                 </div>
             </div>
         </section>
-        <!-- Sección de Categorías: Carga vía cargarCategorias() consumiendo GET /api/categorias; cada tarjeta muestra ícono auto-detectado, conteo de productos asociados, descripción y botones de edición/eliminación con control de nombre duplicado (409 Conflict) -->
+        <!-- Sección de Categorías: Carga vía cargarCategorias() consumiendo GET /api/categorias; separada en 2 para Productos y Servicios normalizados en 3FN -->
         <section id="sec-categorias" class="admin-section">
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
                 <div class="d-flex flex-column align-items-start gap-2">
                     <span class="section-tag">CATÁLOGO - CATEGORÍAS</span>
-                    <!-- infoCategorias muestra el conteo de categorías activas, actualizado por renderCategorias() en administrador.js cada vez que se crea, edita o elimina una categoría -->
+                    <!-- infoCategorias muestra el conteo de categorías activas según el filtro seleccionado -->
                     <small class="section-subtitle" id="infoCategorias">Cargando...</small>
                 </div>
-                <button class="btn btn-admin-nuevo fw-semibold" onclick="this.blur(); abrirNuevaCategoria()"><i class="bi bi-plus-lg me-2"></i>Nueva Categoría</button>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <button type="button" class="btn btn-filtro-categoria active" id="btnFiltroCatProductos" onclick="cambiarFiltroCategoria('PRODUCTO'); this.blur();">
+                        <i class="bi bi-box-seam me-1"></i>Productos
+                    </button>
+                    <button type="button" class="btn btn-filtro-categoria" id="btnFiltroCatServicios" onclick="cambiarFiltroCategoria('SERVICIO'); this.blur();">
+                        <i class="bi bi-gear-fill me-1"></i>Servicios
+                    </button>
+                    <button type="button" class="btn btn-admin-nuevo fw-semibold" onclick="this.blur(); abrirNuevaCategoria()"><i class="bi bi-plus-lg me-2"></i>Nueva Categoría</button>
+                </div>
             </div>
-            <!-- gridCategorias: Renderizado por renderCategorias() en administrador.js; cada tarjeta usa un color rotativo y un ícono por keyword del nombre; el conteo de productos se obtiene de cat.productos.length del JSON anidado de la API -->
+            <!-- gridCategorias: Renderizado por renderCategorias() en administrador.js -->
             <div class="row g-3" id="gridCategorias">
                 <div class="col-12 text-center py-5 text-muted">
                     <div class="spinner-border spinner-border-sm me-2"></div>Cargando categorías...
@@ -675,6 +683,13 @@
                 </div>
                 <div class="modal-body">
                     <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Tipo de Categoría</label>
+                            <select id="catTipo" class="form-select">
+                                <option value="PRODUCTO">Categoría de Productos</option>
+                                <option value="SERVICIO">Categoría de Servicios</option>
+                            </select>
+                        </div>
                         <div class="col-12">
                             <label class="form-label small fw-semibold">Nombre</label>
                             <input type="text" id="catNombre" class="form-control" placeholder="Nombre de la categoría" maxlength="50">
@@ -1082,7 +1097,7 @@
     <!-- global.js: Define obtenerSesion(), guardarSesion(), cerrarSesion(), actualizarNavbar(), abrirModal(), limpiarBackdropsSobrantes() y otras utilidades compartidas entre todos los roles; debe cargarse antes de administrador.js -->
     <script th:src="@{/js/global.js(v='2.8')}"></script>
     <!-- administrador.js: Lógica principal del panel; valida el rol "administrador" en sessionStorage al cargar, realiza todas las llamadas a la API REST (/api/categorias, /api/productos, /api/servicios, /api/citas, /api/usuarios, /api/compras) y gestiona el estado de la SPA -->
-    <script th:src="@{/js/roles/administrador.js(v='4.8')}"></script>
+    <script th:src="@{/js/roles/administrador.js(v='4.9')}"></script>
     <!-- Activa la sección correspondiente según la URL solicitada al servidor o memoria local -->
     <script th:inline="javascript">
         /*<![CDATA[*/

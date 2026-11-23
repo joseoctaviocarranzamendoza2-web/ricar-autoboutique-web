@@ -2267,11 +2267,12 @@ textarea.form-control {
 }
 
 /* ========================================================
-   BOTONES DE FILTRO Y ACCIÓN DE MENSAJES (Pendiente, Respondido, Actualizar)
+   BOTONES DE FILTRO Y ACCIÓN DE MENSAJES Y CATEGORÍAS (Pendiente, Respondido, Productos, Servicios, Actualizar)
    Hover: Borde celeste institucional (#56aee8)
    Seleccionado / Clic (.active, :active): Fondo celeste institucional (#56aee8), borde celeste, letra e icono blanco (#ffffff)
    ======================================================== */
-.btn-filtro-mensaje {
+.btn-filtro-mensaje,
+.btn-filtro-categoria {
     background-color: #ffffff !important;
     border: 1.5px solid #dce6f0 !important;
     color: #374151 !important;
@@ -2291,13 +2292,16 @@ textarea.form-control {
     white-space: nowrap;
 }
 
-.btn-filtro-mensaje i {
+.btn-filtro-mensaje i,
+.btn-filtro-categoria i {
     color: inherit;
     transition: color 0.18s ease;
 }
 
 .btn-filtro-mensaje:hover,
-.btn-filtro-mensaje:focus {
+.btn-filtro-mensaje:focus,
+.btn-filtro-categoria:hover,
+.btn-filtro-categoria:focus {
     background-color: #ffffff !important;
     border-color: var(--color-celeste, #56aee8) !important;
     color: var(--color-azul-oscuro, #0a3d6b) !important;
@@ -2305,7 +2309,9 @@ textarea.form-control {
 }
 
 .btn-filtro-mensaje:hover i,
-.btn-filtro-mensaje:focus i {
+.btn-filtro-mensaje:focus i,
+.btn-filtro-categoria:hover i,
+.btn-filtro-categoria:focus i {
     color: var(--color-azul-oscuro, #0a3d6b) !important;
 }
 
@@ -2313,7 +2319,12 @@ textarea.form-control {
 .btn-filtro-mensaje.active,
 .btn-filtro-mensaje.active:hover,
 .btn-filtro-mensaje.active:focus,
-.btn-filtro-mensaje.active:active {
+.btn-filtro-mensaje.active:active,
+.btn-filtro-categoria:active,
+.btn-filtro-categoria.active,
+.btn-filtro-categoria.active:hover,
+.btn-filtro-categoria.active:focus,
+.btn-filtro-categoria.active:active {
     background-color: var(--color-celeste, #56aee8) !important;
     border-color: var(--color-celeste, #56aee8) !important;
     color: #ffffff !important;
@@ -2324,7 +2335,12 @@ textarea.form-control {
 .btn-filtro-mensaje.active i,
 .btn-filtro-mensaje.active:hover i,
 .btn-filtro-mensaje.active:focus i,
-.btn-filtro-mensaje.active:active i {
+.btn-filtro-mensaje.active:active i,
+.btn-filtro-categoria:active i,
+.btn-filtro-categoria.active i,
+.btn-filtro-categoria.active:hover i,
+.btn-filtro-categoria.active:focus i,
+.btn-filtro-categoria.active:active i {
     color: #ffffff !important;
 }
 

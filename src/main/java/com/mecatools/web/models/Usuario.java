@@ -83,53 +83,127 @@ public class Usuario {
     @Column(name = "estado")
     private String estado = "Activo";
 
-    // Motivo de inhabilitación o bloqueo registrado por administración
-    @Column(name = "motivo_bloqueo", columnDefinition = "TEXT")
-    private String motivoBloqueo;
+    // Normalización en 3FN: Auditoría desacoplada en tabla usuario_auditoria (evita sobrecargar la tabla usuario con campos LOB)
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private UsuarioAuditoria auditoria;
 
-    // Evidencia opcional (imagen) adjuntada al inhabilitar
-    @Column(name = "evidencia_bloqueo", columnDefinition = "MEDIUMTEXT")
-    private String evidenciaBloqueo;
+    // Helper para asegurar la existencia de la entidad de auditoría
+    private UsuarioAuditoria asegurarAuditoria() {
+        if (this.auditoria == null) {
+            this.auditoria = new UsuarioAuditoria();
+            this.auditoria.setUsuario(this);
+        }
+        return this.auditoria;
+    }
 
-    // Fecha y hora en la que se inhabilitó la cuenta
-    @Column(name = "fecha_bloqueo")
-    private java.time.LocalDateTime fechaBloqueo;
+    public UsuarioAuditoria getAuditoria() {
+        return this.auditoria;
+    }
 
-    // Mensaje de apelación enviado por el cliente para solicitar reactivación
-    @Column(name = "mensaje_apelacion", columnDefinition = "TEXT")
-    private String mensajeApelacion;
+    public void setAuditoria(UsuarioAuditoria auditoria) {
+        this.auditoria = auditoria;
+        if (auditoria != null) {
+            auditoria.setUsuario(this);
+        }
+    }
 
-    // Fecha y hora del envío de la última apelación
-    @Column(name = "fecha_apelacion")
-    private java.time.LocalDateTime fechaApelacion;
+    // Getters y Setters delegados para retrocompatibilidad total y serialización JSON sin sobrecargar la entidad base
+    public String getMotivoBloqueo() {
+        return auditoria != null ? auditoria.getMotivoBloqueo() : null;
+    }
 
-    // Estado de la apelación: PENDIENTE, RESPONDIDO, null
-    @Column(name = "estado_apelacion")
-    private String estadoApelacion;
+    public void setMotivoBloqueo(String motivoBloqueo) {
+        asegurarAuditoria().setMotivoBloqueo(motivoBloqueo);
+    }
 
-    // Respuesta o resolución de la administración frente a la apelación
-    @Column(name = "respuesta_apelacion", columnDefinition = "TEXT")
-    private String respuestaApelacion;
+    public String getEvidenciaBloqueo() {
+        return auditoria != null ? auditoria.getEvidenciaBloqueo() : null;
+    }
 
-    // Evidencia opcional adjuntada en la respuesta de administración
-    @Column(name = "evidencia_respuesta", columnDefinition = "MEDIUMTEXT")
-    private String evidenciaRespuesta;
+    public void setEvidenciaBloqueo(String evidenciaBloqueo) {
+        asegurarAuditoria().setEvidenciaBloqueo(evidenciaBloqueo);
+    }
 
-    // Fecha y hora de la respuesta de administración
-    @Column(name = "fecha_respuesta_apelacion")
-    private java.time.LocalDateTime fechaRespuestaApelacion;
+    public java.time.LocalDateTime getFechaBloqueo() {
+        return auditoria != null ? auditoria.getFechaBloqueo() : null;
+    }
 
-    // Mensaje o resolución de habilitación de la cuenta
-    @Column(name = "mensaje_habilitacion", columnDefinition = "TEXT")
-    private String mensajeHabilitacion;
+    public void setFechaBloqueo(java.time.LocalDateTime fechaBloqueo) {
+        asegurarAuditoria().setFechaBloqueo(fechaBloqueo);
+    }
 
-    // Evidencia opcional adjuntada al momento de habilitar la cuenta
-    @Column(name = "evidencia_habilitacion", columnDefinition = "MEDIUMTEXT")
-    private String evidenciaHabilitacion;
+    public String getMensajeApelacion() {
+        return auditoria != null ? auditoria.getMensajeApelacion() : null;
+    }
 
-    // Fecha y hora en la que se habilitó la cuenta
-    @Column(name = "fecha_habilitacion")
-    private java.time.LocalDateTime fechaHabilitacion;
+    public void setMensajeApelacion(String mensajeApelacion) {
+        asegurarAuditoria().setMensajeApelacion(mensajeApelacion);
+    }
+
+    public java.time.LocalDateTime getFechaApelacion() {
+        return auditoria != null ? auditoria.getFechaApelacion() : null;
+    }
+
+    public void setFechaApelacion(java.time.LocalDateTime fechaApelacion) {
+        asegurarAuditoria().setFechaApelacion(fechaApelacion);
+    }
+
+    public String getEstadoApelacion() {
+        return auditoria != null ? auditoria.getEstadoApelacion() : null;
+    }
+
+    public void setEstadoApelacion(String estadoApelacion) {
+        asegurarAuditoria().setEstadoApelacion(estadoApelacion);
+    }
+
+    public String getRespuestaApelacion() {
+        return auditoria != null ? auditoria.getRespuestaApelacion() : null;
+    }
+
+    public void setRespuestaApelacion(String respuestaApelacion) {
+        asegurarAuditoria().setRespuestaApelacion(respuestaApelacion);
+    }
+
+    public String getEvidenciaRespuesta() {
+        return auditoria != null ? auditoria.getEvidenciaRespuesta() : null;
+    }
+
+    public void setEvidenciaRespuesta(String evidenciaRespuesta) {
+        asegurarAuditoria().setEvidenciaRespuesta(evidenciaRespuesta);
+    }
+
+    public java.time.LocalDateTime getFechaRespuestaApelacion() {
+        return auditoria != null ? auditoria.getFechaRespuestaApelacion() : null;
+    }
+
+    public void setFechaRespuestaApelacion(java.time.LocalDateTime fechaRespuestaApelacion) {
+        asegurarAuditoria().setFechaRespuestaApelacion(fechaRespuestaApelacion);
+    }
+
+    public String getMensajeHabilitacion() {
+        return auditoria != null ? auditoria.getMensajeHabilitacion() : null;
+    }
+
+    public void setMensajeHabilitacion(String mensajeHabilitacion) {
+        asegurarAuditoria().setMensajeHabilitacion(mensajeHabilitacion);
+    }
+
+    public String getEvidenciaHabilitacion() {
+        return auditoria != null ? auditoria.getEvidenciaHabilitacion() : null;
+    }
+
+    public void setEvidenciaHabilitacion(String evidenciaHabilitacion) {
+        asegurarAuditoria().setEvidenciaHabilitacion(evidenciaHabilitacion);
+    }
+
+    public java.time.LocalDateTime getFechaHabilitacion() {
+        return auditoria != null ? auditoria.getFechaHabilitacion() : null;
+    }
+
+    public void setFechaHabilitacion(java.time.LocalDateTime fechaHabilitacion) {
+        asegurarAuditoria().setFechaHabilitacion(fechaHabilitacion);
+    }
 
     // Fecha de registro del usuario usada en reportes semanales, mensuales y anuales
     @Column(name = "fecha_registro")

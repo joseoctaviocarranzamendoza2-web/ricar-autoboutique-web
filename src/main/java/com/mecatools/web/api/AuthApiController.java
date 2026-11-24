@@ -28,7 +28,7 @@ import java.util.Optional;
  * mientras permanezcan activos en la plataforma.
  */
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping({"/api/auth", "/api/usuarios"})
 public class AuthApiController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthApiController.class);
@@ -100,7 +100,7 @@ public class AuthApiController {
                         .body(Map.of("error", "Sujeto no válido en Refresh Token"));
             }
 
-            Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
+            Optional<Usuario> usuarioOpt = usuarioRepository.findByEmailIgnoreCase(email);
             if (usuarioOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("error", "Usuario no encontrado"));

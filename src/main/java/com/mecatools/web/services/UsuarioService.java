@@ -40,9 +40,14 @@ public class UsuarioService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // Método para listar todos los clientes (incluye a administradores y gerentes que también tienen el rol de cliente)
+    // Método para listar usuarios (incluye clientes, administradores y gerentes para control de privilegios)
+    // Ordena de forma descendente por ID: El último usuario registrado se muestra primero en la lista
     public List<Usuario> listarClientes() {
-        return usuarioRepository.findByRol("cliente");
+        List<Usuario> usuarios = usuarioRepository.findAllByOrderByIdDesc();
+        for (Usuario u : usuarios) {
+            verificarYActualizarExpiracionPrivilegio(u);
+        }
+        return usuarios;
     }
 
     // Método para obtener un usuario por su ID. Devuelve un Optional que puede estar vacío si no se encuentra el usuario.
@@ -72,10 +77,11 @@ public class UsuarioService {
         if (usuarioRepository.existsByEmailIgnoreCase(usuario.getEmail())) {
             throw new IllegalStateException("Email ya registrado");
         }
-        String rolPedido = usuario.getRol();
-        if (rolPedido == null || rolPedido.isBlank()) {
-            rolPedido = "cliente";
-        }
+        // El autoregistro público asigna estrictamente el rol base de cliente
+        usuario.setRol("cliente");
+        usuario.setPrivilegioIndefinido(true);
+        usuario.setDuracionPrivilegio("Indefinido");
+        String rolPedido = "cliente";
         if (usuario.getCiudad() == null || usuario.getCiudad().isBlank()) {
             usuario.setCiudad("Trujillo");
         }
@@ -326,6 +332,103 @@ public class UsuarioService {
             compraRepository.deleteAll(compras);
         }
         usuarioRepository.deleteById(id);
+    }
+
+    // Tarea programada en segundo plano que revisa periódicamente privilegios vencidos y los revierte a cliente
+    @org.springframework.scheduling.annotation.Scheduled(fixedRate = 60000)
+    @Transactional
+    public void revisarYExpirarPrivilegios() {
+        List<Usuario> usuarios = usuarioRepository.findAll();
+        for (Usuario u : usuarios) {
+            if (!u.esGerenteSupremo() && u.tienePrivilegioVencido()) {
+                revertirACliente(u);
+            }
+        }
+    }
+
+    // Comprueba de forma inmediata si los privilegios del usuario vencieron y revierte su rol a cliente
+    @Transactional
+    public void verificarYActualizarExpiracionPrivilegio(Usuario u) {
+        if (u != null && !u.esGerenteSupremo() && u.tienePrivilegioVencido()) {
+            revertirACliente(u);
+        }
+    }
+
+    // Revoca los privilegios y revierte al usuario al rol estándar de cliente
+    @Transactional
+    public void revertirACliente(Usuario u) {
+        Rol rolCliente = rolRepository.findByNombreIgnoreCase("cliente")
+                .orElseGet(() -> rolRepository.save(new Rol("cliente")));
+        u.getRoles().clear();
+        u.getRoles().add(rolCliente);
+        u.setRol("cliente");
+        u.setPrivilegioIndefinido(true);
+        u.setFechaFinPrivilegio(null);
+        u.setDuracionPrivilegio(null);
+        usuarioRepository.save(u);
+    }
+
+    // Asignación de roles y privilegios por tiempo gestionada exclusivamente por el Gerente Supremo
+    @Transactional
+    public Usuario asignarPrivilegios(Usuario adminAuth, Long idTarget, List<String> rolesNombres,
+                                      Boolean indefinido, Integer anios, Integer meses, Integer semanas,
+                                      Integer dias, Integer horas, String duracionTexto) {
+        if (adminAuth == null || !adminAuth.esGerenteSupremo()) {
+            throw new SecurityException("Solo el Gerente Supremo puede gestionar y asignar privilegios a los usuarios");
+        }
+        Usuario target = usuarioRepository.findById(idTarget)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado"));
+
+        if (target.esGerenteSupremo()) {
+            throw new IllegalArgumentException("No se pueden alterar los privilegios de la cuenta Gerente Supremo");
+        }
+
+        if (rolesNombres == null || rolesNombres.isEmpty()) {
+            rolesNombres = List.of("cliente");
+        }
+
+        target.getRoles().clear();
+        for (String rNombre : rolesNombres) {
+            String rNorm = rNombre.trim().toLowerCase();
+            Rol rol = rolRepository.findByNombreIgnoreCase(rNorm)
+                    .orElseGet(() -> rolRepository.save(new Rol(rNorm)));
+            target.getRoles().add(rol);
+        }
+
+        // Determina el rol más alto en base a la jerarquía cliente < administrador < gerente
+        if (rolesNombres.stream().anyMatch(r -> r.equalsIgnoreCase("gerente"))) {
+            target.setRol("gerente");
+        } else if (rolesNombres.stream().anyMatch(r -> r.equalsIgnoreCase("administrador"))) {
+            target.setRol("administrador");
+        } else {
+            target.setRol("cliente");
+        }
+
+        boolean esSoloCliente = target.getRoles().size() == 1 && target.tieneRol("cliente");
+        if (esSoloCliente || Boolean.TRUE.equals(indefinido)) {
+            target.setPrivilegioIndefinido(true);
+            target.setFechaFinPrivilegio(null);
+            target.setDuracionPrivilegio("Indefinido");
+        } else {
+            target.setPrivilegioIndefinido(false);
+            int y = anios != null ? Math.max(0, anios) : 0;
+            int m = meses != null ? Math.max(0, meses) : 0;
+            int w = semanas != null ? Math.max(0, semanas) : 0;
+            int d = dias != null ? Math.max(0, dias) : 0;
+            int h = horas != null ? Math.max(0, horas) : 0;
+
+            java.time.LocalDateTime expira = java.time.LocalDateTime.now()
+                    .plusYears(y)
+                    .plusMonths(m)
+                    .plusWeeks(w)
+                    .plusDays(d)
+                    .plusHours(h);
+
+            target.setFechaFinPrivilegio(expira);
+            target.setDuracionPrivilegio(duracionTexto != null && !duracionTexto.isBlank() ? duracionTexto : "Temporal");
+        }
+
+        return usuarioRepository.save(target);
     }
 
     // Excepción específica para el caso 409 con datos adicionales (cantidad de citas/compras)

@@ -5,10 +5,38 @@ document.addEventListener('DOMContentLoaded', inicializarSeleccionRol);
 
 async function inicializarSeleccionRol() {
     const errorEl = document.getElementById('rolError');
-
-    // Fuente primaria: datos ya guardados en sessionStorage (no requiere llamada al servidor)
     const sesionGuardada = (typeof obtenerSesion === 'function') ? obtenerSesion() : null;
 
+    // Sincronización en tiempo real con la base de datos para privilegios y roles actualizados
+    try {
+        const resp = await fetch('/api/usuarios/roles-disponibles');
+        if (resp.status === 401) {
+            window.location.href = '/inicio';
+            return;
+        }
+        if (resp.ok) {
+            const usuario = await resp.json();
+            const roles = Array.isArray(usuario.roles)
+                ? usuario.roles
+                    .map(function(rol) { return String(rol).toLowerCase(); })
+                    .filter(function(rol) { return ['cliente', 'administrador', 'gerente'].indexOf(rol) !== -1; })
+                : [];
+
+            if (roles.length > 0) {
+                sesionActual = Object.assign({}, sesionGuardada || {}, usuario, {
+                    id: Number(usuario.id),
+                    roles: roles
+                });
+                guardarSesion(sesionActual);
+                configurarUI(roles, errorEl);
+                return;
+            }
+        }
+    } catch (e) {
+        console.warn('No se pudo sincronizar en vivo con el servidor. Usando datos locales de sesión.', e);
+    }
+
+    // Fallback: usar datos guardados en sessionStorage si el servidor no responde
     if (sesionGuardada && sesionGuardada.id &&
         Array.isArray(sesionGuardada.roles) && sesionGuardada.roles.length > 0) {
 
@@ -23,46 +51,10 @@ async function inicializarSeleccionRol() {
         }
         sesionActual.roles = roles;
         configurarUI(roles, errorEl);
-
-        // Sincronizacion silenciosa con servidor (no bloquea la UI)
-        sincronizarConServidor().catch(function() {
-            console.warn('No se pudo sincronizar roles con el servidor. Usando datos locales.');
-        });
         return;
     }
 
-    // Fallback: sin sessionStorage, intentar via JWT
-    try {
-        const resp = await fetch('/api/usuarios/roles-disponibles');
-        if (resp.status === 401) {
-            window.location.href = '/inicio';
-            return;
-        }
-        if (!resp.ok) {
-            throw new Error('No se pudieron cargar tus roles. Intenta de nuevo mas tarde.');
-        }
-
-        const usuario = await resp.json();
-        const roles = Array.isArray(usuario.roles)
-            ? usuario.roles
-                .map(function(rol) { return String(rol).toLowerCase(); })
-                .filter(function(rol) { return ['cliente', 'administrador', 'gerente'].indexOf(rol) !== -1; })
-            : [];
-
-        if (!Number.isSafeInteger(Number(usuario.id)) || Number(usuario.id) <= 0 || roles.length === 0) {
-            throw new Error('La cuenta no tiene roles de acceso validos. Contacta con soporte.');
-        }
-
-        sesionActual = Object.assign({}, sesionGuardada || {}, usuario, {
-            id: Number(usuario.id),
-            roles: roles
-        });
-
-        configurarUI(roles, errorEl);
-    } catch (error) {
-        console.error('Error al inicializar la seleccion de rol:', error);
-        mostrarError(errorEl, error.message || 'No se pudo cargar la seleccion de roles.');
-    }
+    window.location.href = '/inicio';
 }
 
 async function sincronizarConServidor() {

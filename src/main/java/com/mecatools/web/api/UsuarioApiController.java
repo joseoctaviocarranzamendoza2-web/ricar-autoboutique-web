@@ -46,6 +46,8 @@ public class UsuarioApiController {
             return ResponseEntity.badRequest().body(Map.of("error", msg));
         }
         try {
+            // Seguridad: El autoregistro público asigna únicamente el rol base de cliente
+            usuario.setRol("cliente");
             Usuario guardado = usuarioService.registrar(usuario);
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                     "id", guardado.getId(),
@@ -79,15 +81,63 @@ public class UsuarioApiController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "No autenticado"));
         }
         Usuario u = details.getUsuario();
-        return ResponseEntity.ok(Map.of(
-                "id", u.getId(),
-                "nombres", u.getNombres(),
-                "apellidos", u.getApellidos(),
-                "rolActual", u.getRol(),
-                "rolBase", u.getRolBase(),
-                "roles", u.getNombresRoles(),
-                "estado", u.getEstado()
-        ));
+        usuarioService.verificarYActualizarExpiracionPrivilegio(u);
+
+        Map<String, Object> resp = new java.util.LinkedHashMap<>();
+        resp.put("id", u.getId());
+        resp.put("nombres", u.getNombres());
+        resp.put("apellidos", u.getApellidos());
+        resp.put("rolActual", u.getRol());
+        resp.put("rolBase", u.getRolBase());
+        resp.put("roles", u.getNombresRoles());
+        resp.put("estado", u.getEstado());
+        resp.put("esGerenteSupremo", u.esGerenteSupremo());
+        resp.put("fechaFinPrivilegio", u.getFechaFinPrivilegio() != null ? u.getFechaFinPrivilegio().toString() : "");
+        resp.put("privilegioIndefinido", u.getPrivilegioIndefinido() != null ? u.getPrivilegioIndefinido() : true);
+        resp.put("duracionPrivilegio", u.getDuracionPrivilegio() != null ? u.getDuracionPrivilegio() : "");
+
+        return ResponseEntity.ok(resp);
+    }
+
+    // Endpoint exclusivo para el Gerente Supremo: Asignación de roles y privilegios por tiempo
+    @PutMapping("/{id}/privilegios")
+    public ResponseEntity<?> gestionarPrivilegios(@PathVariable Long id, @RequestBody Map<String, Object> body, Authentication auth) {
+        if (auth == null || !auth.isAuthenticated() || !(auth.getPrincipal() instanceof UsuarioDetails details)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "No autenticado"));
+        }
+        Usuario adminAuth = details.getUsuario();
+        if (!adminAuth.esGerenteSupremo()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Solo el Gerente Supremo puede gestionar y asignar privilegios"));
+        }
+
+        @SuppressWarnings("unchecked")
+        List<String> roles = (List<String>) body.get("roles");
+        Boolean indefinido = (Boolean) body.get("indefinido");
+        Integer anios = body.get("anios") != null ? ((Number) body.get("anios")).intValue() : 0;
+        Integer meses = body.get("meses") != null ? ((Number) body.get("meses")).intValue() : 0;
+        Integer semanas = body.get("semanas") != null ? ((Number) body.get("semanas")).intValue() : 0;
+        Integer dias = body.get("dias") != null ? ((Number) body.get("dias")).intValue() : 0;
+        Integer horas = body.get("horas") != null ? ((Number) body.get("horas")).intValue() : 0;
+        String duracionTexto = (String) body.get("duracionTexto");
+
+        try {
+            Usuario actualizado = usuarioService.asignarPrivilegios(adminAuth, id, roles, indefinido, anios, meses, semanas, dias, horas, duracionTexto);
+            Map<String, Object> resp = new java.util.LinkedHashMap<>();
+            resp.put("mensaje", "Privilegios actualizados correctamente");
+            resp.put("id", actualizado.getId());
+            resp.put("roles", actualizado.getNombresRoles());
+            resp.put("rol", actualizado.getRol());
+            resp.put("privilegioIndefinido", actualizado.getPrivilegioIndefinido() != null ? actualizado.getPrivilegioIndefinido() : true);
+            resp.put("fechaFinPrivilegio", actualizado.getFechaFinPrivilegio() != null ? actualizado.getFechaFinPrivilegio().toString() : "");
+            resp.put("duracionPrivilegio", actualizado.getDuracionPrivilegio() != null ? actualizado.getDuracionPrivilegio() : "");
+            return ResponseEntity.ok(resp);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
+        }
     }
 
     // Método para editar el perfil de un cliente existente. Valida los datos recibidos y devuelve una respuesta HTTP con el estado OK y el cliente editado, o un estado Not Found si no se encuentra el cliente.

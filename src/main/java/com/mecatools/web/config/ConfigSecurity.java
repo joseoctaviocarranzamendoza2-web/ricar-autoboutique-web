@@ -129,11 +129,11 @@ public class ConfigSecurity {
                                 "/api/comentarios", "/api/comentarios/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/roles-disponibles").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios", "/api/usuarios/**").hasAnyAuthority("administrador", "gerente")
-                        .requestMatchers(HttpMethod.PUT, "/api/usuarios", "/api/usuarios/**").hasAnyAuthority("administrador", "cliente")
+                        .requestMatchers(HttpMethod.PUT, "/api/usuarios", "/api/usuarios/**").hasAnyAuthority("administrador", "cliente", "gerente")
                         .requestMatchers(HttpMethod.PATCH, "/api/usuarios", "/api/usuarios/**").hasAnyAuthority("administrador", "gerente")
                         .requestMatchers(HttpMethod.POST, "/api/usuarios/*/responder-apelacion").hasAnyAuthority("administrador", "gerente")
                         .requestMatchers(HttpMethod.DELETE, "/api/usuarios", "/api/usuarios/**").hasAuthority("administrador")
-                        .requestMatchers(HttpMethod.POST, "/api/productos", "/api/productos/**", "/api/servicios", "/api/servicios/**", "/api/categorias", "/api/categorias/**", "/api/upload/**")
+                        .requestMatchers(HttpMethod.POST, "/api/productos", "/api/productos/**", "/api/servicios", "/api/servicios/**", "/api/categorias", "/api/categorias/**")
                         .hasAnyAuthority("administrador", "gerente")
                         .requestMatchers(HttpMethod.PUT, "/api/productos", "/api/productos/**", "/api/servicios", "/api/servicios/**", "/api/categorias", "/api/categorias/**")
                         .hasAnyAuthority("administrador", "gerente")
@@ -182,7 +182,7 @@ public class ConfigSecurity {
                         .requestMatchers("/", "/inicio", "/inicio/login", "/inicio/register", "/servicios",
                                 "/servicios/login", "/servicios/register", "/productos", "/productos/login",
                                 "/productos/register", "/nosotros", "/nosotros/login", "/nosotros/register",
-                                "/contacto", "/contacto/login", "/contacto/register", "/css/**", "/js/**", "/img/**", "/uploads/**",
+                                "/contacto", "/contacto/login", "/contacto/register", "/css/**", "/js/**", "/img/**",
                                 "/api/auth/refresh", "/api/usuarios/refresh", "/api/usuarios/verificar-email")
                         .permitAll()
                         // Selección de rol: pública para que funcione aunque la sesión HTTP haya
@@ -237,6 +237,34 @@ public class ConfigSecurity {
                     Authentication authentication) throws java.io.IOException {
                 UsuarioDetails details = (UsuarioDetails) authentication.getPrincipal();
                 Usuario u = details.getUsuario();
+
+                // Verificación de dos pasos (2FA con PIN de 8 dígitos) para el Gerente Supremo
+                if (u.esGerenteSupremo()) {
+                    String pin = request.getParameter("pin");
+                    if (pin == null || pin.isBlank()) {
+                        // Credenciales iniciales válidas (correo y contraseña), se solicita el segundo paso
+                        response.setStatus(HttpStatus.OK.value());
+                        response.setContentType("application/json");
+                        response.setCharacterEncoding("UTF-8");
+                        Map<String, Object> body2FA = new LinkedHashMap<>();
+                        body2FA.put("requiere2FA", true);
+                        body2FA.put("email", u.getEmail());
+                        body2FA.put("mensaje", "Se requiere verificación en 2 pasos");
+                        objectMapper.writeValue(response.getWriter(), body2FA);
+                        return;
+                    }
+                    if (!"21112005".equals(pin.trim())) {
+                        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                        response.setContentType("application/json");
+                        response.setCharacterEncoding("UTF-8");
+                        Map<String, Object> errBody = new LinkedHashMap<>();
+                        errBody.put("status", HttpStatus.UNAUTHORIZED.value());
+                        errBody.put("error", "PIN de verificación incorrecto. Acceso denegado.");
+                        objectMapper.writeValue(response.getWriter(), errBody);
+                        return;
+                    }
+                }
+
                 String token = jwtTokenService.generarToken(u);
                 String refreshToken = jwtTokenService.generarRefreshToken(u);
 
@@ -281,6 +309,7 @@ public class ConfigSecurity {
                 body.put("rolBase", u.getRolBase());
                 body.put("roles", u.getNombresRoles());
                 body.put("estado", u.getEstado());
+                body.put("esGerenteSupremo", u.esGerenteSupremo());
                 body.put("token", token);
                 body.put("refreshToken", refreshToken);
                 body.put("tokenType", "Bearer");

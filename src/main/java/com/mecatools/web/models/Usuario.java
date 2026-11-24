@@ -67,7 +67,7 @@ public class Usuario {
     private String ciudad;
 
     // Relación ManyToMany para 3FN: Tabla de unión usuario_rol que correlaciona usuarios con múltiples roles
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
     @JoinTable(
         name = "usuario_rol",
         joinColumns = @JoinColumn(name = "usuario_id"),
@@ -82,6 +82,18 @@ public class Usuario {
     // Estado del usuario: Activo o Inactivo (controla si puede acceder al sistema)
     @Column(name = "estado")
     private String estado = "Activo";
+
+    // Fecha y hora en la que expira el privilegio asignado (si es null o privilegioIndefinido es true, no expira)
+    @Column(name = "fecha_fin_privilegio")
+    private java.time.LocalDateTime fechaFinPrivilegio;
+
+    // Indica si el privilegio otorgado es de vigencia indefinida (sin expiración)
+    @Column(name = "privilegio_indefinido")
+    private Boolean privilegioIndefinido = true;
+
+    // Descripción textual de la duración asignada (ej. "1 mes, 2 semanas, 3 días", "Indefinido")
+    @Column(name = "duracion_privilegio")
+    private String duracionPrivilegio;
 
     // Normalización en 3FN: Auditoría desacoplada en tabla usuario_auditoria (evita sobrecargar la tabla usuario con campos LOB)
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -228,16 +240,35 @@ public class Usuario {
         return "Activo".equalsIgnoreCase(getEstado());
     }
 
+    // Determina si el usuario es el Gerente Supremo (Autoridad Suprema del sistema)
+    public boolean esGerenteSupremo() {
+        return "cmjose21@gmail.com".equalsIgnoreCase(this.email);
+    }
+
+    // Determina si el privilegio temporal asignado ha expirado
+    public boolean tienePrivilegioVencido() {
+        if (esGerenteSupremo()) {
+            return false;
+        }
+        if (Boolean.TRUE.equals(this.privilegioIndefinido) || this.fechaFinPrivilegio == null) {
+            return false;
+        }
+        return java.time.LocalDateTime.now().isAfter(this.fechaFinPrivilegio);
+    }
+
     // Devuelve el rol base con el que fue creada la cuenta
     public String getRolBase() {
         return getRol();
     }
 
-    // Helper para verificar si el usuario posee un rol específico considerando la jerarquía normalizada (3FN)
+    // Helper para verificar si el usuario posee un rol específico considerando la vigencia del privilegio
     public boolean tieneRol(String nombreRol) {
         if (nombreRol == null) return false;
-        if (roles != null && roles.stream().anyMatch(r -> nombreRol.equalsIgnoreCase(r.getNombre()))) {
-            return true;
+        if (tienePrivilegioVencido()) {
+            return "cliente".equalsIgnoreCase(nombreRol);
+        }
+        if (roles != null && !roles.isEmpty()) {
+            return roles.stream().anyMatch(r -> nombreRol.equalsIgnoreCase(r.getNombre()));
         }
         if (this.rol != null) {
             String r = this.rol.toLowerCase();
@@ -245,29 +276,42 @@ public class Usuario {
             if ("administrador".equalsIgnoreCase(nombreRol)) return r.contains("admin") || r.contains("gerente");
             if ("cliente".equalsIgnoreCase(nombreRol)) return true;
         }
-        return false;
+        return "cliente".equalsIgnoreCase(nombreRol);
     }
 
-    // Devuelve los nombres de todos los roles asociados al usuario según jerarquía:
-    // Gerente: cliente, administrador, gerente (3 roles)
-    // Administrador: cliente, administrador (2 roles)
-    // Cliente: cliente (1 rol)
+    // Devuelve los nombres de todos los roles asociados al usuario según los privilegios otorgados
     public java.util.List<String> getNombresRoles() {
-        if (tieneRol("gerente") || (this.rol != null && this.rol.toLowerCase().contains("gerente"))) {
-            return java.util.List.of("cliente", "administrador", "gerente");
+        if (tienePrivilegioVencido()) {
+            return java.util.List.of("cliente");
         }
-        if (tieneRol("administrador") || (this.rol != null && this.rol.toLowerCase().contains("admin"))) {
-            return java.util.List.of("cliente", "administrador");
+        if (this.roles != null && !this.roles.isEmpty()) {
+            java.util.List<String> lista = this.roles.stream()
+                    .map(Rol::getNombre)
+                    .filter(java.util.Objects::nonNull)
+                    .map(String::toLowerCase)
+                    .distinct()
+                    .toList();
+            if (!lista.isEmpty()) {
+                return lista;
+            }
+        }
+        if (this.rol != null && !this.rol.isBlank()) {
+            String r = this.rol.toLowerCase();
+            if (r.contains("gerente")) return java.util.List.of("cliente", "administrador", "gerente");
+            if (r.contains("admin")) return java.util.List.of("cliente", "administrador");
         }
         return java.util.List.of("cliente");
     }
 
-    // Devuelve el rol principal para compatibilidad con código existente
+    // Devuelve el rol principal más alto en la jerarquía (cliente < administrador < gerente)
     public String getRol() {
-        if (tieneRol("gerente") || (this.rol != null && this.rol.toLowerCase().contains("gerente"))) {
+        if (tienePrivilegioVencido()) {
+            return "cliente";
+        }
+        if (tieneRol("gerente")) {
             return "gerente";
         }
-        if (tieneRol("administrador") || (this.rol != null && this.rol.toLowerCase().contains("admin"))) {
+        if (tieneRol("administrador")) {
             return "administrador";
         }
         return "cliente";

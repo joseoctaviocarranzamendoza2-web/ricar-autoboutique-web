@@ -15,6 +15,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     // Busca un usuario por su correo electrónico
     Optional<Usuario> findByEmail(String email);
 
+    // Busca un usuario por su correo electrónico ignorando mayúsculas y minúsculas
+    Optional<Usuario> findByEmailIgnoreCase(String email);
+
     // Verifica si un correo electrónico ya está registrado ignorando mayúsculas y minúsculas
     @Query("SELECT COUNT(u) > 0 FROM Usuario u WHERE LOWER(u.email) = LOWER(:email)")
     boolean existsByEmailIgnoreCase(@Param("email") String email);
@@ -29,5 +32,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     // Lista clientes estándar que no tienen roles de administrador ni gerente
     @Query("SELECT DISTINCT u FROM Usuario u JOIN u.roles r WHERE LOWER(r.nombre) = 'cliente' AND NOT EXISTS (SELECT r2 FROM u.roles r2 WHERE LOWER(r2.nombre) IN ('administrador', 'gerente'))")
     List<Usuario> findClientesPuros();
+
+    // Lista todos los usuarios ordenados de forma descendente por ID (el último registrado primero)
+    List<Usuario> findAllByOrderByIdDesc();
 
 }

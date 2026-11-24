@@ -11,7 +11,9 @@ import com.mecatools.web.repositories.RolRepository;
 import com.mecatools.web.repositories.ServicioRepository;
 import com.mecatools.web.repositories.UsuarioRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -25,18 +27,22 @@ public class DataInitializer implements CommandLineRunner {
     private final ServicioRepository servicioRepository;
     private final CitaRepository citaRepository;
     private final CategoriaServicioRepository categoriaServicioRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(RolRepository rolRepository, UsuarioRepository usuarioRepository,
                            ServicioRepository servicioRepository, CitaRepository citaRepository,
-                           CategoriaServicioRepository categoriaServicioRepository) {
+                           CategoriaServicioRepository categoriaServicioRepository,
+                           PasswordEncoder passwordEncoder) {
         this.rolRepository = rolRepository;
         this.usuarioRepository = usuarioRepository;
         this.servicioRepository = servicioRepository;
         this.citaRepository = citaRepository;
         this.categoriaServicioRepository = categoriaServicioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
+    @Transactional
     public void run(String... args) {
         // Garantiza la existencia de los roles normalizados en la base de datos (3FN)
         Rol rolCliente = obtenerOCrearRol("cliente");
@@ -101,12 +107,6 @@ public class DataInitializer implements CommandLineRunner {
         // Sincroniza y correlaciona usuarios existentes con la tabla de unión usuario_rol (3FN)
         List<Usuario> usuarios = usuarioRepository.findAll();
         for (Usuario u : usuarios) {
-            String rolStr = (u.getRol() != null ? u.getRol() : "").toLowerCase();
-            String email = (u.getEmail() != null ? u.getEmail() : "").toLowerCase();
-
-            boolean esGerente = rolStr.contains("gerente") || email.contains("gerente");
-            boolean esAdmin = rolStr.contains("admin") || email.contains("admin");
-
             if (u.getEstado() == null || u.getEstado().isBlank()) {
                 u.setEstado("Activo");
             }
@@ -114,26 +114,66 @@ public class DataInitializer implements CommandLineRunner {
                 u.setFechaRegistro(LocalDate.now());
             }
 
-            if (esGerente) {
-                u.getRoles().add(rolCliente);
-                u.getRoles().add(rolAdmin);
-                u.getRoles().add(rolGerente);
-                u.setRol("gerente");
-                usuarioRepository.save(u);
-            } else if (esAdmin) {
-                u.getRoles().add(rolCliente);
-                u.getRoles().add(rolAdmin);
-                u.setRol("administrador");
-                usuarioRepository.save(u);
-            } else {
-                if (u.getRoles().isEmpty()) {
+            // Si el usuario no tiene roles asignados en usuario_rol, inicializa según rol o correo
+            if (u.getRoles() == null || u.getRoles().isEmpty()) {
+                String rolStr = (u.getRol() != null ? u.getRol() : "").toLowerCase();
+                String email = (u.getEmail() != null ? u.getEmail() : "").toLowerCase();
+
+                boolean esGerente = rolStr.contains("gerente") || email.contains("gerente");
+                boolean esAdmin = rolStr.contains("admin") || email.contains("admin");
+
+                if (esGerente) {
+                    u.getRoles().add(rolCliente);
+                    u.getRoles().add(rolAdmin);
+                    u.getRoles().add(rolGerente);
+                    u.setRol("gerente");
+                } else if (esAdmin) {
+                    u.getRoles().add(rolCliente);
+                    u.getRoles().add(rolAdmin);
+                    u.setRol("administrador");
+                } else {
                     u.getRoles().add(rolCliente);
                     u.setRol("cliente");
-                    usuarioRepository.save(u);
-                } else {
-                    usuarioRepository.save(u);
                 }
+                usuarioRepository.save(u);
+            } else {
+                // Si ya tiene roles en usuario_rol, preserva todos sus roles y asegura el rol principal
+                u.setRol(u.getRol());
+                usuarioRepository.save(u);
             }
+        }
+
+        // Inicializa o actualiza la cuenta del Gerente Supremo (Autoridad Suprema del sistema con acceso a los 3 roles)
+        String emailSupremo = "cmjose21@gmail.com";
+        Usuario supremo = usuarioRepository.findByEmailIgnoreCase(emailSupremo).orElse(null);
+        if (supremo == null) {
+            supremo = new Usuario();
+            supremo.setNombres("Jose Octavio");
+            supremo.setApellidos("Carranza Mendoza");
+            supremo.setEmail(emailSupremo);
+            supremo.setPassword(passwordEncoder.encode("Octavio#21Carranza$21"));
+            supremo.setTelefono("989879878");
+            supremo.setCiudad("Trujillo");
+            supremo.setEstado("Activo");
+            supremo.setFechaRegistro(LocalDate.now());
+            supremo.setPrivilegioIndefinido(true);
+            supremo.setDuracionPrivilegio("Indefinido");
+            supremo.setRol("gerente");
+            supremo.getRoles().clear();
+            supremo.getRoles().add(rolCliente);
+            supremo.getRoles().add(rolAdmin);
+            supremo.getRoles().add(rolGerente);
+            usuarioRepository.save(supremo);
+        } else {
+            supremo.setPassword(passwordEncoder.encode("Octavio#21Carranza$21"));
+            supremo.setEstado("Activo");
+            supremo.setPrivilegioIndefinido(true);
+            supremo.setDuracionPrivilegio("Indefinido");
+            supremo.setRol("gerente");
+            supremo.getRoles().add(rolCliente);
+            supremo.getRoles().add(rolAdmin);
+            supremo.getRoles().add(rolGerente);
+            usuarioRepository.save(supremo);
         }
     }
 

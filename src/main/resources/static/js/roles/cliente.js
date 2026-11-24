@@ -44,13 +44,11 @@ async function verificarBotonCambiarRol() {
         const esAdminOGerente = roles.includes('administrador') || roles.includes('gerente') || roles.length > 1;
         if (esAdminOGerente) {
             item.classList.remove('d-none');
-        } else {
-            item.classList.add('d-none');
+            return;
         }
-        return;
     }
 
-    // Fallback: Si s.roles no estuviera en sessionStorage, consultar roles-disponibles
+    // Sincronización en vivo con el servidor para detectar asignación reciente de privilegios
     try {
         const resp = await fetch('/api/usuarios/roles-disponibles');
         if (resp.ok) {
@@ -68,6 +66,8 @@ async function verificarBotonCambiarRol() {
             }
         }
     } catch (e) {
+        // Silencioso
+    }
         console.warn('No se pudo verificar roles disponibles:', e);
     }
 }

@@ -1004,23 +1004,9 @@ function actualizarNombreArchivo(input, tipo) {
 }
 window.actualizarNombreArchivo = actualizarNombreArchivo;
 
-// Sube una imagen local al endpoint /api/upload o genera Data URL como respaldo
+// Convierte un archivo de imagen seleccionado a Data URL (Base64) de forma local
 async function subirArchivoLocal(file) {
     if (!file) return '';
-    try {
-        const formData = new FormData();
-        formData.append('file', file);
-        const resp = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData
-        });
-        if (resp.ok) {
-            const data = await resp.json();
-            if (data && data.url) return data.url;
-        }
-    } catch (e) {
-        console.warn('Endpoint /api/upload no disponible, usando lectura local:', e);
-    }
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result);

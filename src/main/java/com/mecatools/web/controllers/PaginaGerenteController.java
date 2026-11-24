@@ -62,6 +62,8 @@ public class PaginaGerenteController {
             return "redirect:/panel/gerente/" + id + "/analisis/reportes";
         } else if ("ventas".equals(ultimaSeccion)) {
             return "redirect:/panel/gerente/" + id + "/analisis/ventas";
+        } else if ("usuarios".equals(ultimaSeccion) && esGerenteSupremo(auth)) {
+            return "redirect:/panel/gerente/" + id + "/gestion/usuarios";
         }
         return "redirect:/panel/gerente/" + id + "/general/resumen";
     }
@@ -70,6 +72,7 @@ public class PaginaGerenteController {
     public String panelResumen(@PathVariable Long id, Authentication auth, Model model) {
         sesionValidator.validarAcceso(auth, ROL, id);
         model.addAttribute("seccionActiva", "dashboard");
+        model.addAttribute("esGerenteSupremo", esGerenteSupremo(auth));
         return "roles/gerente";
     }
 
@@ -77,6 +80,7 @@ public class PaginaGerenteController {
     public String panelVentas(@PathVariable Long id, Authentication auth, Model model) {
         sesionValidator.validarAcceso(auth, ROL, id);
         model.addAttribute("seccionActiva", "ventas");
+        model.addAttribute("esGerenteSupremo", esGerenteSupremo(auth));
         return "roles/gerente";
     }
 
@@ -84,7 +88,24 @@ public class PaginaGerenteController {
     public String panelReportes(@PathVariable Long id, Authentication auth, Model model) {
         sesionValidator.validarAcceso(auth, ROL, id);
         model.addAttribute("seccionActiva", "reportes");
+        model.addAttribute("esGerenteSupremo", esGerenteSupremo(auth));
         return "roles/gerente";
+    }
+
+    // Ruta exclusiva para el Gerente Supremo: Gestión de usuarios y asignación de privilegios por tiempo
+    @GetMapping("/panel/gerente/{id}/gestion/usuarios")
+    public String panelUsuarios(@PathVariable Long id, Authentication auth, Model model) {
+        sesionValidator.validarAcceso(auth, ROL, id);
+        if (!esGerenteSupremo(auth)) {
+            return "redirect:/panel/gerente/" + id + "/general/resumen";
+        }
+        model.addAttribute("seccionActiva", "usuarios");
+        model.addAttribute("esGerenteSupremo", true);
+        return "roles/gerente";
+    }
+
+    private boolean esGerenteSupremo(Authentication auth) {
+        return auth != null && auth.getPrincipal() instanceof com.mecatools.web.security.UsuarioDetails ud && ud.getUsuario().esGerenteSupremo();
     }
 
 }

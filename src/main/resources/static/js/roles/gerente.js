@@ -33,8 +33,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (avatar) avatar.textContent = iniciales;
     if (menu) menu.textContent = nombreCompleto;
     if (breadcrumb) breadcrumb.textContent = `Gerente ${nombreCompleto}`;
+
+    // Reconocimiento de cuenta de Gerente Supremo (Autoridad Suprema del sistema)
+    const esSupremo = sesion.esGerenteSupremo === true || (sesion.email && sesion.email.toLowerCase() === 'cmjose21@gmail.com');
+    if (esSupremo) {
+        document.getElementById('secLabelGestionUsuarios')?.classList.remove('d-none');
+        document.getElementById('linkSidebarUsuarios')?.classList.remove('d-none');
+    } else {
+        document.getElementById('secLabelGestionUsuarios')?.classList.add('d-none');
+        document.getElementById('linkSidebarUsuarios')?.classList.add('d-none');
+    }
+
     await cargarTodos();
     iniciarFiltrosVentas();
+    iniciarFiltrosUsuarios();
     await actualizarConteoNotificacionesGerente();
     setInterval(actualizarConteoNotificacionesGerente, 15000);
 });
@@ -54,6 +66,7 @@ async function cargarTodos() {
         renderVentas();
         renderReportes();
         renderCharts();
+        renderUsuariosGestion();
     } catch (e) {
         console.error('Error cargando datos del gerente:', e);
     }
@@ -63,7 +76,8 @@ async function cargarTodos() {
 const MAPA_SECCION_URL = {
     dashboard: 'general/resumen',
     ventas: 'analisis/ventas',
-    reportes: 'analisis/reportes'
+    reportes: 'analisis/reportes',
+    usuarios: 'gestion/usuarios'
 };
 
 // Cambia la sección activa del sidebar, sincroniza la URL sin recargar y persiste en localStorage y cookie
@@ -74,6 +88,15 @@ function mostrarSeccion(nombre, link) {
     if (sec) sec.classList.add('active');
     const linkActivo = link || document.querySelector(`[data-seccion="${nombre}"]`);
     if (linkActivo) linkActivo.classList.add('active');
+    if (nombre === 'usuarios') {
+        renderUsuariosGestion();
+    }
+    if (nombre === 'dashboard' || nombre === 'resumen') {
+        setTimeout(() => {
+            window._chartVentas?.resize();
+            window._chartCat?.resize();
+        }, 50);
+    }
     const sesion = obtenerSesion();
     const segmento = MAPA_SECCION_URL[nombre];
     if (sesion && segmento) {
@@ -1434,7 +1457,7 @@ function renderCharts() {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
                     tooltip: {
@@ -1472,6 +1495,14 @@ function renderCharts() {
                 }
             }
         });
+
+        // Asegura que el gráfico tome el 100% de ancho de inmediato tras la carga inicial
+        requestAnimationFrame(() => {
+            window._chartVentas?.resize();
+        });
+        setTimeout(() => {
+            window._chartVentas?.resize();
+        }, 120);
     }
     const ctxCat = document.getElementById('chartCategorias');
     const legendCatEl = document.getElementById('legendCategorias');
@@ -1708,5 +1739,514 @@ async function actualizarConteoNotificacionesGerente() {
         }
     } catch (e) {
         // Silencioso
+    }
+}
+
+// ========================================================
+// GESTIÓN DE USUARIOS Y PRIVILEGIOS (AUTORIDAD SUPREMA)
+// ========================================================
+
+let _rolFiltroUsuariosActivo = 'cliente';
+let _usuarioSeleccionadoPrivilegios = null;
+
+// Extrae de forma limpia y sin duplicados los nombres de roles de un usuario
+function normalizarRolesUsuario(u) {
+    if (!u) return ['cliente'];
+    const resultado = [];
+    const procesarRol = (val) => {
+        if (!val) return;
+        const str = (typeof val === 'object' && val !== null ? (val.nombre || '') : String(val)).toLowerCase().trim();
+        if (str && !resultado.includes(str)) {
+            resultado.push(str);
+        }
+    };
+    if (Array.isArray(u.roles)) u.roles.forEach(procesarRol);
+    if (Array.isArray(u.nombresRoles)) u.nombresRoles.forEach(procesarRol);
+    if (u.rol) procesarRol(u.rol);
+    return resultado.length > 0 ? resultado : ['cliente'];
+}
+
+// Determina el rol más alto en base a la jerarquía: cliente < administrador < gerente
+function obtenerRolMasAlto(u) {
+    if (!u) return 'cliente';
+    const roles = normalizarRolesUsuario(u);
+    if (roles.includes('gerente')) return 'gerente';
+    if (roles.includes('administrador') || roles.includes('admin')) return 'administrador';
+    return 'cliente';
+}
+
+// Filtra la lista de usuarios por rol según la jerarquía establecida
+function filtrarUsuariosPorRol(rol) {
+    _rolFiltroUsuariosActivo = rol;
+    document.querySelectorAll('.btn-filtro-rol').forEach(b => b.classList.remove('active'));
+    if (rol === 'cliente') document.getElementById('btnFiltroClientes')?.classList.add('active');
+    if (rol === 'administrador') document.getElementById('btnFiltroAdmins')?.classList.add('active');
+    if (rol === 'gerente') document.getElementById('btnFiltroGerentes')?.classList.add('active');
+    renderUsuariosGestion();
+}
+
+// Búsqueda en tiempo real dentro de la tabla
+function filtrarUsuariosTabla() {
+    renderUsuariosGestion();
+}
+
+// Renderiza la tabla de usuarios en la sección Gestión - Usuarios
+function renderUsuariosGestion() {
+    const tbody = document.getElementById('tbodyUsuariosGestion');
+    if (!tbody) return;
+
+    const textoBuscar = (document.getElementById('buscarUsuarioGestion')?.value || '').toLowerCase().trim();
+
+    // Filtra la lista según el botón de rol seleccionado y la búsqueda
+    const filtrados = _usuarios.filter(u => {
+        const masAlto = obtenerRolMasAlto(u);
+        if (masAlto !== _rolFiltroUsuariosActivo) return false;
+        if (textoBuscar) {
+            const nom = `${u.nombres || ''} ${u.apellidos || ''}`.toLowerCase();
+            const em = (u.email || '').toLowerCase();
+            const tel = (u.telefono || '').toLowerCase();
+            return nom.includes(textoBuscar) || em.includes(textoBuscar) || tel.includes(textoBuscar);
+        }
+        return true;
+    });
+
+    // Ordenamiento por estructura de datos: El último usuario registrado es el primero en la lista (ID descendente)
+    filtrados.sort((a, b) => (b.id || 0) - (a.id || 0));
+
+    const elMostrados = document.getElementById('conteoUsuariosMostrados');
+    if (elMostrados) elMostrados.textContent = filtrados.length;
+
+    // Actualiza la etiqueta singular/plural según el rol filtrado
+    const elEtiqueta = document.getElementById('textoTipoUsuarioFiltro');
+    if (elEtiqueta) {
+        if (_rolFiltroUsuariosActivo === 'cliente') {
+            elEtiqueta.textContent = filtrados.length === 1 ? 'cliente' : 'clientes';
+        } else if (_rolFiltroUsuariosActivo === 'administrador') {
+            elEtiqueta.textContent = filtrados.length === 1 ? 'administrador' : 'administradores';
+        } else if (_rolFiltroUsuariosActivo === 'gerente') {
+            elEtiqueta.textContent = filtrados.length === 1 ? 'gerente' : 'gerentes';
+        } else {
+            elEtiqueta.textContent = filtrados.length === 1 ? 'usuario' : 'usuarios';
+        }
+    }
+
+    if (filtrados.length === 0) {
+        const mensajeRol = _rolFiltroUsuariosActivo === 'cliente' ? 'clientes' : (_rolFiltroUsuariosActivo === 'administrador' ? 'administradores' : 'gerentes');
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">No se encontraron ${mensajeRol} en esta categoría.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = filtrados.map(u => {
+        const nombreCompleto = `${u.nombres || ''} ${u.apellidos || ''}`.trim();
+        const iniciales = ((u.nombres?.[0] || 'U') + (u.apellidos?.[0] || '')).toUpperCase();
+        const masAlto = obtenerRolMasAlto(u);
+        const roles = normalizarRolesUsuario(u);
+        const esSupremo = u.esGerenteSupremo === true || (u.email && u.email.toLowerCase() === 'cmjose21@gmail.com');
+
+        // Orden de badges: Gerente, Admin, Cliente
+        const ordenJerarquia = ['gerente', 'administrador', 'admin', 'cliente'];
+        const rolesOrdenados = [...roles].sort((a, b) => {
+            const idxA = ordenJerarquia.indexOf(a);
+            const idxB = ordenJerarquia.indexOf(b);
+            return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
+        });
+
+        // Badges de roles
+        const badgesRoles = rolesOrdenados.map(r => {
+            if (r === 'gerente') return '<span class="badge bg-primary-subtle text-primary border me-1"><i class="bi bi-person-badge me-1"></i>Gerente</span>';
+            if (r === 'administrador' || r === 'admin') return '<span class="badge bg-info-subtle text-info-emphasis border me-1"><i class="bi bi-shield me-1"></i>Admin</span>';
+            return '<span class="badge bg-secondary-subtle text-secondary border me-1"><i class="bi bi-person me-1"></i>Cliente</span>';
+        }).join('');
+
+        // Badge de rol principal
+        let badgePrincipal = '<span class="badge bg-secondary-subtle text-secondary border">Cliente</span>';
+        if (masAlto === 'gerente') badgePrincipal = '<span class="badge bg-primary text-white">Gerente</span>';
+        else if (masAlto === 'administrador') badgePrincipal = '<span class="badge bg-info text-dark">Administrador</span>';
+
+        // Badge de vigencia / privilegio
+        let vigenciaHtml = '';
+        if (esSupremo) {
+            vigenciaHtml = '<span class="badge bg-warning text-dark border"><i class="bi bi-crown me-1"></i>Autoridad Suprema</span>';
+        } else if (roles.length === 1 && roles.includes('cliente')) {
+            vigenciaHtml = '<span class="badge bg-light text-secondary border">Cuenta estándar</span>';
+        } else if (u.privilegioIndefinido === true || !u.fechaFinPrivilegio) {
+            vigenciaHtml = '<span class="badge bg-success-subtle text-success border"><i class="bi bi-infinity me-1"></i>Indefinido</span>';
+        } else {
+            const expira = new Date(u.fechaFinPrivilegio);
+            const vencido = !isNaN(expira.getTime()) && Date.now() > expira.getTime();
+            if (vencido) {
+                vigenciaHtml = '<span class="badge bg-danger-subtle text-danger border"><i class="bi bi-exclamation-triangle me-1"></i>Vencido (Revertido)</span>';
+            } else {
+                const fechaStr = expira.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                vigenciaHtml = `<div><span class="badge bg-info-subtle text-primary border"><i class="bi bi-clock me-1"></i>Vence: ${fechaStr}</span></div><div class="small text-muted mt-1">${u.duracionPrivilegio || 'Temporal'}</div>`;
+            }
+        }
+
+        // Acciones
+        let accionesHtml = '';
+        if (esSupremo) {
+            accionesHtml = '<span class="text-muted small">Protegido</span>';
+        } else {
+            accionesHtml = `
+                <button type="button" class="btn btn-gestionar-privilegios" onclick="abrirModalGestionPrivilegios(${u.id})">
+                    <i class="bi bi-sliders me-1"></i>Privilegios
+                </button>
+            `;
+            if (roles.length > 1 || !roles.includes('cliente')) {
+                accionesHtml += `
+                    <button type="button" class="btn btn-revocar-cliente ms-1" onclick="revocarPrivilegios(${u.id})" title="Revertir de inmediato a cliente">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                `;
+            }
+        }
+
+        return `
+            <tr>
+                <td class="text-start" style="padding-left: 1.25rem;">
+                    <div class="d-flex align-items-center">
+                        <div class="admin-avatar me-2" style="width:36px; height:36px; font-size:0.9rem; flex-shrink: 0;">${iniciales}</div>
+                        <div class="text-truncate">
+                            <div class="fw-semibold text-dark text-truncate">${nombreCompleto}</div>
+                            <div class="small text-muted text-truncate">${u.email || ''} ${u.telefono ? '• ' + u.telefono : ''}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="text-center">${badgesRoles}</td>
+                <td class="text-center">${badgePrincipal}</td>
+                <td class="text-center">${vigenciaHtml}</td>
+                <td class="text-center" style="padding-right: 1.25rem;">${accionesHtml}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// Abre el modal para configurar los privilegios del usuario seleccionado
+function abrirModalGestionPrivilegios(id) {
+    const u = _usuarios.find(item => item.id === id);
+    if (!u) return;
+    _usuarioSeleccionadoPrivilegios = u;
+
+    const nombreCompleto = `${u.nombres || ''} ${u.apellidos || ''}`.trim();
+    const iniciales = ((u.nombres?.[0] || 'U') + (u.apellidos?.[0] || '')).toUpperCase();
+    const roles = normalizarRolesUsuario(u);
+
+    document.getElementById('privUsuarioAvatar').textContent = iniciales;
+    document.getElementById('privUsuarioNombre').textContent = nombreCompleto;
+    document.getElementById('privUsuarioEmail').textContent = u.email || '';
+    document.getElementById('privUsuarioRolActual').textContent = roles.map(r => r.charAt(0).toUpperCase() + r.slice(1)).join(', ');
+
+    // Carga los checkboxes
+    document.getElementById('checkRolCliente').checked = roles.includes('cliente');
+    document.getElementById('checkRolAdmin').checked = roles.includes('administrador') || roles.includes('admin');
+    document.getElementById('checkRolGerente').checked = roles.includes('gerente');
+
+    // Carga vigencia
+    if (u.privilegioIndefinido !== false) {
+        document.getElementById('vigenciaIndefinida').checked = true;
+    } else {
+        document.getElementById('vigenciaTemporal').checked = true;
+    }
+
+    // Reinicia campos numéricos
+    document.getElementById('privAnios').value = '0';
+    document.getElementById('privMeses').value = '0';
+    document.getElementById('privSemanas').value = '0';
+    document.getElementById('privDias').value = '0';
+    document.getElementById('privHoras').value = '0';
+
+    document.getElementById('rolesCheckError')?.classList.add('d-none');
+    document.getElementById('privilegiosErrorAlert')?.classList.add('d-none');
+    document.getElementById('privilegiosExitoAlert')?.classList.add('d-none');
+
+    alCambiarRolesPrivilegio();
+    alCambiarTipoVigencia();
+
+    const modal = document.getElementById('modalGestionPrivilegios');
+    if (modal) {
+        bootstrap.Modal.getOrCreateInstance(modal).show();
+    }
+}
+
+// Controla la interacción cuando se cambian los checkboxes de roles
+function alCambiarRolesPrivilegio() {
+    const cCliente = document.getElementById('checkRolCliente')?.checked;
+    const cAdmin = document.getElementById('checkRolAdmin')?.checked;
+    const cGerente = document.getElementById('checkRolGerente')?.checked;
+
+    const seccionTiempo = document.getElementById('seccionTiempoPrivilegio');
+    const rolesError = document.getElementById('rolesCheckError');
+
+    if (!cCliente && !cAdmin && !cGerente) {
+        rolesError?.classList.remove('d-none');
+        return;
+    }
+    rolesError?.classList.add('d-none');
+
+    // Si únicamente es cliente, el privilegio es indefinido por defecto
+    if (cCliente && !cAdmin && !cGerente) {
+        document.getElementById('vigenciaIndefinida').checked = true;
+        alCambiarTipoVigencia();
+    }
+}
+
+// Alterna entre vigencia indefinida y campos de tiempo temporal
+function alCambiarTipoVigencia() {
+    const esTemporal = document.getElementById('vigenciaTemporal')?.checked;
+    const panel = document.getElementById('panelTiempoCampos');
+    if (esTemporal) {
+        panel?.classList.remove('d-none');
+        actualizarPreviewTiempoPrivilegio();
+    } else {
+        panel?.classList.add('d-none');
+    }
+}
+
+// Calcula dinámicamente la fecha futura de vencimiento para la vista previa
+function actualizarPreviewTiempoPrivilegio() {
+    const y = parseInt(document.getElementById('privAnios')?.value || '0', 10) || 0;
+    const m = parseInt(document.getElementById('privMeses')?.value || '0', 10) || 0;
+    const w = parseInt(document.getElementById('privSemanas')?.value || '0', 10) || 0;
+    const d = parseInt(document.getElementById('privDias')?.value || '0', 10) || 0;
+    const h = parseInt(document.getElementById('privHoras')?.value || '0', 10) || 0;
+
+    const preview = document.getElementById('previewTextoTiempo');
+    if (!preview) return;
+
+    if (y === 0 && m === 0 && w === 0 && d === 0 && h === 0) {
+        preview.textContent = 'Ingresa al menos 1 hora, día, semana, mes o año';
+        preview.className = 'text-warning small';
+        return;
+    }
+
+    const ahora = new Date();
+    const fechaFin = new Date(ahora.getTime());
+    if (y > 0) fechaFin.setFullYear(fechaFin.getFullYear() + y);
+    if (m > 0) fechaFin.setMonth(fechaFin.getMonth() + m);
+    if (w > 0) fechaFin.setDate(fechaFin.getDate() + (w * 7));
+    if (d > 0) fechaFin.setDate(fechaFin.getDate() + d);
+    if (h > 0) fechaFin.setHours(fechaFin.getHours() + h);
+
+    const partesTexto = [];
+    if (y > 0) partesTexto.push(`${y} ${y === 1 ? 'año' : 'años'}`);
+    if (m > 0) partesTexto.push(`${m} ${m === 1 ? 'mes' : 'meses'}`);
+    if (w > 0) partesTexto.push(`${w} ${w === 1 ? 'semana' : 'semanas'}`);
+    if (d > 0) partesTexto.push(`${d} ${d === 1 ? 'día' : 'días'}`);
+    if (h > 0) partesTexto.push(`${h} ${h === 1 ? 'hora' : 'horas'}`);
+
+    const descDuracion = partesTexto.join(', ');
+    const fechaFormateada = fechaFin.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+    preview.textContent = `Vence el ${fechaFormateada} (${descDuracion})`;
+    preview.className = 'text-primary small fw-semibold';
+    preview.setAttribute('data-duracion', descDuracion);
+}
+
+// Envía la actualización de privilegios a la API del servidor
+async function guardarPrivilegiosUsuario() {
+    if (!_usuarioSeleccionadoPrivilegios) return;
+
+    const cCliente = document.getElementById('checkRolCliente')?.checked;
+    const cAdmin = document.getElementById('checkRolAdmin')?.checked;
+    const cGerente = document.getElementById('checkRolGerente')?.checked;
+
+    const roles = [];
+    if (cCliente) roles.push('cliente');
+    if (cAdmin) roles.push('administrador');
+    if (cGerente) roles.push('gerente');
+
+    if (roles.length === 0) {
+        document.getElementById('rolesCheckError')?.classList.remove('d-none');
+        return;
+    }
+
+    const esIndefinido = document.getElementById('vigenciaIndefinida')?.checked;
+    const y = parseInt(document.getElementById('privAnios')?.value || '0', 10) || 0;
+    const m = parseInt(document.getElementById('privMeses')?.value || '0', 10) || 0;
+    const w = parseInt(document.getElementById('privSemanas')?.value || '0', 10) || 0;
+    const d = parseInt(document.getElementById('privDias')?.value || '0', 10) || 0;
+    const h = parseInt(document.getElementById('privHoras')?.value || '0', 10) || 0;
+
+    if (!esIndefinido && y === 0 && m === 0 && w === 0 && d === 0 && h === 0) {
+        const err = document.getElementById('privilegiosErrorAlert');
+        if (err) {
+            err.textContent = 'Para una vigencia temporal debes indicar al menos 1 hora, día, semana o mes.';
+            err.classList.remove('d-none');
+        }
+        return;
+    }
+
+    const duracionTexto = esIndefinido ? 'Indefinido' : (document.getElementById('previewTextoTiempo')?.getAttribute('data-duracion') || 'Temporal');
+
+    const btn = document.getElementById('btnGuardarPrivilegios');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+    }
+
+    try {
+        const resp = await fetch(`/api/usuarios/${_usuarioSeleccionadoPrivilegios.id}/privilegios`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                roles: roles,
+                indefinido: esIndefinido,
+                anios: y,
+                meses: m,
+                semanas: w,
+                dias: d,
+                horas: h,
+                duracionTexto: duracionTexto
+            })
+        });
+
+        if (!resp.ok) {
+            const errData = await resp.json().catch(() => ({}));
+            const err = document.getElementById('privilegiosErrorAlert');
+            if (err) {
+                err.textContent = errData.error || 'Error al guardar los privilegios.';
+                err.classList.remove('d-none');
+            }
+            return;
+        }
+
+        const data = await resp.json();
+        // Actualiza el usuario en la lista local
+        _usuarioSeleccionadoPrivilegios.roles = data.roles;
+        _usuarioSeleccionadoPrivilegios.rol = data.rol;
+        _usuarioSeleccionadoPrivilegios.privilegioIndefinido = data.privilegioIndefinido;
+        _usuarioSeleccionadoPrivilegios.fechaFinPrivilegio = data.fechaFinPrivilegio;
+        _usuarioSeleccionadoPrivilegios.duracionPrivilegio = data.duracionPrivilegio;
+
+        const exito = document.getElementById('privilegiosExitoAlert');
+        if (exito) {
+            exito.textContent = '¡Privilegios actualizados con éxito!';
+            exito.classList.remove('d-none');
+        }
+
+        renderUsuariosGestion();
+
+        setTimeout(() => {
+            bootstrap.Modal.getInstance(document.getElementById('modalGestionPrivilegios'))?.hide();
+            mostrarToast('Privilegios del usuario actualizados correctamente.');
+        }, 900);
+    } catch (e) {
+        console.error('Error al guardar privilegios:', e);
+        const err = document.getElementById('privilegiosErrorAlert');
+        if (err) {
+            err.textContent = 'Error de conexión con el servidor.';
+            err.classList.remove('d-none');
+        }
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Guardar Privilegios';
+        }
+    }
+}
+
+// Variables y control de estado para revocación de privilegios
+let _usuarioIdRevocar = null;
+
+// Inicializa los bindings de los filtros de gestión de usuarios (búsqueda bajo demanda sin peticiones por pulsación)
+function iniciarFiltrosUsuarios() {
+    const input = document.getElementById('buscarUsuarioGestion');
+    input?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            ejecutarFiltroUsuarios();
+        }
+    });
+}
+
+// Ejecuta el filtro de búsqueda de usuarios (nombre, correo o teléfono) solo bajo demanda
+function ejecutarFiltroUsuarios() {
+    renderUsuariosGestion();
+}
+window.ejecutarFiltroUsuarios = ejecutarFiltroUsuarios;
+
+// Limpia el filtro de búsqueda de usuarios y restaura la lista de la categoría activa
+function limpiarFiltroUsuarios() {
+    const input = document.getElementById('buscarUsuarioGestion');
+    if (input) input.value = '';
+    renderUsuariosGestion();
+}
+window.limpiarFiltroUsuarios = limpiarFiltroUsuarios;
+
+// Abre el modal institucional de confirmación para revocar privilegios y regresar a cliente
+function revocarPrivilegios(id) {
+    const u = _usuarios.find(item => item.id === id);
+    if (!u) return;
+    _usuarioIdRevocar = id;
+
+    const nombreCompleto = `${u.nombres || ''} ${u.apellidos || ''}`.trim();
+    const iniciales = ((u.nombres?.[0] || 'U') + (u.apellidos?.[0] || '')).toUpperCase();
+    const roles = normalizarRolesUsuario(u);
+
+    const elAvatar = document.getElementById('revocarUsuarioAvatar');
+    const elNombre = document.getElementById('revocarUsuarioNombre');
+    const elEmail = document.getElementById('revocarUsuarioEmail');
+    const elRol = document.getElementById('revocarUsuarioRolActual');
+
+    if (elAvatar) elAvatar.textContent = iniciales;
+    if (elNombre) elNombre.textContent = nombreCompleto;
+    if (elEmail) elEmail.textContent = u.email || '';
+    if (elRol) elRol.textContent = roles.map(r => r.charAt(0).toUpperCase() + r.slice(1)).join(', ');
+
+    const modalEl = document.getElementById('modalConfirmarRevocarPrivilegio');
+    if (modalEl) {
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+}
+
+// Ejecuta la revocación de privilegios en el servidor tras confirmación en modal
+async function ejecutarRevocacionPrivilegios() {
+    if (!_usuarioIdRevocar) return;
+    const id = _usuarioIdRevocar;
+    const btn = document.getElementById('btnConfirmarRevocacion');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Revocando...';
+    }
+
+    try {
+        const resp = await fetch(`/api/usuarios/${id}/privilegios`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                roles: ['cliente'],
+                indefinido: true,
+                duracionTexto: 'Indefinido'
+            })
+        });
+
+        if (resp.ok) {
+            const data = await resp.json();
+            const u = _usuarios.find(item => item.id === id);
+            if (u) {
+                u.roles = data.roles;
+                u.rol = data.rol;
+                u.privilegioIndefinido = data.privilegioIndefinido;
+                u.fechaFinPrivilegio = data.fechaFinPrivilegio;
+                u.duracionPrivilegio = data.duracionPrivilegio;
+            }
+            const modalEl = document.getElementById('modalConfirmarRevocarPrivilegio');
+            bootstrap.Modal.getInstance(modalEl)?.hide();
+            renderUsuariosGestion();
+            mostrarToast('Usuario revertido a rol cliente estándar.');
+        } else {
+            const errData = await resp.json().catch(() => ({}));
+            mostrarToast(errData.error || 'No se pudieron revocar los privilegios.', 'error');
+        }
+    } catch (e) {
+        console.error('Error al revocar privilegios:', e);
+        mostrarToast('Error de conexión al revocar privilegios.', 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-arrow-counterclockwise me-1"></i>Revocar Privilegios';
+        }
+        _usuarioIdRevocar = null;
     }
 }

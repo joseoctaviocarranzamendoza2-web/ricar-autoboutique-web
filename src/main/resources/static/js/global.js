@@ -512,80 +512,43 @@ window.addEventListener('scroll', () => {
     document.getElementById('navbar-principal')?.classList.toggle('navbar-scrolled', window.scrollY > 50);
 });
 
-// Almacena temporalmente el rol empresarial pendiente de verificación durante el registro
-let rolPendienteVerificacion = null;
+// Manejo del 2FA (PIN de 8 dígitos) para la cuenta del Gerente Supremo
+let _credencialesPendientesSupremo = null;
 
-// Contraseñas de verificación para cuentas empresariales (soporta las variantes definidas)
-const PASS_EMPRESARIAL = {
-    administrador: ['admin123456789', '#admin$101010$access', '123456789', 'admin123'],
-    gerente: ['gerente987654321', '#gerente$202020$access', '987654321', 'gerente123']
-};
-
-// Verifica si la contraseña ingresada coincide con las contraseñas válidas para el rol
-function esPasswordEmpresarialValida(rol, pass) {
-    if (!rol || !pass) return false;
-    const rolNorm = rol.toLowerCase().trim();
-    const passNorm = pass.trim();
-    const permitidas = PASS_EMPRESARIAL[rolNorm];
-    if (Array.isArray(permitidas)) {
-        return permitidas.includes(passNorm);
+// Prepara y abre el modal de verificación en 2 pasos cuando se detectan las credenciales del Gerente Supremo
+function abrirModalPinSupremo(email, password) {
+    _credencialesPendientesSupremo = { email, password };
+    const inputPin = document.getElementById('pinSupremo');
+    const err = document.getElementById('pinSupremoError');
+    const fb = document.getElementById('pinSupremoFeedback');
+    if (inputPin) {
+        inputPin.value = '';
+        inputPin.classList.remove('is-invalid');
     }
-    return permitidas === passNorm;
-}
+    if (err) err.classList.add('d-none');
+    if (fb) fb.textContent = '';
 
-// Prepara y muestra el modal para confirmar creación de cuentas empresariales
-function abrirModalEmpresarial(rol) {
-    rolPendienteVerificacion = (rol || '').toLowerCase().trim();
-    const texto = document.getElementById('rolEmpresarialTexto');
-    const input = document.getElementById('passEmpresarial');
-    const err = document.getElementById('empresarialError');
-    if (texto) texto.textContent = rolPendienteVerificacion === 'administrador' ? 'Administrador' : 'Gerente';
-    if (input) {
-        input.value = '';
-        input.type = 'password';
-        input.classList.remove('is-invalid');
-    }
-    const icon = input?.parentElement?.querySelector('.btn-toggle-password i');
-    if (icon) icon.className = 'bi bi-eye';
-    err?.classList.add('d-none');
-    const modalRegister = document.getElementById('modalRegister');
-    modalRegister.addEventListener('hidden.bs.modal', function handler() {
-        abrirModal('modalEmpresarial');
-        modalRegister.removeEventListener('hidden.bs.modal', handler);
+    const modalLogin = document.getElementById('modalLogin');
+    modalLogin?.addEventListener('hidden.bs.modal', function handler() {
+        abrirModal('modalPinSupremo');
+        modalLogin.removeEventListener('hidden.bs.modal', handler);
+        setTimeout(() => document.getElementById('pinSupremo')?.focus(), 250);
     }, { once: true });
-    bootstrap.Modal.getInstance(modalRegister)?.hide();
+    bootstrap.Modal.getInstance(modalLogin)?.hide();
 }
 
-// Valida la contraseña empresarial y, si es correcta, ejecuta el flujo de registro
-async function confirmarEmpresarial() {
-    const input = document.getElementById('passEmpresarial');
-    const err = document.getElementById('empresarialError');
-    const btn = document.getElementById('btnConfirmarEmpresarial');
-    err?.classList.add('d-none');
-    input?.classList.remove('is-invalid');
-    const passIngresada = (input?.value || '').trim();
+// Envía el PIN de verificación adicional del Gerente Supremo para completar el login
+async function confirmarPinSupremo() {
+    const inputPin = document.getElementById('pinSupremo');
+    const btn = document.getElementById('btnConfirmarPinSupremo');
+    const err = document.getElementById('pinSupremoError');
+    const msgErr = document.getElementById('pinSupremoErrorMsg');
+    const fb = document.getElementById('pinSupremoFeedback');
 
-    // Detección segura del rol en caso de que la variable global se haya desincronizado
-    let rolActual = (rolPendienteVerificacion || '').toLowerCase().trim();
-    if (!rolActual) {
-        const textoModal = (document.getElementById('rolEmpresarialTexto')?.textContent || '').toLowerCase();
-        if (textoModal.includes('admin')) {
-            rolActual = 'administrador';
-        } else if (textoModal.includes('gerente')) {
-            rolActual = 'gerente';
-        } else {
-            rolActual = (document.getElementById('regRol')?.value || 'administrador').toLowerCase();
-        }
-        rolPendienteVerificacion = rolActual;
-    }
-
-    if (!esPasswordEmpresarialValida(rolActual, passIngresada)) {
-        input?.classList.add('is-invalid');
-        if (err) {
-            err.innerHTML = '<i class="bi bi-x-circle me-2"></i>Contraseña incorrecta.';
-            err.className = 'alert alert-danger text-center py-2';
-            err.classList.remove('d-none');
-        }
+    const pin = (inputPin?.value || '').trim();
+    if (!pin || !/^\d{8}$/.test(pin)) {
+        inputPin?.classList.add('is-invalid');
+        if (fb) fb.textContent = 'El PIN debe contener exactamente 8 dígitos numéricos';
         return;
     }
 
@@ -593,26 +556,49 @@ async function confirmarEmpresarial() {
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verificando...';
     }
-    const exito = await ejecutarRegistro(rolActual);
-    if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-check-lg me-2"></i>Confirmar';
-    }
-    if (exito) {
+    err?.classList.add('d-none');
+
+    try {
+        const formData = new URLSearchParams();
+        formData.append('email', _credencialesPendientesSupremo.email);
+        formData.append('password', _credencialesPendientesSupremo.password);
+        formData.append('pin', pin);
+
+        const resp = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData
+        });
+
+        if (!resp.ok) {
+            const dataErr = await resp.json().catch(() => ({}));
+            inputPin?.classList.add('is-invalid');
+            if (msgErr) msgErr.textContent = dataErr.error || 'PIN de verificación incorrecto. Intenta de nuevo.';
+            err?.classList.remove('d-none');
+            return;
+        }
+
+        const usuario = await resp.json();
+        guardarSesion(usuario);
         if (err) {
-            err.innerHTML = '<i class="bi bi-check-circle me-2"></i>¡Cuenta creada correctamente!';
+            err.innerHTML = '<i class="bi bi-check-circle me-2"></i>¡Verificación exitosa!';
             err.className = 'alert alert-success text-center py-2';
             err.classList.remove('d-none');
         }
+
         setTimeout(() => {
-            bootstrap.Modal.getInstance(document.getElementById('modalEmpresarial'))?.hide();
-            rolPendienteVerificacion = null;
-        }, 1500);
-    } else {
-        if (err) {
-            err.innerHTML = '<i class="bi bi-x-circle me-2"></i>Error al crear la cuenta. Intenta de nuevo.';
-            err.className = 'alert alert-danger text-center py-2';
-            err.classList.remove('d-none');
+            bootstrap.Modal.getInstance(document.getElementById('modalPinSupremo'))?.hide();
+            _credencialesPendientesSupremo = null;
+            window.location.href = '/rol';
+        }, 800);
+    } catch (e) {
+        console.error('Error al verificar PIN supremo:', e);
+        if (msgErr) msgErr.textContent = 'Error de conexión al verificar PIN.';
+        err?.classList.remove('d-none');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-lg me-2"></i>Verificar e Ingresar';
         }
     }
 }
@@ -719,12 +705,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('btnLogin')?.addEventListener('click', manejarLogin);
     document.getElementById('btnRegister')?.addEventListener('click', manejarRegister);
-    document.getElementById('btnConfirmarEmpresarial')?.addEventListener('click', confirmarEmpresarial);
-    document.getElementById('passEmpresarial')?.addEventListener('keydown', e => {
+    document.getElementById('btnConfirmarPinSupremo')?.addEventListener('click', confirmarPinSupremo);
+    document.getElementById('pinSupremo')?.addEventListener('keydown', e => {
         if (e.key === 'Enter') {
             e.preventDefault();
-            confirmarEmpresarial();
+            confirmarPinSupremo();
         }
+    });
+    document.getElementById('pinSupremo')?.addEventListener('input', e => {
+        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 8);
     });
 });
 
@@ -805,6 +794,11 @@ async function manejarLogin() {
             return;
         }
         const usuario = await resp.json();
+        // Si la cuenta requiere verificación de dos pasos (Gerente Supremo)
+        if (usuario && usuario.requiere2FA === true) {
+            abrirModalPinSupremo(emailInput.value.trim(), passwordInput.value);
+            return;
+        }
         guardarSesion(usuario);
         divExito?.classList.remove('d-none');
         const roles = Array.isArray(usuario.roles) ? usuario.roles.map(r => String(r).toLowerCase()) : [String(usuario.rol || 'cliente').toLowerCase()];
@@ -1179,7 +1173,6 @@ async function manejarRegister() {
         confirm: document.getElementById('regConfirm'),
         checkbox: document.getElementById('aceptaTerminos')
     };
-    const rolSeleccionado = (document.getElementById('regRol')?.value || 'cliente').toLowerCase().trim();
     const divExito = document.getElementById('registerExito');
     const divError = document.getElementById('registerError');
     divExito?.classList.add('d-none');
@@ -1195,14 +1188,8 @@ async function manejarRegister() {
                    validarCheckbox(campos.checkbox);
     if (!valido) return;
 
-    if (rolSeleccionado !== 'cliente') {
-        rolPendienteVerificacion = rolSeleccionado;
-        abrirModalEmpresarial(rolSeleccionado);
-        return;
-    }
-
-    // Envía la petición al servidor en una sola llamada completa
-    const exito = await ejecutarRegistro(rolSeleccionado);
+    // Enviar registro como cuenta cliente estándar exclusivamente
+    const exito = await ejecutarRegistro('cliente');
     if (exito) {
         setTimeout(() => {
             bootstrap.Modal.getInstance(document.getElementById('modalRegister'))?.hide();

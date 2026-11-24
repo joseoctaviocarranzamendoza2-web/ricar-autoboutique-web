@@ -1,4 +1,4 @@
-﻿<!-- Panel de gerente protegido por control de acceso de rol; el panel se renderiza como SPA parcial con navegación interna y se asegura la sesión de gerente en cliente.js -->
+<!-- Panel de gerente protegido por control de acceso de rol; el panel se renderiza como SPA parcial con navegación interna y se asegura la sesión de gerente en cliente.js -->
 <!DOCTYPE html>
 <!-- Thymeleaf requiere xmlns:th para habilitar directivas th:href, th:src y th:text en todo el documento -->
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
@@ -13,7 +13,7 @@
     <!-- global.css: Estilos compartidos entre todos los roles; incluye variables de color y utilidades generales -->
     <link rel="stylesheet" th:href="@{/css/global.css(v='2.3')}">
     <!-- gerente.css: Define estilos exclusivos del panel gerente, incluidos sidebar, topbar, tarjetas, tablas y layout SPA -->
-    <link rel="stylesheet" th:href="@{/css/roles/gerente.css(v='6.9')}">
+    <link rel="stylesheet" th:href="@{/css/roles/gerente.css(v='7.1')}">
     <!-- Favicon del sitio -->
     <link rel="icon" th:href="@{/img/icono/icon.png}" type="image/png">
     <script th:inline="javascript">
@@ -59,6 +59,11 @@
             </a>
             <a href="#" class="sidebar-link" th:classappend="${seccionActiva == 'reportes' ? 'active' : ''}" data-seccion="reportes" onclick="mostrarSeccion('reportes', this); return false;">
                 <i class="bi bi-file-earmark-text"></i><span class="link-text">Reportes</span>
+            </a>
+            <!-- Apartado exclusivo para el Gerente Supremo (Autoridad Suprema) -->
+            <div class="nav-section-label" id="secLabelGestionUsuarios" th:classappend="${esGerenteSupremo == true ? '' : 'd-none'}">GESTIÓN</div>
+            <a href="#" class="sidebar-link" id="linkSidebarUsuarios" th:classappend="${(esGerenteSupremo == true ? '' : 'd-none') + (seccionActiva == 'usuarios' ? ' active' : '')}" data-seccion="usuarios" onclick="mostrarSeccion('usuarios', this); return false;">
+                <i class="bi bi-people-fill"></i><span class="link-text">Usuarios</span>
             </a>
         </div>
         <div class="sidebar-footer">
@@ -159,9 +164,11 @@
                                 <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="btnAnioNext" onclick="cambiarAnioVentas(1); this.blur();" title="Año siguiente"><i class="bi bi-chevron-right"></i></button>
                             </div>
                         </div>
-                        <div class="admin-card-body flex-grow-1 d-flex flex-column justify-content-center">
+                        <div class="admin-card-body flex-grow-1 p-3">
                             <!-- Gráfico de ventas cargado con Chart.js y datos de procesos internos del panel gerente -->
-                            <canvas id="chartVentas" style="max-height: 300px;"></canvas>
+                            <div class="chart-ventas-wrapper position-relative w-100" style="height: 280px; min-height: 280px;">
+                                <canvas id="chartVentas"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -244,7 +251,7 @@
                             <input type="date" class="form-control" id="filtroVentasHasta" title="Fecha final">
                         </div>
                         <div class="col-6 col-md-2">
-                            <button type="button" class="btn btn-sm btn-filtrar-ventas w-100" id="btnFiltrarVentas"><i class="bi bi-funnel-fill me-1"></i>Filtrar</button>
+                            <button type="button" class="btn btn-sm btn-filtrar-ventas w-100" id="btnFiltrarVentas"><i class="bi bi-search me-1"></i>Filtrar</button>
                         </div>
                         <div class="col-6 col-md-2">
                             <button type="button" class="btn btn-sm btn-limpiar-filtros w-100" id="btnLimpiarFiltrosVentas" onclick="limpiarFiltrosVentas(); this.blur();"><i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar filtros</button>
@@ -413,6 +420,76 @@
                 </div>
             </div>
         </section>
+
+        <!-- Sección Gestión de Usuarios (Exclusiva para la Autoridad / Gerente Supremo) -->
+        <section id="sec-usuarios" class="admin-section" th:classappend="${seccionActiva == 'usuarios' ? 'active' : ''}">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                <div class="d-flex flex-column align-items-start gap-2">
+                    <span class="section-tag">GESTIÓN - USUARIOS</span>
+                    <small class="section-subtitle">Asignación de roles y privilegios</small>
+                </div>
+                <!-- Filtros por Rol Principal (cliente < administrador < gerente) con separación individual -->
+                <div class="d-flex align-items-center gap-2 flex-wrap" role="group" aria-label="Filtro de roles">
+                    <button type="button" class="btn btn-filtro-rol active" id="btnFiltroClientes" onclick="filtrarUsuariosPorRol('cliente'); this.blur();">
+                        <i class="bi bi-person me-1"></i>Clientes
+                    </button>
+                    <button type="button" class="btn btn-filtro-rol" id="btnFiltroAdmins" onclick="filtrarUsuariosPorRol('administrador'); this.blur();">
+                        <i class="bi bi-shield me-1"></i>Administradores
+                    </button>
+                    <button type="button" class="btn btn-filtro-rol" id="btnFiltroGerentes" onclick="filtrarUsuariosPorRol('gerente'); this.blur();">
+                        <i class="bi bi-person-badge me-1"></i>Gerentes
+                    </button>
+                </div>
+            </div>
+
+            <!-- Barra de búsqueda rápida de usuarios -->
+            <div class="admin-card mb-3">
+                <div class="admin-card-body py-3">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-12 col-md-5">
+                            <input type="text" id="buscarUsuarioGestion" class="form-control" placeholder="Buscar por nombre, correo o teléfono...">
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <button type="button" class="btn btn-sm btn-filtrar-ventas w-100" id="btnFiltrarUsuarios" onclick="ejecutarFiltroUsuarios(); this.blur();">
+                                <i class="bi bi-search me-1"></i>Filtrar
+                            </button>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <button type="button" class="btn btn-sm btn-limpiar-filtros w-100" id="btnLimpiarFiltrosUsuarios" onclick="limpiarFiltroUsuarios(); this.blur();">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar filtros
+                            </button>
+                        </div>
+                        <div class="col-12 col-md-3 text-md-end text-muted small ms-auto">
+                            Mostrando <strong id="conteoUsuariosMostrados">0</strong> <span id="textoTipoUsuarioFiltro">clientes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Gestión de Usuarios y Privilegios -->
+            <div class="admin-card mb-4">
+                <div class="table-responsive">
+                    <table class="table admin-table mb-0" id="tablaUsuariosGestion" style="table-layout: fixed; width: 100%;">
+                        <thead>
+                            <tr>
+                                <th class="text-start" style="width: 28%; padding-left: 1.25rem;">USUARIO</th>
+                                <th class="text-center" style="width: 22%;">ROLES ASIGNADOS</th>
+                                <th class="text-center" style="width: 14%;">ROL PRINCIPAL</th>
+                                <th class="text-center" style="width: 20%;">VIGENCIA PRIVILEGIO</th>
+                                <th class="text-center" style="width: 16%; padding-right: 1.25rem;">ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyUsuariosGestion">
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4 align-middle">
+                                    <span class="spinner-border spinner-border-sm me-2"></span>Cargando usuarios...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
     </main>
     <!-- Modal de edición del gerente usa marcado de modal Bootstrap y JS personalizado que salvaguarda los datos antes de enviar cambios al servidor -->
     <div class="modal fade" id="modalEditarDatos" tabindex="-1">
@@ -455,6 +532,179 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal: Gestión de Roles y Privilegios de Usuario (Exclusivo Gerente Supremo) -->
+    <div class="modal fade" id="modalGestionPrivilegios" tabindex="-1" aria-labelledby="tituloModalPrivilegios" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header text-white" style="background:var(--azul-oscuro);">
+                    <h5 class="modal-title fw-bold" id="tituloModalPrivilegios">
+                        <i class="bi bi-person-gear me-2"></i>Gestión de Roles y Privilegios
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- Resumen del Usuario a Editar -->
+                    <div class="d-flex align-items-center p-3 rounded-3 bg-light mb-4 border">
+                        <div class="admin-avatar me-3" id="privUsuarioAvatar" style="width:48px; height:48px; font-size:1.2rem;">U</div>
+                        <div>
+                            <div class="fw-bold fs-6" id="privUsuarioNombre">Nombre Usuario</div>
+                            <div class="text-muted small" id="privUsuarioEmail">email@gmail.com</div>
+                        </div>
+                        <div class="ms-auto text-end">
+                            <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-3 py-1 small" id="privUsuarioRolActual">Cliente</span>
+                        </div>
+                    </div>
+
+                    <!-- Paso 1: Selección de Roles que tendrá el usuario -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark mb-2">
+                            <i class="bi bi-shield-check me-1 text-primary"></i>1. Selecciona los roles para esta cuenta:
+                        </label>
+                        <p class="text-muted small mb-3">Puedes combinar cualquier conjunto de roles (solo cliente, solo admin, solo gerente, o combinaciones cliente-admin, cliente-gerente, admin-gerente, cliente-admin-gerente).</p>
+                        <div class="row g-2" id="contenedorRolesCheck">
+                            <div class="col-sm-4">
+                                <div class="form-check p-3 border rounded-3 h-100 bg-white">
+                                    <input class="form-check-input" type="checkbox" id="checkRolCliente" value="cliente" onchange="alCambiarRolesPrivilegio()">
+                                    <label class="form-check-label fw-semibold ms-2" for="checkRolCliente">
+                                        👤 Cliente
+                                        <div class="text-muted fw-normal small">Acceso al catálogo y perfil de compras</div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="form-check p-3 border rounded-3 h-100 bg-white">
+                                    <input class="form-check-input" type="checkbox" id="checkRolAdmin" value="administrador" onchange="alCambiarRolesPrivilegio()">
+                                    <label class="form-check-label fw-semibold ms-2" for="checkRolAdmin">
+                                        🛡️ Administrador
+                                        <div class="text-muted fw-normal small">Gestión de citas, catálogo y mensajes</div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="form-check p-3 border rounded-3 h-100 bg-white">
+                                    <input class="form-check-input" type="checkbox" id="checkRolGerente" value="gerente" onchange="alCambiarRolesPrivilegio()">
+                                    <label class="form-check-label fw-semibold ms-2" for="checkRolGerente">
+                                        📊 Gerente
+                                        <div class="text-muted fw-normal small">Métricas, ventas y reportes ejecutivos</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="rolesCheckError" class="text-danger small mt-2 d-none">Debes seleccionar al menos un rol para el usuario.</div>
+                    </div>
+
+                    <!-- Paso 2: Vigencia y Tiempo del Privilegio (se activa si tiene roles elevados) -->
+                    <div class="mb-3" id="seccionTiempoPrivilegio">
+                        <label class="form-label fw-bold text-dark mb-2">
+                            <i class="bi bi-clock-history me-1 text-primary"></i>2. Vigencia del privilegio:
+                        </label>
+                        <div class="d-flex flex-wrap gap-4 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="radioTipoVigencia" id="vigenciaIndefinida" value="indefinido" checked onchange="alCambiarTipoVigencia()">
+                                <label class="form-check-label fw-semibold" for="vigenciaIndefinida">
+                                    Indefinido (Sin límite de tiempo)
+                                </label>
+                                <div class="text-muted small">Para colaboradores estables o cuenta estándar.</div>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="radioTipoVigencia" id="vigenciaTemporal" value="temporal" onchange="alCambiarTipoVigencia()">
+                                <label class="form-check-label fw-semibold" for="vigenciaTemporal">
+                                    Por tiempo determinado (Temporal)
+                                </label>
+                                <div class="text-muted small">Al vencer, el usuario regresará automáticamente a ser cliente.</div>
+                            </div>
+                        </div>
+
+                        <!-- Panel de campos de tiempo: Años, Meses, Semanas, Días, Horas -->
+                        <div id="panelTiempoCampos" class="p-3 border rounded-3 bg-light d-none">
+                            <div class="row g-2 text-center">
+                                <div class="col-4 col-md">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Años</label>
+                                    <input type="number" id="privAnios" class="form-control text-center" min="0" max="10" value="0" oninput="actualizarPreviewTiempoPrivilegio()">
+                                </div>
+                                <div class="col-4 col-md">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Meses</label>
+                                    <input type="number" id="privMeses" class="form-control text-center" min="0" max="12" value="0" oninput="actualizarPreviewTiempoPrivilegio()">
+                                </div>
+                                <div class="col-4 col-md">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Semanas</label>
+                                    <input type="number" id="privSemanas" class="form-control text-center" min="0" max="52" value="0" oninput="actualizarPreviewTiempoPrivilegio()">
+                                </div>
+                                <div class="col-6 col-md">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Días</label>
+                                    <input type="number" id="privDias" class="form-control text-center" min="0" max="31" value="0" oninput="actualizarPreviewTiempoPrivilegio()">
+                                </div>
+                                <div class="col-6 col-md">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Horas</label>
+                                    <input type="number" id="privHoras" class="form-control text-center" min="0" max="23" value="0" oninput="actualizarPreviewTiempoPrivilegio()">
+                                </div>
+                            </div>
+                            <!-- Vista previa dinámica del cálculo de tiempo -->
+                            <div class="mt-3 p-2 bg-white rounded border text-center" id="boxPreviewTiempo">
+                                <span class="text-muted small">Cálculo de vencimiento: </span>
+                                <strong id="previewTextoTiempo" class="text-primary small">Indica el tiempo del privilegio</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="privilegiosErrorAlert" class="alert alert-danger py-2 text-center mt-3 d-none"></div>
+                    <div id="privilegiosExitoAlert" class="alert alert-success py-2 text-center mt-3 d-none"></div>
+
+                    <div class="row g-3 mt-2">
+                        <div class="col-6">
+                            <button type="button" class="btn btn-modal-cancelar w-100" data-bs-dismiss="modal">Cancelar</button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-modal-guardar w-100 fw-semibold" id="btnGuardarPrivilegios" onclick="guardarPrivilegiosUsuario()">
+                                <i class="bi bi-check2 me-1"></i>Guardar Privilegios
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal de confirmación para revocar privilegios y regresar a cliente estándar -->
+    <div class="modal fade" id="modalConfirmarRevocarPrivilegio" tabindex="-1" aria-labelledby="modalRevocarLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-bottom py-3" style="background-color: #f8fafc;">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; background-color: #fee2e2; color: #dc2626;">
+                            <i class="bi bi-exclamation-triangle fs-5"></i>
+                        </div>
+                        <h5 class="modal-title fw-bold text-dark mb-0" id="modalRevocarLabel">Revocar Privilegios</h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <p class="text-secondary mb-3">¿Deseas revocar todos los privilegios de esta cuenta y regresarla al rol de <strong>cliente estándar</strong>?</p>
+                    <div class="p-3 bg-light rounded-3 text-start border mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="admin-avatar me-2" id="revocarUsuarioAvatar" style="width:34px; height:34px; font-size:0.85rem;">U</div>
+                            <div>
+                                <div class="fw-semibold text-dark" id="revocarUsuarioNombre">Nombre Usuario</div>
+                                <div class="small text-muted" id="revocarUsuarioEmail">correo@gmail.com</div>
+                            </div>
+                        </div>
+                        <div class="small text-muted mt-2">
+                            <span>Rol actual: </span><strong class="text-primary" id="revocarUsuarioRolActual">Administrador</strong>
+                        </div>
+                    </div>
+                    <div class="small text-danger">
+                        <i class="bi bi-info-circle me-1"></i>Esta acción se aplicará inmediatamente en la base de datos.
+                    </div>
+                </div>
+                <div class="modal-footer border-top p-3 bg-light d-flex justify-content-between">
+                    <button type="button" class="btn btn-modal-cancelar px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger px-4 fw-semibold" id="btnConfirmarRevocacion" onclick="ejecutarRevocacionPrivilegios()">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Revocar Privilegios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
         <div id="toastExito" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
@@ -480,7 +730,7 @@
     <!-- global.js: Utilidades compartidas entre roles; debe cargarse antes de gerente.js -->
     <script th:src="@{/js/global.js(v='2.8')}"></script>
     <!-- gerente.js: Lógica principal del panel gerente; gestiona la SPA interna, carga y filtra ventas, reportes, clientes y citas, y controla modales y exportaciones -->
-    <script th:src="@{/js/roles/gerente.js(v='2.6')}"></script>
+    <script th:src="@{/js/roles/gerente.js(v='2.8')}"></script>
     <!-- Activa la sección correspondiente según la URL solicitada al servidor o memoria local -->
     <script th:inline="javascript">
         /*<![CDATA[*/

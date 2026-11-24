@@ -116,17 +116,6 @@
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
-                            <!-- Selector de tipo de Cuenta: Permite elegir el rol del usuario al registrarse -->
-                            <div class="col-12 d-flex justify-content-center">
-                                <div style="width: 260px;">
-                                    <label class="form-label text-center w-100" for="regRol">Tipo de cuenta</label>
-                                    <select id="regRol" class="form-select text-center">
-                                        <option value="cliente" selected>👤 Cliente</option>
-                                        <option value="administrador">🛡️ Administrador</option>
-                                        <option value="gerente">📊 Gerente</option>
-                                    </select>
-                                </div>
-                            </div>
                             <div class="col-12 text-center">
                                 <!-- Aceptación de términos: Centrado simétrico de checkbox y texto -->
                                 <div class="form-check d-inline-flex align-items-center justify-content-center p-0 m-0">
@@ -162,35 +151,36 @@
                 </div>
             </div>
         </div>
-        <!-- Modal de verificación empresarial: Protege el registro de administradores y gerentes con una clave especial -->
-        <div class="modal fade" id="modalEmpresarial" tabindex="-1" aria-labelledby="tituloModalEmpresarial" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <!-- Modal: Verificación de seguridad en 2 pasos para Autoridad / Gerente Supremo -->
+        <div class="modal fade" id="modalPinSupremo" tabindex="-1" aria-labelledby="tituloModalPinSupremo" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
-                    <!-- Encabezado del modal de verificación empresarial: Muestra el título y el botón para cerrar -->
                     <div class="modal-header justify-content-center position-relative">
-                        <h5 class="modal-title" id="tituloModalEmpresarial"><i class="bi bi-shield-lock me-2"></i>Verificación empresarial</h5>
-                        <button type="button" class="btn-close position-absolute end-0 me-3" id="btnCerrarEmpresarial" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        <h5 class="modal-title" id="tituloModalPinSupremo"><i class="bi bi-shield-lock me-2 text-primary"></i>Verificación en 2 pasos</h5>
+                        <button type="button" class="btn-close position-absolute end-0 me-3" id="btnCerrarPinSupremo" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
-                    <div class="modal-body">
-                        <p class="text-muted small text-center mb-3">Ingresa la contraseña empresarial para registrarte como <strong id="rolEmpresarialTexto"></strong>.</p>
-                        <!-- Campo para ingresar la contraseña empresarial necesaria para completar la verificación -->
-                        <div class="mb-3 text-center">
-                            <label class="form-label fw-semibold" for="passEmpresarial">Contraseña empresarial</label>
+                    <div class="modal-body p-4 text-center">
+                        <div class="mb-3">
+                            <span class="badge bg-primary-subtle text-primary border px-3 py-2 rounded-pill fs-6">
+                                <i class="bi bi-person-badge me-1"></i>Acceso de Autoridad Suprema
+                            </span>
+                        </div>
+                        <p class="text-muted small mb-3">Para garantizar la máxima seguridad, ingresa el <strong>PIN numérico de 8 dígitos</strong> asignado a tu cuenta suprema.</p>
+                        <div class="mb-3 text-center" style="max-width: 280px; margin: 0 auto;">
+                            <label class="form-label fw-semibold" for="pinSupremo">PIN de verificación <span class="text-danger fw-bold">*</span></label>
                             <div class="input-group">
-                                <input type="password" id="passEmpresarial" class="form-control text-center" placeholder="••••••••••">
-                                <button type="button" class="btn btn-toggle-password" onclick="togglePasswordVisibility('passEmpresarial', this)" tabindex="-1" title="Mostrar/ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
+                                <input type="password" id="pinSupremo" class="form-control text-center fs-5" placeholder="••••••••" maxlength="8" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" aria-required="true">
+                                <button type="button" class="btn btn-toggle-password" onclick="togglePasswordVisibility('pinSupremo', this)" tabindex="-1" title="Mostrar/ocultar PIN" aria-label="Mostrar u ocultar PIN">
                                     <i class="bi bi-eye-slash"></i>
                                 </button>
                             </div>
-                            <div class="invalid-feedback text-center"></div>
+                            <div class="invalid-feedback text-center mt-1" id="pinSupremoFeedback"></div>
                         </div>
-                        <!-- Mensaje de error mostrado cuando la contraseña empresarial es incorrecta -->
-                        <div id="empresarialError" class="alert alert-danger text-center py-2 d-none">
-                            <i class="bi bi-x-circle me-2"></i>Contraseña incorrecta.
+                        <div id="pinSupremoError" class="alert alert-danger text-center py-2 d-none">
+                            <i class="bi bi-x-circle me-2"></i><span id="pinSupremoErrorMsg">PIN incorrecto.</span>
                         </div>
-                        <!-- Botón para confirmar la verificación empresarial -->
-                        <div class="d-grid">
-                            <button class="btn btn-primary fw-semibold" id="btnConfirmarEmpresarial"><i class="bi bi-check-lg me-2"></i>Confirmar</button>
+                        <div class="d-grid mt-3" style="max-width: 280px; margin: 0 auto;">
+                            <button class="btn btn-primary fw-semibold py-2" id="btnConfirmarPinSupremo"><i class="bi bi-check-lg me-2"></i>Verificar e Ingresar</button>
                         </div>
                     </div>
                 </div>

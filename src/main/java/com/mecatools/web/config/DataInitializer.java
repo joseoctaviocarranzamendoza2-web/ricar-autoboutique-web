@@ -17,8 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
-
 @Component
 public class DataInitializer implements CommandLineRunner {
 
@@ -49,9 +47,6 @@ public class DataInitializer implements CommandLineRunner {
         Rol rolAdmin = obtenerOCrearRol("administrador");
         Rol rolGerente = obtenerOCrearRol("gerente");
 
-        // Normalización en 3FN: Inicializa y garantiza las categorías de servicios
-        inicializarCategoriasServicios();
-
         // Garantiza la existencia del servicio "Personalizado" para solicitudes especiales
         Servicio servPersonalizado = servicioRepository.findAll().stream()
                 .filter(s -> s.getNombre() != null && s.getNombre().toLowerCase().contains("personalizad"))
@@ -81,10 +76,11 @@ public class DataInitializer implements CommandLineRunner {
             servicioRepository.save(servPersonalizado);
         }
 
-        // Sincroniza y normaliza las relaciones de todos los servicios existentes con CategoriaServicio (3FN)
+        // Sincroniza y normaliza las relaciones de los servicios regulares existentes con CategoriaServicio (3FN)
         List<Servicio> servicios = servicioRepository.findAll();
         for (Servicio s : servicios) {
-            if (s.getCategoriaServicio() == null && s.getCategoria() != null && !s.getCategoria().isBlank()) {
+            boolean esPersonalizado = s.getNombre() != null && s.getNombre().toLowerCase().contains("personalizad");
+            if (!esPersonalizado && s.getCategoriaServicio() == null && s.getCategoria() != null && !s.getCategoria().isBlank()) {
                 CategoriaServicio cs = categoriaServicioRepository.findByNombreIgnoreCase(s.getCategoria().trim())
                         .orElseGet(() -> categoriaServicioRepository.save(new CategoriaServicio(s.getCategoria().trim(), "Categoría de servicio: " + s.getCategoria().trim())));
                 s.setCategoriaServicio(cs);
@@ -180,22 +176,5 @@ public class DataInitializer implements CommandLineRunner {
     private Rol obtenerOCrearRol(String nombre) {
         return rolRepository.findByNombreIgnoreCase(nombre)
                 .orElseGet(() -> rolRepository.save(new Rol(nombre.toLowerCase())));
-    }
-
-    private void inicializarCategoriasServicios() {
-        Map<String, String> categoriasBase = Map.of(
-                "Lubricación", "Cambio de aceite, fluidos y lubricación integral del motor y caja",
-                "Mantenimiento", "Mantenimiento preventivo, afinamiento y revisión general de sistemas",
-                "Diagnóstico", "Escaneo computarizado OBD2, pruebas de sensores y diagnóstico electrónico",
-                "Electricidad", "Baterías, alternador, sistema de arranque, iluminación y cableado",
-                "Seguridad", "Frenos, suspensión, dirección, amortiguadores, alineación y balanceo",
-                "Personalizado", "Servicio a medida según cotización y diagnóstico personalizado"
-        );
-
-        for (Map.Entry<String, String> entry : categoriasBase.entrySet()) {
-            if (categoriaServicioRepository.findByNombreIgnoreCase(entry.getKey()).isEmpty()) {
-                categoriaServicioRepository.save(new CategoriaServicio(entry.getKey(), entry.getValue()));
-            }
-        }
     }
 }

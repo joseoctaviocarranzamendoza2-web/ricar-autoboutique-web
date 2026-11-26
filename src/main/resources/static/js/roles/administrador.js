@@ -7,6 +7,7 @@ let categoriasProductos = [];
 let categoriasServicios = [];
 let tipoCategoriaActiva = 'PRODUCTO';
 let productos = [];
+let servicios = [];
 let vistaProductos = 'grid';
 let productoEdit = null;
 let categoriaEdit = null;
@@ -71,6 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     iniciarSelectPersonalizado('prodCategoria');
     iniciarSelectPersonalizado('prodEtiqueta');
     iniciarSelectPersonalizado('prodEstado');
+    iniciarSelectPersonalizado('servCategoria');
     iniciarSelectPersonalizado('servEstado');
     await cargarCategorias();
     await cargarProductos();
@@ -196,13 +198,12 @@ async function cargarCategorias() {
             fetch(`${API.categorias}?tipo=servicio`)
         ]);
         categoriasProductos = ordenarPorIdDesc(await respProd.json());
-        categoriasServicios = ordenarPorIdDesc(await respServ.json());
+        const rawCategoriasServicios = ordenarPorIdDesc(await respServ.json());
+        categoriasServicios = rawCategoriasServicios.filter(c => c && c.nombre && !c.nombre.toLowerCase().includes('personalizad'));
         categorias = categoriasProductos;
         renderCategorias();
         actualizarSelectCategorias();
-        if (typeof servicios !== 'undefined' && servicios.length > 0) {
-            actualizarSelectCategoriasServicio(servicios);
-        }
+        actualizarSelectCategoriasServicio(servicios);
     } catch (e) {
         console.error('Error cargando categorías:', e);
     }
@@ -823,21 +824,24 @@ async function cargarServicios() {
     try {
         const resp = await fetch(API.servicios);
         const data = await resp.json();
-        const servicios = ordenarPorIdDesc(data);
+        servicios = ordenarPorIdDesc(data);
         actualizarSelectCategoriasServicio(servicios);
         renderServicios(servicios);
+        renderCategorias();
     } catch (e) {
         console.error('Error cargando servicios:', e);
     }
 }
 
-// Actualiza el desplegable de filtro de categorías de servicio con las categorías normalizadas en 3FN
+// Actualiza los desplegables de filtro y formulario de categorías de servicio con las categorías normalizadas en 3FN
 function actualizarSelectCategoriasServicio(servicios) {
     const catSet = new Set();
+    const catModalSet = new Set();
     if (Array.isArray(categoriasServicios)) {
         categoriasServicios.forEach(cs => {
             if (cs && cs.nombre && !cs.nombre.toLowerCase().includes('personalizad')) {
                 catSet.add(cs.nombre.trim());
+                catModalSet.add(cs.nombre.trim());
             }
         });
     }
@@ -853,6 +857,11 @@ function actualizarSelectCategoriasServicio(servicios) {
     const opcionesHtml = '<option value="">Todas las categorías</option>' +
         categoriasOrdenadas.map(c => `<option value="${escaparHtml(c)}">${escaparHtml(c)}</option>`).join('');
     actualizarOpcionesSelect('filterCategoriaServicio', opcionesHtml);
+
+    const categoriasModalOrdenadas = Array.from(catModalSet).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+    const opcionesModalHtml = '<option value="">Seleccionar...</option>' +
+        categoriasModalOrdenadas.map(c => `<option value="${escaparHtml(c)}">${escaparHtml(c)}</option>`).join('');
+    actualizarOpcionesSelect('servCategoria', opcionesModalHtml);
 }
 
 // Obtiene la duración en horas de un servicio (maneja registros en horas o heredados en minutos)
@@ -884,19 +893,20 @@ function renderServicios(servicios) {
         const iconKey = Object.keys(iconos).find(k => key.includes(k));
         const icono = iconKey ? iconos[iconKey] : 'bi-gear-fill';
         const badge = s.estado === 'Activo' ? 'status-active' : 'status-inactive';
+        const iconoEstado = s.estado === 'Activo' ? 'bi-check-circle-fill' : 'bi-pause-circle-fill';
         const imgThumb = s.imagen
             ? `<div class="service-admin-thumb"><img src="${s.imagen}" alt="${s.nombre}"></div>`
-            : `<div class="service-admin-thumb service-admin-thumb-empty"><i class="bi ${icono}"></i></div>`;
+            : `<div class="service-admin-thumb service-admin-thumb-empty"><i class="bi ${icono}" aria-hidden="true"></i></div>`;
         return `<div class="col-sm-6 col-xl-4 d-flex serv-item" data-nombre="${s.nombre.toLowerCase()}" data-categoria="${(s.categoria || '').trim().toLowerCase()}" data-estado="${s.estado}" data-precio="${s.precioBase}">
             <div class="service-admin-card h-100 d-flex flex-column w-100">
                 ${imgThumb}
                 <div class="d-flex align-items-start gap-3 mb-3">
-                    <div class="service-icon"><i class="bi ${icono}"></i></div>
+                    <div class="service-icon"><i class="bi ${icono}" aria-hidden="true"></i></div>
                     <div class="flex-grow-1">
                         <h6 class="fw-bold mb-0">${s.nombre}</h6>
                         ${s.categoria ? `<span class="service-category-badge">${s.categoria}</span>` : ''}
                     </div>
-                    <span class="status-badge ${badge}">${s.estado}</span>
+                    <span class="status-badge ${badge}" role="status"><i class="bi ${iconoEstado} me-1" aria-hidden="true"></i>${s.estado}</span>
                 </div>
                 <p class="text-muted small mb-3 flex-grow-1">${s.descripcion || 'Sin descripción.'}</p>
                 <div class="d-flex justify-content-between mb-3">
@@ -904,13 +914,14 @@ function renderServicios(servicios) {
                     <div><small class="text-muted d-block">Duración</small><strong>${formatearDuracionServicio(s)}</strong></div>
                 </div>
                 <div class="d-flex gap-2 card-actions">
-                    <button class="btn btn-sm btn-outline-primary btn-editar-serv flex-fill" onclick="abrirEditarServicio(${s.id})"><i class="bi bi-pencil me-1"></i>Editar</button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="confirmarEliminarServicio(${s.id},'${s.nombre.replace(/'/g, "\\'")}')"><i class="bi bi-trash"></i></button>
+                    <button class="btn btn-sm btn-outline-primary btn-editar-serv flex-fill" onclick="abrirEditarServicio(${s.id})" data-bs-toggle="tooltip" data-bs-placement="top" title="Editar servicio"><i class="bi bi-pencil me-1" aria-hidden="true"></i>Editar</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="confirmarEliminarServicio(${s.id},'${s.nombre.replace(/'/g, "\\'")}')" data-bs-toggle="tooltip" data-bs-placement="top" title="Eliminar servicio" aria-label="Eliminar servicio ${escaparHtml(s.nombre)}"><i class="bi bi-trash" aria-hidden="true"></i></button>
                 </div>
             </div>
         </div>`;
     }).join('');
-    grid.innerHTML = cards || '<div class="col-12 text-center py-5 text-muted"><i class="bi bi-info-circle me-2"></i>No hay servicios registrados.</div>';
+    grid.innerHTML = cards || '<div class="col-12 text-center py-5 text-muted" role="status"><i class="bi bi-gear display-4 d-block mb-3" aria-hidden="true"></i>No hay servicios. Crea el primero.</div>';
+    window.inicializarTooltips?.(grid);
     filtrarServicios();
 }
 
@@ -1015,15 +1026,22 @@ async function subirArchivoLocal(file) {
     });
 }
 
-// Abre modal para crear un nuevo servicio
+// Abre modal para crear un nuevo servicio (valida existencia previa de categorías de servicio)
 function abrirNuevoServicio() {
+    if (!Array.isArray(categoriasServicios) || categoriasServicios.length === 0) {
+        mostrarToast('Crea al menos una categoría de servicio antes de agregar servicios', 'error');
+        return;
+    }
     servicioEdit = null;
-    document.getElementById('modalServicioTitulo').textContent = 'Nuevo Servicio';
+    document.getElementById('modalServicioTitulo').innerHTML = '<i class="bi bi-gear-fill me-2" aria-hidden="true"></i>Nuevo Servicio';
     document.getElementById('formServicio').reset();
     limpiarImagenArchivo('serv');
+    actualizarSelectCategoriasServicio(typeof servicios !== 'undefined' ? servicios : []);
+    document.getElementById('servCategoria').value = '';
     document.getElementById('servDuracion').value = '1';
     document.getElementById('servEstado').value = 'Activo';
     document.getElementById('servImagen').value = '';
+    sincronizarSelectPersonalizado('servCategoria');
     sincronizarSelectPersonalizado('servEstado');
     new bootstrap.Modal(document.getElementById('modalServicio')).show();
 }
@@ -1040,15 +1058,26 @@ async function abrirEditarServicio(id) {
             throw new Error('Datos de servicio inválidos');
         }
         servicioEdit = id;
-        document.getElementById('modalServicioTitulo').textContent = 'Editar Servicio';
+        document.getElementById('modalServicioTitulo').innerHTML = '<i class="bi bi-pencil me-2" aria-hidden="true"></i>Editar Servicio';
         document.getElementById('servNombre').value = servicio.nombre || '';
-        document.getElementById('servCategoria').value = servicio.categoria || '';
+        actualizarSelectCategoriasServicio(typeof servicios !== 'undefined' ? servicios : []);
+        const selectCat = document.getElementById('servCategoria');
+        const catActual = (servicio.categoria || '').trim();
+        if (selectCat && catActual && !Array.from(selectCat.options).some(o => o.value === catActual)) {
+            const opt = document.createElement('option');
+            opt.value = catActual;
+            opt.textContent = catActual;
+            selectCat.appendChild(opt);
+            reconstruirOpcionesSelectPersonalizado('servCategoria');
+        }
+        if (selectCat) selectCat.value = catActual;
         document.getElementById('servPrecio').value = servicio.precioBase ?? '';
         document.getElementById('servDuracion').value = obtenerHorasServicio(servicio);
         document.getElementById('servDescripcion').value = servicio.descripcion || '';
         document.getElementById('servEstado').value = servicio.estado || 'Activo';
         document.getElementById('servImagen').value = servicio.imagen || '';
         limpiarImagenArchivo('serv');
+        sincronizarSelectPersonalizado('servCategoria');
         sincronizarSelectPersonalizado('servEstado');
         new bootstrap.Modal(document.getElementById('modalServicio')).show();
     } catch (e) {
@@ -1074,8 +1103,11 @@ async function guardarServicio() {
         return;
     }
 
-    if (!nombre || isNaN(precio) || isNaN(duracion) || duracion < 1) {
-        mostrarToast(duracion < 1 ? 'La duración debe ser al menos de 1 hora' : 'Completa los campos obligatorios', 'error');
+    if (!nombre || !categoria || isNaN(precio) || isNaN(duracion) || duracion < 1) {
+        const msgError = !categoria
+            ? 'Selecciona una categoría para el servicio'
+            : (duracion < 1 ? 'La duración debe ser al menos de 1 hora' : 'Completa los campos obligatorios');
+        mostrarToast(msgError, 'error');
         return;
     }
 
@@ -2427,12 +2459,14 @@ function mostrarToast(mensaje, tipo = 'success') {
     const toastIcon = document.getElementById('toastIcono');
     if (!toast) return;
     const estilos = {
-        success: { fondo: 'text-bg-success', icono: 'bi-check-circle-fill', cierreBlanco: true, delay: 3500 },
-        info: { fondo: 'text-bg-success', icono: 'bi-check-circle-fill', cierreBlanco: true, delay: 3500 },
-        warning: { fondo: 'text-bg-warning text-dark', icono: 'bi-exclamation-triangle-fill', cierreBlanco: false, delay: 4500 },
-        error: { fondo: 'text-bg-danger', icono: 'bi-exclamation-triangle-fill', cierreBlanco: true, delay: 3500 }
+        success: { fondo: 'text-bg-success', icono: 'bi-check-circle-fill', cierreBlanco: true, delay: 3500, role: 'status', live: 'polite' },
+        info: { fondo: 'text-bg-success', icono: 'bi-check-circle-fill', cierreBlanco: true, delay: 3500, role: 'status', live: 'polite' },
+        warning: { fondo: 'text-bg-warning text-dark', icono: 'bi-exclamation-triangle-fill', cierreBlanco: false, delay: 4500, role: 'alert', live: 'assertive' },
+        error: { fondo: 'text-bg-danger', icono: 'bi-exclamation-triangle-fill', cierreBlanco: true, delay: 3500, role: 'alert', live: 'assertive' }
     };
     const cfg = estilos[tipo] || estilos.error;
+    toast.setAttribute('role', cfg.role);
+    toast.setAttribute('aria-live', cfg.live);
     toast.className = `toast align-items-center border-0 ${cfg.fondo}`;
     if (toastIcon) {
         toastIcon.className = `bi ${cfg.icono} me-2 fs-5`;

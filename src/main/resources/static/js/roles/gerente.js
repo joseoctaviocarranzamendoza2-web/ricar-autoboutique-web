@@ -1654,9 +1654,12 @@ function mostrarToast(mensaje, tipo = 'success') {
     const toastMsg = document.getElementById('toastMensaje');
     const toastIcon = document.getElementById('toastIcono');
     if (!toast) return;
-    toast.className = `toast align-items-center border-0 ${tipo === 'success' ? 'text-bg-success' : 'text-bg-danger'}`;
+    const esExito = tipo === 'success' || tipo === 'info';
+    toast.setAttribute('role', esExito ? 'status' : 'alert');
+    toast.setAttribute('aria-live', esExito ? 'polite' : 'assertive');
+    toast.className = `toast align-items-center border-0 ${esExito ? 'text-bg-success' : 'text-bg-danger'}`;
     if (toastIcon) {
-        toastIcon.className = tipo === 'success' ? 'bi bi-check-circle-fill me-2 fs-5' : 'bi bi-exclamation-triangle-fill me-2 fs-5';
+        toastIcon.className = esExito ? 'bi bi-check-circle-fill me-2 fs-5' : 'bi bi-exclamation-triangle-fill me-2 fs-5';
     }
     if (toastMsg) toastMsg.textContent = mensaje;
     new bootstrap.Toast(toast, { delay: 3500 }).show();
@@ -1888,14 +1891,14 @@ function renderUsuariosGestion() {
             accionesHtml = '<span class="text-muted small">Protegido</span>';
         } else {
             accionesHtml = `
-                <button type="button" class="btn btn-gestionar-privilegios" onclick="abrirModalGestionPrivilegios(${u.id})">
-                    <i class="bi bi-sliders me-1"></i>Privilegios
+                <button type="button" class="btn btn-gestionar-privilegios" onclick="abrirModalGestionPrivilegios(${u.id})" data-bs-toggle="tooltip" data-bs-placement="top" title="Configurar roles y vigencia de privilegios">
+                    <i class="bi bi-sliders me-1" aria-hidden="true"></i>Privilegios
                 </button>
             `;
             if (roles.length > 1 || !roles.includes('cliente')) {
                 accionesHtml += `
-                    <button type="button" class="btn btn-revocar-cliente ms-1" onclick="revocarPrivilegios(${u.id})" title="Revertir de inmediato a cliente">
-                        <i class="bi bi-arrow-counterclockwise"></i>
+                    <button type="button" class="btn btn-revocar-cliente ms-1" onclick="revocarPrivilegios(${u.id})" data-bs-toggle="tooltip" data-bs-placement="top" title="Revertir de inmediato a cliente" aria-label="Revertir privilegios de ${nombreCompleto} a cliente">
+                        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
                     </button>
                 `;
             }
@@ -1919,6 +1922,7 @@ function renderUsuariosGestion() {
             </tr>
         `;
     }).join('');
+    window.inicializarTooltips?.(tbody);
 }
 
 // Abre el modal para configurar los privilegios del usuario seleccionado

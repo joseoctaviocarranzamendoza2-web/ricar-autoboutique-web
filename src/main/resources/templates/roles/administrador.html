@@ -86,19 +86,19 @@
     </nav>
     <!-- Topbar superior fijo: Contiene el botón de colapso del sidebar, el breadcrumb de ubicación, el botón de notificaciones y el dropdown de perfil del administrador con acceso a edición de datos y cierre de sesión -->
     <header id="topbar">
-        <button class="btn-toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+        <button class="btn-toggle-sidebar" onclick="toggleSidebar()" data-bs-toggle="tooltip" data-bs-placement="right" title="Alternar menú lateral" aria-label="Alternar menú lateral"><i class="bi bi-list" aria-hidden="true"></i></button>
         <div>
             <div class="topbar-breadcrumb" id="topbarBreadcrumb">Administrador</div>
         </div>
         <!-- Dropdown de perfil: AdminNombreAvatar e adminNombreMenu se rellenan dinámicamente en el DOMContentLoaded de administrador.js con las iniciales y nombre completo desde sessionStorage -->
         <div class="topbar-right">
             <!-- Campana de notificaciones: Alterna entre activa (bi-bell) y silenciada (bi-bell-slash) al hacer click -->
-            <button id="btnCampana" class="topbar-icon-btn position-relative" title="Notificaciones" onclick="toggleCampana()">
-                <i id="iconoCampana" class="bi bi-bell"></i>
-                <span id="badgeCampanaNotif" class="badge-notif-pill d-none">0</span>
+            <button id="btnCampana" class="topbar-icon-btn position-relative" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Notificaciones" aria-label="Notificaciones" onclick="toggleCampana()">
+                <i id="iconoCampana" class="bi bi-bell" aria-hidden="true"></i>
+                <span id="badgeCampanaNotif" class="badge-notif-pill d-none" role="status" aria-live="polite">0</span>
             </button>
             <div class="dropdown">
-                <div class="admin-avatar dropdown-toggle" data-bs-toggle="dropdown" id="adminNombreAvatar" title="Perfil">AD</div>
+                <div class="admin-avatar dropdown-toggle" data-bs-toggle="dropdown" id="adminNombreAvatar" role="button" tabindex="0" title="Perfil" aria-label="Menú de perfil de administrador">AD</div>
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
                     <li>
                         <h6 class="dropdown-header" id="adminNombreMenu">Administrador</h6>
@@ -245,7 +245,7 @@
                     <small class="section-subtitle" id="infoProductos">Cargando productos...</small>
                 </div>
                 <!-- abrirNuevoProducto() verifica que existan categorías antes de abrir el modal; previene crear productos huérfanos sin categoría asignada -->
-                <button class="btn btn-admin-nuevo fw-semibold" onclick="this.blur(); abrirNuevoProducto()"><i class="bi bi-plus-lg me-2"></i>Nuevo Producto</button>
+                <button class="btn btn-admin-nuevo fw-semibold" onclick="this.blur(); abrirNuevoProducto()" data-bs-toggle="tooltip" data-bs-placement="left" title="Agregar un nuevo producto al catálogo"><i class="bi bi-plus-lg me-2" aria-hidden="true"></i>Nuevo Producto</button>
             </div>
             <!-- Barra de filtros de productos: SearchProducto (texto), filterCategoria (select dinámico cargado por actualizarSelectCategorias()), filterEstado (todos/stock bajo) y toggles de vista grid/list controlados por setVista() en administrador.js -->
             <div class="admin-card mb-4 filtros-barra-card">
@@ -269,8 +269,8 @@
                         </div>
                         <!-- Botones de toggle de vista: BtnGrid y btnList aplican/quitan la clase active visualmente; setVista() en administrador.js modifica las clases Bootstrap del grid (row-cols-1 vs row-cols-2/3/4) para cambiar entre lista y cuadrícula -->
                         <div class="col-sm-3 d-flex gap-2">
-                            <button class="btn btn-sm btn-toggle-vista flex-fill active" onclick="setVista('grid'); this.blur();" id="btnGrid" title="Vista en cuadrícula"><i class="bi bi-grid"></i></button>
-                            <button class="btn btn-sm btn-toggle-vista flex-fill" onclick="setVista('list'); this.blur();" id="btnList" title="Vista en lista"><i class="bi bi-list-ul"></i></button>
+                            <button class="btn btn-sm btn-toggle-vista flex-fill active" onclick="setVista('grid'); this.blur();" id="btnGrid" data-bs-toggle="tooltip" data-bs-placement="top" title="Vista en cuadrícula" aria-label="Vista en cuadrícula"><i class="bi bi-grid" aria-hidden="true"></i></button>
+                            <button class="btn btn-sm btn-toggle-vista flex-fill" onclick="setVista('list'); this.blur();" id="btnList" data-bs-toggle="tooltip" data-bs-placement="top" title="Vista en lista" aria-label="Vista en lista"><i class="bi bi-list-ul" aria-hidden="true"></i></button>
                         </div>
                     </div>
                 </div>
@@ -289,7 +289,7 @@
                     <span class="section-tag">CATÁLOGO - SERVICIOS</span>
                     <small class="section-subtitle">Administra los tipos de servicio y sus tarifas</small>
                 </div>
-                <button class="btn btn-admin-nuevo fw-semibold" onclick="this.blur(); abrirNuevoServicio()"><i class="bi bi-plus-lg me-2"></i>Nuevo Servicio</button>
+                <button class="btn btn-admin-nuevo fw-semibold" onclick="this.blur(); abrirNuevoServicio()" data-bs-toggle="tooltip" data-bs-placement="left" title="Agregar un nuevo servicio al catálogo"><i class="bi bi-plus-lg me-2" aria-hidden="true"></i>Nuevo Servicio</button>
             </div>
             <!-- Barra de filtros de servicios: searchServicio (texto), filterCategoriaServicio (categorías), filterEstadoServicio (activo/inactivo), filterPrecioServicio (50 en 50 hasta 400) -->
             <div class="admin-card mb-4 filtros-barra-card">
@@ -527,12 +527,12 @@
         </section>
     </main>
     <!-- Modal de creación/edición de producto: Reutilizado para ambas operaciones; modalProductoTitulo cambia entre "Nuevo Producto" y "Editar Producto"; prodCategoria se rellena dinámicamente por actualizarSelectCategorias(); guardarProducto() decide entre POST /api/productos o PUT /api/productos/{id} según el valor de productoEdit -->
-    <div class="modal fade" id="modalProducto" tabindex="-1">
+    <div class="modal fade" id="modalProducto" tabindex="-1" aria-labelledby="modalProductoTitulo" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header" style="background:var(--azul-oscuro);">
-                    <h5 class="modal-title text-white fw-bold" id="modalProductoTitulo"><i class="bi bi-box-seam me-2"></i>Nuevo Producto</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title text-white fw-bold" id="modalProductoTitulo"><i class="bi bi-box-seam me-2" aria-hidden="true"></i>Nuevo Producto</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                     <!-- formProducto: Se resetea con reset() al abrir "Nuevo Producto"; en edición se precarga mediante abrirEditarProducto() que fuerza la carga de categorías si el array está vacío para garantizar que el select tenga opciones antes de asignar el valor -->
@@ -604,23 +604,23 @@
         </div>
     </div>
     <!-- Modal de creación/edición de servicio: Reutilizado para ambas operaciones; modalServicioTitulo cambia dinámicamente; guardarServicio() decide entre POST /api/servicios o PUT /api/servicios/{id} según servicioEdit; el campo estado permite activar/desactivar servicios del catálogo público -->
-    <div class="modal fade" id="modalServicio" tabindex="-1">
+    <div class="modal fade" id="modalServicio" tabindex="-1" aria-labelledby="modalServicioTitulo" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header" style="background:var(--azul-oscuro);">
-                    <h5 class="modal-title text-white fw-bold" id="modalServicioTitulo"><i class="bi bi-gear-fill me-2"></i>Nuevo Servicio</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title text-white fw-bold" id="modalServicioTitulo"><i class="bi bi-gear-fill me-2" aria-hidden="true"></i>Nuevo Servicio</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                     <form id="formServicio">
                         <div class="row g-3">
                             <div class="col-sm-8">
-                                <label class="form-label small fw-semibold">Nombre del servicio</label>
+                                <label class="form-label small fw-semibold" for="servNombre">Nombre del servicio</label>
                                 <input type="text" id="servNombre" class="form-control" placeholder="Ej: Cambio de Aceite" maxlength="100">
                             </div>
                             <div class="col-sm-4">
-                                <label class="form-label small fw-semibold">Categoría</label>
-                                <input type="text" id="servCategoria" class="form-control" placeholder="Ej: Lubricación" maxlength="50">
+                                <label class="form-label small fw-semibold" for="servCategoria">Categoría</label>
+                                <select id="servCategoria" class="form-select"><option value="">Seleccionar...</option></select>
                             </div>
                             <div class="col-sm-4">
                                 <label class="form-label small fw-semibold">Precio (S/)</label>
@@ -674,12 +674,12 @@
         </div>
     </div>
     <!-- Modal de creación/edición de categoría: Reutilizado para ambas operaciones; guardarCategoria() maneja el 409 Conflict del servidor cuando el nombre ya existe; al guardar exitosamente refresca el grid y el select de categorías en el modal de productos -->
-    <div class="modal fade" id="modalCategoria" tabindex="-1">
+    <div class="modal fade" id="modalCategoria" tabindex="-1" aria-labelledby="modalCategoriaTitulo" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header" style="background:var(--azul-oscuro);">
-                    <h5 class="modal-title text-white fw-bold" id="modalCategoriaTitulo"><i class="bi bi-tag me-2"></i>Nueva Categoría</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title text-white fw-bold" id="modalCategoriaTitulo"><i class="bi bi-tag me-2" aria-hidden="true"></i>Nueva Categoría</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row g-3">
@@ -708,12 +708,12 @@
         </div>
     </div>
     <!-- Modal de historial de compras de un cliente: Abierto por verComprasCliente() en administrador.js; tabla renderizada por renderTablaComprasCliente() con cada compra incluyendo un select de estado que dispara cambiarEstadoCompra() con PUT /api/compras/{id}/estado; actualiza el badge de estado en vivo sin cerrar el modal -->
-    <div class="modal fade" id="modalComprasCliente" tabindex="-1">
+    <div class="modal fade" id="modalComprasCliente" tabindex="-1" aria-labelledby="modalComprasClienteTitulo" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-compras-dialog">
             <div class="modal-content">
                 <div class="modal-header" style="background:var(--azul-oscuro);">
-                    <h5 class="modal-title text-white fw-bold"><i class="bi bi-bag-check me-2"></i>Compras de <span id="nombreClienteCompras"></span></h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title text-white fw-bold" id="modalComprasClienteTitulo"><i class="bi bi-bag-check me-2" aria-hidden="true"></i>Compras de <span id="nombreClienteCompras"></span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body p-0">
                     <div class="table-responsive">
@@ -744,7 +744,7 @@
         </div>
     </div>
     <!-- Modal de confirmación dinámico: Reutilizado para eliminación de categorías, productos, servicios y para habilitar o inhabilitar usuarios según rol de creación -->
-    <div class="modal fade" id="modalEliminar" tabindex="-1">
+    <div class="modal fade" id="modalEliminar" tabindex="-1" aria-labelledby="tituloModalEliminar" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-confirmacion" id="dialogModalEliminar">
             <div class="modal-content">
                 <div class="modal-body text-center py-4 px-4">
@@ -782,12 +782,12 @@
     </div>
 
     <!-- Modal de revisión y respuesta de apelación de cliente inhabilitado -->
-    <div class="modal fade" id="modalApelacionAdmin" tabindex="-1">
+    <div class="modal fade" id="modalApelacionAdmin" tabindex="-1" aria-labelledby="modalApelacionAdminTitulo" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header" style="background:var(--azul-oscuro);">
-                    <h5 class="modal-title text-white fw-bold"><i class="bi bi-shield-exclamation me-2 text-warning"></i>Caso de Apelación - <span id="apelacionClienteNombre"></span></h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title text-white fw-bold" id="modalApelacionAdminTitulo"><i class="bi bi-shield-exclamation me-2 text-warning" aria-hidden="true"></i>Caso de Apelación - <span id="apelacionClienteNombre"></span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body p-4">
                     <!-- Ficha de inhabilitación del cliente -->
@@ -864,12 +864,12 @@
         </div>
     </div>
     <!-- Modal de edición de datos del administrador: Precargado por abrirModalEditarDatos() con datos de sessionStorage; al guardar llama a PUT /api/usuarios/{id} (mismo endpoint que usa el cliente), actualiza sessionStorage con guardarSesion() y refresca el avatar e iniciales del topbar en tiempo real sin recargar la página -->
-    <div class="modal fade" id="modalEditarDatos" tabindex="-1">
+    <div class="modal fade" id="modalEditarDatos" tabindex="-1" aria-labelledby="modalEditarDatosTitulo" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header" style="background:var(--azul-oscuro);">
-                    <h5 class="modal-title text-white fw-bold"><i class="bi bi-pencil-square me-2"></i>Editar mis datos</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title text-white fw-bold" id="modalEditarDatosTitulo"><i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Editar mis datos</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row g-3">

@@ -78,20 +78,20 @@
     </nav>
     <!-- Barra superior que contiene el botón de alternancia del sidebar móvil, notificaciones y desplegable de perfil seguro -->
     <header id="topbar">
-        <button class="btn-toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+        <button class="btn-toggle-sidebar" onclick="toggleSidebar()" data-bs-toggle="tooltip" data-bs-placement="right" title="Alternar menú lateral" aria-label="Alternar menú lateral"><i class="bi bi-list" aria-hidden="true"></i></button>
         <div>
             <div class="topbar-breadcrumb" id="topbarBreadcrumb">Gerente</div>
         </div>
         <!-- Breadcrumb fijo para indicar el contexto del panel y ayudar al gerente a confirmar el rol activo mientras navega entre secciones -->
         <div class="topbar-right">
             <!-- Campana de notificaciones: Alterna entre activa (bi-bell) y silenciada (bi-bell-slash) al hacer click -->
-            <button id="btnCampana" class="topbar-icon-btn position-relative" title="Notificaciones" onclick="toggleCampana()">
-                <i id="iconoCampana" class="bi bi-bell"></i>
-                <span id="badgeCampanaNotif" class="badge-notif-pill d-none">0</span>
+            <button id="btnCampana" class="topbar-icon-btn position-relative" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Notificaciones" aria-label="Notificaciones" onclick="toggleCampana()">
+                <i id="iconoCampana" class="bi bi-bell" aria-hidden="true"></i>
+                <span id="badgeCampanaNotif" class="badge-notif-pill d-none" role="status" aria-live="polite">0</span>
             </button>
             <div class="dropdown">
                 <!-- Desplegable Bootstrap para acciones de cuenta del gerente, nombre inyectado por Thymeleaf con valor predeterminado seguro; esto permite editar perfil o cerrar sesión desde el header sin salir del panel -->
-                <div class="admin-avatar dropdown-toggle" data-bs-toggle="dropdown" id="gerenteNombreAvatar" title="Perfil">G</div>
+                <div class="admin-avatar dropdown-toggle" data-bs-toggle="dropdown" id="gerenteNombreAvatar" role="button" tabindex="0" title="Perfil" aria-label="Menú de perfil de gerente">G</div>
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
                     <li>
                         <h6 class="dropdown-header" id="gerenteNombreMenu" th:text="${param.nombre != null ? param.nombre : 'gerente'}">gerente</h6>

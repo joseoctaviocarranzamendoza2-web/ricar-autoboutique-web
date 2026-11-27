@@ -2319,14 +2319,20 @@ textarea.form-control {
 .btn-filtro-mensaje.active,
 .btn-filtro-mensaje.active:hover,
 .btn-filtro-mensaje.active:focus,
-.btn-filtro-mensaje.active:active,
+.btn-filtro-mensaje.active:active {
+    background-color: var(--color-celeste, #56aee8) !important;
+    border-color: var(--color-celeste, #56aee8) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
+
 .btn-filtro-categoria:active,
 .btn-filtro-categoria.active,
 .btn-filtro-categoria.active:hover,
 .btn-filtro-categoria.active:focus,
 .btn-filtro-categoria.active:active {
-    background-color: var(--color-celeste, #56aee8) !important;
-    border-color: var(--color-celeste, #56aee8) !important;
+    background-color: var(--azul-oscuro, #0a3d6b) !important;
+    border-color: var(--azul-oscuro, #0a3d6b) !important;
     color: #ffffff !important;
     box-shadow: none !important;
 }

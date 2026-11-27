@@ -626,6 +626,10 @@ body {
     overflow: hidden;
 }
 
+#modalPinSupremo.modal-static .modal-dialog {
+    transform: none !important;
+}
+
 /* Fondo oscuro, padding y borde inferior de marca */
 .modal-header {
     background-color: var(--azul-oscuro);
@@ -681,9 +685,15 @@ body {
     letter-spacing: 0.5px;
 }
 
+#modalPinSupremo label[for="pinSupremo"] {
+    display: block !important;
+    width: 100%;
+    text-align: center !important;
+}
+
 /* Cápsula informativa accesible WCAG: diseño tipo píldora que contrasta claramente sin sombreado */
 .register-info-badge {
-    background-color: #ffffff;
+    background-color: var(--blanco);
     color: var(--azul-oscuro);
     border: 1px solid #dce6f0;
     border-radius: 50px;
@@ -869,9 +879,10 @@ body {
     box-shadow: none !important;
 }
 
-/* Botones Crear mi cuenta (#btnRegister) e Ingresar (#btnLogin): Fondo celeste institucional en reposo, estáticos */
+/* Botones principales de registro, inicio de sesión y verificación PIN: celeste institucional en reposo */
 #modalRegister #btnRegister,
-#modalLogin #btnLogin {
+#modalLogin #btnLogin,
+#modalPinSupremo #btnConfirmarPinSupremo {
     background-color: var(--celeste) !important;
     border: 1.5px solid var(--celeste) !important;
     color: #ffffff !important;
@@ -886,7 +897,9 @@ body {
 #modalRegister #btnRegister:hover,
 #modalRegister #btnRegister:active,
 #modalLogin #btnLogin:hover,
-#modalLogin #btnLogin:active {
+#modalLogin #btnLogin:active,
+#modalPinSupremo #btnConfirmarPinSupremo:hover,
+#modalPinSupremo #btnConfirmarPinSupremo:active {
     background-color: var(--azul-oscuro) !important;
     border-color: var(--azul-oscuro) !important;
     color: #ffffff !important;
@@ -897,7 +910,8 @@ body {
 
 /* Tras hacer click (focus): Regresa de inmediato al color celeste de reposo */
 #modalRegister #btnRegister:focus,
-#modalLogin #btnLogin:focus {
+#modalLogin #btnLogin:focus,
+#modalPinSupremo #btnConfirmarPinSupremo:focus {
     background-color: var(--celeste) !important;
     border-color: var(--celeste) !important;
     color: #ffffff !important;

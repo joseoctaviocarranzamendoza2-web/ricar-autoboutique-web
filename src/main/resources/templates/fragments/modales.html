@@ -21,14 +21,14 @@
                         <!-- Formulario de inicio de sesión: Solicita correo para la autenticación de usuario -->
                         <div class="mb-3">
                             <label class="form-label" for="loginEmail">Correo electrónico <span class="text-danger fw-bold" aria-hidden="true">*</span></label>
-                            <input type="email" id="loginEmail" class="form-control" placeholder="solo@gmail.com" autocomplete="email" aria-required="true">
+                            <input type="email" id="loginEmail" class="form-control" placeholder="solo@gmail.com" autocomplete="email" aria-required="true" title="Ingresa tu correo electrónico.">
                             <div class="invalid-feedback"></div>
                         </div>
                         <!-- Formulario de inicio de sesión: Solicita contraseña para la autenticación de usuario -->
                         <div class="mb-3">
                             <label class="form-label" for="loginPassword">Contraseña <span class="text-danger fw-bold" aria-hidden="true">*</span></label>
                             <div class="input-group">
-                                <input type="password" id="loginPassword" class="form-control" placeholder="Tu contraseña" autocomplete="current-password" aria-required="true">
+                                <input type="password" id="loginPassword" class="form-control" placeholder="Tu contraseña" autocomplete="current-password" aria-required="true" title="Ingresa tu contraseña.">
                                 <button type="button" class="btn btn-toggle-password" onclick="togglePasswordVisibility('loginPassword', this)" tabindex="-1" title="Mostrar/ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
                                     <i class="bi bi-eye-slash"></i>
                                 </button>
@@ -39,15 +39,15 @@
                         <div id="loginError" class="alert alert-danger text-center py-2 d-none">
                             <i class="bi bi-exclamation-circle me-2"></i>Correo o contraseña incorrectos.
                         </div>
-                        <!-- Mensaje de éxito visible cuando el inicio de sesión se completa correctamente -->
-                        <div id="loginExito" class="alert alert-success text-center py-2 d-none">
-                            <i class="bi bi-check-circle me-2"></i>¡Sesión iniciada correctamente!
-                        </div>
                         <!-- Contenedor del botón principal para enviar las credenciales del formulario de login -->
                         <div class="d-grid">
                             <button class="btn btn-primary py-2 fw-semibold" id="btnLogin"><i class="bi bi-box-arrow-in-right me-2"></i>Ingresar</button>
                         </div>
-                        <hr>
+                        <!-- Mensaje de éxito visible cuando el inicio de sesión se completa correctamente -->
+                        <div id="loginExito" class="alert alert-success text-center py-2 mt-3 mb-0 d-none">
+                            <i class="bi bi-check-circle me-2"></i>¡Inicio de sesión exitoso! Redirigiendo a tu cuenta.
+                        </div>
+                        <hr class="my-3">
                         <!-- Enlace a registro: Cambia al modal de registro cuando el usuario no tiene cuenta -->
                         <p class="text-center small text-muted mb-0">¿No tienes cuenta?&nbsp;<a href="#" class="text-decoration-none" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#modalRegister">Regístrate aquí</a></p>
                     </div>
@@ -73,32 +73,32 @@
                             <!-- Campo de nombres con validación de longitud de 2 a 50 caracteres y formato básico -->
                             <div class="col-sm-6">
                                 <label class="form-label" for="regNombres">Nombres <span class="text-danger fw-bold" aria-hidden="true">*</span></label>
-                                <input type="text" id="regNombres" class="form-control" placeholder="Solo letras" maxlength="50" autocomplete="given-name" aria-required="true">
+                                <input type="text" id="regNombres" class="form-control" placeholder="Solo letras" maxlength="50" autocomplete="given-name" aria-required="true" title="Ingresa tus nombres.">
                                 <div class="invalid-feedback"></div>
                             </div>
                             <!-- Campo de apellidos con validación de longitud de 2 a 50 caracteres y formato básico -->
                             <div class="col-sm-6">
                                 <label class="form-label" for="regApellidos">Apellidos <span class="text-danger fw-bold" aria-hidden="true">*</span></label>
-                                <input type="text" id="regApellidos" class="form-control" placeholder="Solo letras" maxlength="50" autocomplete="family-name" aria-required="true">
+                                <input type="text" id="regApellidos" class="form-control" placeholder="Solo letras" maxlength="50" autocomplete="family-name" aria-required="true" title="Ingresa tus apellidos.">
                                 <div class="invalid-feedback"></div>
                             </div>
                             <!-- Campo de correo con validación de tipo email -->
                             <div class="col-sm-6">
                                 <label class="form-label" for="regEmail">Correo electrónico <span class="text-danger fw-bold" aria-hidden="true">*</span></label>
-                                <input type="email" id="regEmail" class="form-control" placeholder="solo@gmail.com" autocomplete="email" aria-required="true">
+                                <input type="email" id="regEmail" class="form-control" placeholder="solo@gmail.com" autocomplete="email" aria-required="true" title="Ingresa tu correo electrónico.">
                                 <div class="invalid-feedback"></div>
                             </div>
                             <!-- Campo de teléfono con validación de longitud de 9 caracteres y formato numérico -->
                             <div class="col-sm-6">
                                 <label class="form-label" for="regTel">Teléfono <span class="text-danger fw-bold" aria-hidden="true">*</span></label>
-                                <input type="tel" id="regTel" class="form-control" placeholder="999 999 999" maxlength="9" autocomplete="tel" aria-required="true">
+                                <input type="tel" id="regTel" class="form-control" placeholder="999 999 999" maxlength="9" autocomplete="tel" aria-required="true" title="Ingresa tu número de teléfono.">
                                 <div class="invalid-feedback"></div>
                             </div>
                             <!-- Campo de contraseña con validación de longitud mínima de 8 caracteres -->
                             <div class="col-sm-6">
                                 <label class="form-label" for="regPassword">Contraseña <span class="text-danger fw-bold" aria-hidden="true">*</span></label>
                                 <div class="input-group">
-                                    <input type="password" id="regPassword" class="form-control" placeholder="Mínimo 8 caracteres" maxlength="30" autocomplete="new-password" aria-required="true">
+                                    <input type="password" id="regPassword" class="form-control" placeholder="Mínimo 8 caracteres" maxlength="30" autocomplete="new-password" aria-required="true" title="Crea una contraseña de mínimo 8 caracteres.">
                                     <button type="button" class="btn btn-toggle-password" onclick="togglePasswordVisibility('regPassword', this)" tabindex="-1" title="Mostrar/ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
                                         <i class="bi bi-eye-slash"></i>
                                     </button>
@@ -109,7 +109,7 @@
                             <div class="col-sm-6">
                                 <label class="form-label" for="regConfirm">Confirmar contraseña <span class="text-danger fw-bold" aria-hidden="true">*</span></label>
                                 <div class="input-group">
-                                    <input type="password" id="regConfirm" class="form-control" placeholder="Repite tu contraseña" maxlength="30" autocomplete="new-password" aria-required="true">
+                                    <input type="password" id="regConfirm" class="form-control" placeholder="Repite tu contraseña" maxlength="30" autocomplete="new-password" aria-required="true" title="Confirma tu contraseña.">
                                     <button type="button" class="btn btn-toggle-password" onclick="togglePasswordVisibility('regConfirm', this)" tabindex="-1" title="Mostrar/ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
                                         <i class="bi bi-eye-slash"></i>
                                     </button>
@@ -130,19 +130,19 @@
                                     <button class="btn btn-primary py-2 fw-semibold" id="btnRegister"><i class="bi bi-person-check me-2"></i>Crear mi cuenta</button>
                                 </div>
                             </div>
-                            <div class="col-12">
+                            <div class="col-12 mt-0">
                                 <!-- Mensaje de éxito mostrado cuando el registro se completa correctamente -->
-                                <div id="registerExito" class="alert alert-success text-center py-2 d-none">
+                                <div id="registerExito" class="alert alert-success text-center py-2 mt-3 mb-0 d-none">
                                     <i class="bi bi-check-circle me-2"></i>¡Cuenta creada! Ya puedes iniciar sesión.
                                 </div>
                                 <!-- Mensaje de error mostrado cuando ocurre un problema durante el registro -->
-                                <div id="registerError" class="alert alert-danger text-center py-2 d-none">
+                                <div id="registerError" class="alert alert-danger text-center py-2 mt-3 mb-0 d-none">
                                     <i class="bi bi-exclamation-circle me-2"></i>
                                     <span id="registerErrorMsg">Error al registrarse.</span>
                                 </div>
                             </div>
                         </div>
-                        <hr>
+                        <hr class="my-3">
                         <!-- Enlace de acceso directo al login si el usuario ya tiene cuenta -->
                         <p class="text-center small text-muted mb-0">¿Ya tienes cuenta?
                             <a href="#" class="text-decoration-none" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#modalLogin">Inicia sesión aquí</a>
@@ -156,31 +156,29 @@
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header justify-content-center position-relative">
-                        <h5 class="modal-title" id="tituloModalPinSupremo"><i class="bi bi-shield-lock me-2 text-primary"></i>Verificación en 2 pasos</h5>
+                        <h5 class="modal-title" id="tituloModalPinSupremo"><i class="bi bi-shield-lock me-2"></i>Verificación en 2 Pasos</h5>
                         <button type="button" class="btn-close position-absolute end-0 me-3" id="btnCerrarPinSupremo" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
-                    <div class="modal-body p-4 text-center">
-                        <div class="mb-3">
-                            <span class="badge bg-primary-subtle text-primary border px-3 py-2 rounded-pill fs-6">
-                                <i class="bi bi-person-badge me-1"></i>Acceso de Autoridad Suprema
-                            </span>
+                    <div class="modal-body">
+                        <div class="text-center mb-3">
+                            <span class="register-info-badge">Confirma tu identidad.</span>
                         </div>
-                        <p class="text-muted small mb-3">Para garantizar la máxima seguridad, ingresa el <strong>PIN numérico de 8 dígitos</strong> asignado a tu cuenta suprema.</p>
-                        <div class="mb-3 text-center" style="max-width: 280px; margin: 0 auto;">
-                            <label class="form-label fw-semibold" for="pinSupremo">PIN de verificación <span class="text-danger fw-bold">*</span></label>
+                        <p class="text-muted small mb-3 text-center">Para garantizar tu seguridad, ingresa el<br><strong>PIN numérico de 8 dígitos</strong> asignado a tu cuenta.</p>
+                        <div class="mb-3">
+                            <label class="form-label d-block text-center" for="pinSupremo">PIN de verificación <span class="text-danger fw-bold" aria-hidden="true">*</span></label>
                             <div class="input-group">
-                                <input type="password" id="pinSupremo" class="form-control text-center fs-5" placeholder="••••••••" maxlength="8" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" aria-required="true">
+                                <input type="password" id="pinSupremo" class="form-control" placeholder="••••••••" maxlength="8" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" aria-required="true" aria-describedby="pinSupremoFeedback" title="Ingresa el PIN de verificación de 8 dígitos.">
                                 <button type="button" class="btn btn-toggle-password" onclick="togglePasswordVisibility('pinSupremo', this)" tabindex="-1" title="Mostrar/ocultar PIN" aria-label="Mostrar u ocultar PIN">
                                     <i class="bi bi-eye-slash"></i>
                                 </button>
                             </div>
-                            <div class="invalid-feedback text-center mt-1" id="pinSupremoFeedback"></div>
+                            <div class="invalid-feedback mt-1" id="pinSupremoFeedback"></div>
                         </div>
                         <div id="pinSupremoError" class="alert alert-danger text-center py-2 d-none">
                             <i class="bi bi-x-circle me-2"></i><span id="pinSupremoErrorMsg">PIN incorrecto.</span>
                         </div>
-                        <div class="d-grid mt-3" style="max-width: 280px; margin: 0 auto;">
-                            <button class="btn btn-primary fw-semibold py-2" id="btnConfirmarPinSupremo"><i class="bi bi-check-lg me-2"></i>Verificar e Ingresar</button>
+                        <div class="d-grid">
+                            <button class="btn btn-primary py-2 fw-semibold" id="btnConfirmarPinSupremo"><i class="bi bi-check-lg me-2"></i>Verificar e ingresar</button>
                         </div>
                     </div>
                 </div>

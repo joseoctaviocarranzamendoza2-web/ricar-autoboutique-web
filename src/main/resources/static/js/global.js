@@ -526,7 +526,10 @@ function abrirModalPinSupremo(email, password) {
         inputPin.classList.remove('is-invalid');
     }
     if (err) err.classList.add('d-none');
-    if (fb) fb.textContent = '';
+    if (fb) {
+        fb.textContent = '';
+        fb.style.display = '';
+    }
 
     const modalLogin = document.getElementById('modalLogin');
     modalLogin?.addEventListener('hidden.bs.modal', function handler() {
@@ -543,12 +546,19 @@ async function confirmarPinSupremo() {
     const btn = document.getElementById('btnConfirmarPinSupremo');
     const err = document.getElementById('pinSupremoError');
     const msgErr = document.getElementById('pinSupremoErrorMsg');
-    const fb = document.getElementById('pinSupremoFeedback');
 
+    if (btn?.disabled) return;
+    btn?.blur();
+    err?.classList.add('d-none');
+    inputPin?.classList.remove('is-invalid', 'is-valid');
+    const feedback = document.getElementById('pinSupremoFeedback');
+    if (feedback) {
+        feedback.textContent = '';
+        feedback.style.display = '';
+    }
     const pin = (inputPin?.value || '').trim();
     if (!pin || !/^\d{8}$/.test(pin)) {
-        inputPin?.classList.add('is-invalid');
-        if (fb) fb.textContent = 'El PIN debe contener exactamente 8 dígitos numéricos';
+        if (inputPin) marcarInvalido(inputPin, 'El PIN debe contener exactamente 8 dígitos numéricos');
         return;
     }
 
@@ -556,8 +566,6 @@ async function confirmarPinSupremo() {
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verificando...';
     }
-    err?.classList.add('d-none');
-
     try {
         const formData = new URLSearchParams();
         formData.append('email', _credencialesPendientesSupremo.email);
@@ -572,8 +580,9 @@ async function confirmarPinSupremo() {
 
         if (!resp.ok) {
             const dataErr = await resp.json().catch(() => ({}));
-            inputPin?.classList.add('is-invalid');
-            if (msgErr) msgErr.textContent = dataErr.error || 'PIN de verificación incorrecto. Intenta de nuevo.';
+            const mensaje = dataErr.error || 'PIN de verificación incorrecto. Intenta de nuevo.';
+            if (inputPin) marcarInvalido(inputPin, mensaje);
+            if (msgErr) msgErr.textContent = mensaje;
             err?.classList.remove('d-none');
             return;
         }
@@ -598,13 +607,27 @@ async function confirmarPinSupremo() {
     } finally {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-check-lg me-2"></i>Verificar e Ingresar';
+            btn.innerHTML = '<i class="bi bi-check-lg me-2"></i>Verificar e ingresar';
+            btn.blur();
         }
     }
 }
 
+// Inicializa tooltips de Bootstrap con soporte para teclado (hover focus) cumpliendo WCAG 1.4.13 y 2.1.1
+function inicializarTooltips(contenedor = document) {
+    if (typeof bootstrap === 'undefined' || !bootstrap.Tooltip) return;
+    const raiz = contenedor || document;
+    raiz.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+        const previa = bootstrap.Tooltip.getInstance(el);
+        if (previa) previa.dispose();
+        new bootstrap.Tooltip(el, { trigger: 'hover focus', container: 'body' });
+    });
+}
+window.inicializarTooltips = inicializarTooltips;
+
 // Inicializaciones y bindings que deben ejecutarse cuando el DOM está listo
 document.addEventListener('DOMContentLoaded', () => {
+    inicializarTooltips();
     // Garantiza que la cookie access_token de 20m, refresh_token y rol_activo estén activas si ya existen en sessionStorage
     const tokenActivo = sessionStorage.getItem(JWT_KEY);
     if (tokenActivo && !document.cookie.includes('access_token=')) {
@@ -623,6 +646,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     actualizarNavbar();
     document.addEventListener('hidden.bs.modal', limpiarBackdropsSobrantes);
+    document.addEventListener('shown.bs.modal', (e) => {
+        const modalEl = e.target;
+        if (!modalEl) return;
+        const enfocado = document.activeElement;
+        if (!enfocado || !modalEl.contains(enfocado)) {
+            const primerCampo = modalEl.querySelector('input:not([type="hidden"]):not([disabled]):not([readonly]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])');
+            if (primerCampo) primerCampo.focus({ preventScroll: true });
+        }
+    });
     const modalLogin = document.getElementById('modalLogin');
     const modalRegister = document.getElementById('modalRegister');
     modalLogin?.addEventListener('show.bs.modal', () => actualizarUrlModalAuth('modalLogin'));
@@ -713,7 +745,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     document.getElementById('pinSupremo')?.addEventListener('input', e => {
-        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 8);
+        const input = e.target;
+        input.value = input.value.replace(/\D/g, '').slice(0, 8);
+        if (input.classList.contains('is-invalid')) {
+            input.classList.remove('is-invalid');
+            const feedback = document.getElementById('pinSupremoFeedback');
+            if (feedback) {
+                feedback.textContent = '';
+                feedback.style.display = '';
+            }
+        }
+        document.getElementById('pinSupremoError')?.classList.add('d-none');
     });
 });
 
@@ -814,7 +856,7 @@ async function manejarLogin() {
         setTimeout(() => {
             bootstrap.Modal.getInstance(document.getElementById('modalLogin'))?.hide();
             window.location.href = destino;
-        }, 1200);
+        }, 2000);
     } catch (err) {
         console.error('Error de conexión:', err);
         if (divError) {

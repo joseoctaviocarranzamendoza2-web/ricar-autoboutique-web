@@ -1110,3 +1110,26 @@ body {
         width: 130px;
     }
 }
+/* Responsive final: perfil, KPIs, listados y tablas */
+@media (max-width: 767.98px) {
+    .perfil-bg { padding-top: 2rem !important; padding-bottom: 2rem !important; }
+    .u-card { min-width: 0; }
+    .u-card-header { flex-wrap: wrap; gap: .5rem; }
+    .u-card-body { min-width: 0; overflow-wrap: anywhere; }
+    .u-table { min-width: 620px; }
+    #grid-servicios > *, #grid-compras > * { min-width: 0; }
+    .u-kpi-icono { flex-shrink: 0; }
+}
+
+@media (max-width: 420px) {
+    .u-card-header { padding-left: .85rem !important; padding-right: .85rem !important; }
+    .u-card-body { padding-left: .85rem !important; padding-right: .85rem !important; }
+    .u-table { font-size: .78rem; }
+}
+
+@media (max-width: 767.98px) {
+    .table-responsive:has(#tbody-compras) > table { min-width: 720px; }
+    #tbody-compras td:nth-child(2) { min-width: 190px; }
+    #tbody-compras td:nth-child(5) { min-width: 120px; }
+    #tbody-compras td:last-child { min-width: 115px; }
+}

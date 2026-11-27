@@ -2750,3 +2750,51 @@ textarea.form-control {
 
 
 
+/* Responsive final: panel administrador */
+@media (max-width: 1199.98px) {
+    .admin-card, .kpi-card, .admin-card-body, .admin-card-header { min-width: 0; }
+    .admin-card-header { flex-wrap: wrap; gap: .5rem; }
+    .admin-card-title { overflow-wrap: anywhere; }
+    .admin-table { min-width: 680px; }
+}
+
+@media (max-width: 767.98px) {
+    .admin-card-body { padding: 1rem !important; overflow-wrap: anywhere; }
+    .admin-card-header { padding: .85rem 1rem !important; }
+    .admin-table { font-size: .78rem; }
+    .admin-card-body .row > * { min-width: 0; }
+    .admin-card-body .btn { min-height: 40px; }
+}
+
+@media (max-width: 420px) {
+    .admin-card-body { padding: .75rem !important; }
+    .admin-table { min-width: 600px; }
+}
+
+@media (max-width: 991px) {
+    #sidebar.mobile-open {
+        width: min(var(--ancho-sidebar), 86vw);
+        max-width: 300px;
+        height: 100dvh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    #sidebar .sidebar-link {
+        min-height: 46px;
+        white-space: normal;
+        overflow-wrap: break-word;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .table-responsive:has(#tablaCitas) > table,
+    .table-responsive:has(#tablaClientes) > table,
+    .table-responsive:has(#tablaComprasCliente) > table { min-width: 760px; }
+    #tablaCitas td:nth-child(4) { min-width: 130px; }
+    #tablaCitas td:nth-child(5) { min-width: 130px; }
+    #tablaClientes td:nth-child(2) { min-width: 170px; }
+    #tablaClientes td:nth-child(6) { min-width: 120px; }
+    #tablaComprasCliente td:nth-child(2) { min-width: 190px; }
+    #tablaComprasCliente td:last-child { min-width: 145px; }
+}

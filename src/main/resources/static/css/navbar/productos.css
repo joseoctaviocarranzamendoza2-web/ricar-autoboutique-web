@@ -487,3 +487,11 @@
         padding: 0.35rem 0.75rem;
     }
 }
+@media (max-width: 767.98px) {
+    .producto-card, .card-producto, .producto-detalle { min-width: 0; }
+    .producto-card img, .card-producto img { width: 100%; height: auto; object-fit: contain; }
+    .table-responsive:has(#tbody-carrito) > table { min-width: 600px; }
+    #tbody-carrito td:first-child { min-width: 190px; }
+    #tbody-carrito td:nth-child(3) { min-width: 120px; }
+    #tbody-carrito td:last-child { min-width: 70px; }
+}

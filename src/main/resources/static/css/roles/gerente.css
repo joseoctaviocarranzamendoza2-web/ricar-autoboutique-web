@@ -1760,3 +1760,74 @@ body {
     background: #dc3545;
     color: #fff;
 }
+/* Responsive final: panel gerente */
+@media (max-width: 1199.98px) {
+    #mainContent { min-width: 0; }
+    .admin-card, .kpi-card { min-width: 0; }
+    .admin-card-header { min-width: 0; flex-wrap: wrap; gap: .5rem; }
+    .admin-card-title { overflow-wrap: anywhere; }
+    .admin-table { min-width: 680px; }
+    .filtros-ventas, #filtrosVentas, #filtrosUsuarios { min-width: 0; }
+}
+
+@media (max-width: 767.98px) {
+    #mainContent { padding: 1rem !important; }
+    .kpi-card { padding: 1rem !important; }
+    .admin-card-header { padding: .85rem 1rem !important; }
+    .admin-card-body { padding: 1rem !important; overflow-wrap: anywhere; }
+    .admin-table { font-size: .78rem; }
+    .admin-card-body .row > * { min-width: 0; }
+    .admin-card-body .btn { min-height: 40px; }
+    .tab-ventas-btn, .btn-filtro-rol { min-height: 42px !important; }
+    .ventas-tabs-nav { max-width: 100%; flex-wrap: wrap; }
+    .paginacion-resumen-paginas { width: 100%; text-align: center; }
+    #sec-reportes .row.g-3 .admin-card-header .admin-card-title { font-size: .88rem !important; }
+}
+
+@media (max-width: 420px) {
+    #mainContent { padding: .75rem !important; }
+    .admin-card-body { padding: .75rem !important; }
+    .admin-table { min-width: 600px; }
+    .ventas-tabs-nav { width: 100%; }
+    .tab-ventas-btn { flex: 1 1 100%; justify-content: center; }
+}
+
+@media (max-width: 991px) {
+    #sidebar.mobile-open {
+        width: min(var(--ancho-sidebar), 86vw);
+        max-width: 300px;
+        height: 100dvh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    #sidebar .sidebar-nav { padding-bottom: 1rem; }
+    #sidebar .sidebar-link {
+        min-height: 46px;
+        white-space: normal;
+        overflow-wrap: break-word;
+    }
+}
+
+@media (max-width: 767.98px) {
+    #sec-dashboard .table-responsive > table,
+    #sec-ventas .table-responsive > table,
+    #sec-reportes .table-responsive > table,
+    #sec-usuarios .table-responsive > table,
+    .table-responsive:has(#tbodyVentas) > table,
+    .table-responsive:has(#tbodyUsuariosGestion) > table { min-width: 720px; }
+
+    #sec-dashboard .table-responsive td:nth-child(1),
+    #sec-ventas .table-responsive td:nth-child(1),
+    #sec-reportes .table-responsive td:nth-child(1),
+    #sec-usuarios .table-responsive td:nth-child(1) { white-space: nowrap; }
+
+    #sec-dashboard .table-responsive td:nth-child(4),
+    #sec-ventas .table-responsive td:nth-child(4) { min-width: 120px; }
+
+    #sec-ventas .table-responsive td:nth-child(3),
+    #sec-usuarios .table-responsive td:nth-child(1) { min-width: 150px; }
+
+    #sec-ventas .table-responsive td:last-child,
+    #sec-usuarios .table-responsive td:last-child { min-width: 120px; }
+}

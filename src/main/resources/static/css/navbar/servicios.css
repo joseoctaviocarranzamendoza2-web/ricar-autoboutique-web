@@ -1052,3 +1052,8 @@
     height: 0 !important;
 }
 
+@media (max-width: 767.98px) {
+    .servicio-card, .card-servicio, .detalle-dato-card { min-width: 0; }
+    .servicio-card img, .card-servicio img { max-height: 240px; object-fit: cover; }
+    .modal-custom-serv .modal-body { overflow-wrap: anywhere; }
+}

@@ -498,3 +498,7 @@
     padding: 2px 9px;
     border-radius: 50px;
 }
+@media (max-width: 767.98px) {
+    .nosotros-card, .about-card { min-width: 0; }
+    .nosotros-card img, .about-card img { width: 100%; height: auto; }
+}

@@ -430,3 +430,8 @@
         height: 260px;
     }
 }
+@media (max-width: 767.98px) {
+    .formulario-contacto { min-width: 0; width: 100%; }
+    .formulario-contacto .row > * { min-width: 0; }
+    .formulario-contacto textarea { min-height: 120px; }
+}
